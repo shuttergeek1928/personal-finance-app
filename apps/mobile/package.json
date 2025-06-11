@@ -1,0 +1,45 @@
+{
+  "name": "personal-finance-app",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "main": "index.ts",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web",
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "check-types": "turbo run check-types"
+  },
+  "dependencies": {
+    "@expo/vector-icons": "^14.0.0",
+    "@react-navigation/native": "^7.1.10",
+    "@react-navigation/native-stack": "^7.3.14",
+    "expo": "~53.0.0",
+    "expo-status-bar": "~2.2.3",
+    "metro": "^0.82.0",
+    "metro-core": "^0.82.0",
+    "metro-runtime": "^0.82.0",
+    "metro-source-map": "^0.82.0",
+    "nativewind": "^4.1.23",
+    "react": "19.0.0",
+    "react-native": "0.79.3",
+    "react-native-safe-area-context": "^5.4.0",
+    "react-native-screens": "~4.11.1"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.20.0",
+    "@types/react": "~19.0.10",
+    "prettier": "^3.5.3",
+    "turbo": "^2.5.4",
+    "typescript": "^5.3.0"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "packageManager": "npm@10.5.2"
+}

@@ -1,4 +1,6 @@
-﻿using MediatR;
+﻿using AutoMapper;
+using MediatR;
+using PersonalFinance.Services.UserManagement.Application.Common;
 using PersonalFinance.Services.UserManagement.Application.DataTransferObjects.Response;
 using PersonalFinance.Services.UserManagement.Infrastructure.Data;
 
@@ -13,22 +15,18 @@ namespace PersonalFinance.Services.UserManagement.Application.Commands
         }
     }
 
-    public class DeleteUserCommandHandler : IRequestHandler<DeleteUserCommand, ApiResponse<bool>>
+    public class DeleteUserCommandHandler : BaseRequestHandler<DeleteUserCommand, ApiResponse<bool>>
     {
-        private readonly UserManagementDbContext _context;
-        private readonly ILogger<DeleteUserCommandHandler> _logger;
-        public DeleteUserCommandHandler(UserManagementDbContext context, ILogger<DeleteUserCommandHandler> logger)
+        public DeleteUserCommandHandler(UserManagementDbContext context, ILogger<DeleteUserCommandHandler> logger, IMapper mapper) : base(context, logger, mapper)
         {
-            _context = context;
-            _logger = logger;
         }
 
-        public async Task<ApiResponse<bool>> Handle(DeleteUserCommand request, CancellationToken cancellationToken)
+        public override async Task<ApiResponse<bool>> Handle(DeleteUserCommand request, CancellationToken cancellationToken)
         {
             try
             {
 
-                var user = await _context.Users.FindAsync(request.UserId);
+                var user = await UserExistAsync(request.UserId, cancellationToken: cancellationToken);
 
                 if (user == null)
                 {
@@ -36,14 +34,14 @@ namespace PersonalFinance.Services.UserManagement.Application.Commands
                 }
 
                 user.Deactivate("User deleted by request");
-                await _context.SaveChangesAsync(cancellationToken);
+                await Context.SaveChangesAsync(cancellationToken);
 
-                _logger.LogInformation("User with ID {UserId} deleted successfully", request.UserId);
+                Logger.LogInformation("User with ID {UserId} deleted successfully", request.UserId);
                 return ApiResponse<bool>.SuccessResult(true, "User deleted successfully");
             }
             catch (Exception ex)
             {
-                _logger.LogInformation("User with ID {UserId} not deleted!", request.UserId);
+                Logger.LogInformation("User with ID {UserId} not deleted!", request.UserId);
                 return ApiResponse<bool>.ErrorResult($"An error occurred while deleting the user: {ex.Message}");
             }
         }

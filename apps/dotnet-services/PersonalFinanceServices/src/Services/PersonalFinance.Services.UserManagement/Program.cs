@@ -5,6 +5,7 @@ using PersonalFinance.Services.UserManagement.Application.Mappings;
 using PersonalFinance.Services.UserManagement.Application.Services;
 using PersonalFinance.Services.UserManagement.Infrastructure.Data;
 using System.Reflection;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -39,8 +40,14 @@ builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Regis
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 
 // Add Logging
-builder.Services.AddLogging();
+Log.Logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(builder.Configuration)
+    .Enrich.FromLogContext()
+    .CreateLogger();
 
+builder.Host.UseSerilog(Log.Logger);
+
+builder.Services.AddLogging();
 // Add CORS
 builder.Services.AddCors(options => options.AddPolicy("AllowMyOrigins", builder =>
 {
@@ -62,6 +69,8 @@ app.UseSwaggerUI(c =>
 app.UseHttpsRedirection();
 app.UseCors("AllowMyOrigins");
 app.UseAuthorization();
+
+app.UseSerilogRequestLogging(); // Add Serilog request logging
 
 app.MapControllers();
 

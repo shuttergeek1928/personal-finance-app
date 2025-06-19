@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using PersonalFinance.Services.UserManagement.Application.Common;
 using PersonalFinance.Services.UserManagement.Application.DataTransferObjects.Response;
 using PersonalFinance.Services.UserManagement.Application.DTOs;
 using PersonalFinance.Services.UserManagement.Application.Mappings;
@@ -18,27 +19,24 @@ namespace PersonalFinance.Services.UserManagement.Application.Queries
         }
     }
 
-    public class GetUserByEmailQueryHandler : IRequestHandler<GetUserByEmailQuery, ApiResponse<UserTransferObject>>
+    public class GetUserByEmailQueryHandler : BaseQueryHandler<GetUserByEmailQuery, ApiResponse<UserTransferObject>>
     {
-        private readonly UserManagementDbContext _context;
-        private readonly IMapper _mapper;
-        public GetUserByEmailQueryHandler(UserManagementDbContext context, IMapper mapper)
+        public GetUserByEmailQueryHandler(UserManagementDbContext context, ILogger<GetUserByEmailQueryHandler> logger, IMapper mapper) : base(context, logger, mapper)
         {
-            _context = context ?? throw new ArgumentNullException(nameof(context), "UserManagementDbContext cannot be null");
-            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper), "Mapper cannot be null");
         }
-        public async Task<ApiResponse<UserTransferObject>> Handle(GetUserByEmailQuery request, CancellationToken cancellationToken)
+        public override async Task<ApiResponse<UserTransferObject>> Handle(GetUserByEmailQuery request, CancellationToken cancellationToken)
         {
-            var user = await _context.Users
+            var user = await Context.Users
                 .Include(u => u.Profile)
                 .Include(u => u.UserRoles)
                     .ThenInclude(ur => ur.Role)
                 .FirstOrDefaultAsync(u => u.Email.Value == request.Email.Value, cancellationToken);
             if (user == null)
             {
+                Logger.LogError("User with email {Email} not found", request.Email.Value);
                 return ApiResponse<UserTransferObject>.ErrorResult("User not found");
             }
-            var userDto = user.ToDto(_mapper);
+            var userDto = user.ToDto(Mapper);
             return ApiResponse<UserTransferObject>.SuccessResult(userDto);
         }
     }

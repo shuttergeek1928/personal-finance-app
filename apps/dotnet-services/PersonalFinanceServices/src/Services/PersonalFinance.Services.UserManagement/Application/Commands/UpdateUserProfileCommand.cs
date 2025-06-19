@@ -1,10 +1,9 @@
 ﻿using AutoMapper;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
+using PersonalFinance.Services.UserManagement.Application.Common;
 using PersonalFinance.Services.UserManagement.Application.DataTransferObjects.Response;
 using PersonalFinance.Services.UserManagement.Application.DTOs;
 using PersonalFinance.Services.UserManagement.Infrastructure.Data;
-using System.Runtime.CompilerServices;
 
 namespace PersonalFinance.Services.UserManagement.Application.Commands
 {
@@ -20,23 +19,16 @@ namespace PersonalFinance.Services.UserManagement.Application.Commands
         public string Language { get; set; }
     }
 
-    public class UpdateUserProfileCommandHandler : IRequestHandler<UpdateUserProfileCommand, ApiResponse<UserTransferObject>>
+    public class UpdateUserProfileCommandHandler : BaseRequestHandler<UpdateUserProfileCommand, ApiResponse<UserTransferObject>>
     {
-        private readonly UserManagementDbContext _context;
-        private readonly IMapper _mapper;
-        private readonly ILogger<UpdateUserProfileCommandHandler> _logger;
-
         public UpdateUserProfileCommandHandler(
             UserManagementDbContext context,
-            IMapper mapper,
-            ILogger<UpdateUserProfileCommandHandler> logger)
+            ILogger<UpdateUserProfileCommandHandler> logger,
+            IMapper mapper) : base(context, logger, mapper)
         {
-            _context = context;
-            _mapper = mapper;
-            _logger = logger;
         }
 
-        public async Task<ApiResponse<UserTransferObject>> Handle(UpdateUserProfileCommand request, CancellationToken cancellationToken)
+        public override async Task<ApiResponse<UserTransferObject>> Handle(UpdateUserProfileCommand request, CancellationToken cancellationToken)
         {
             try
             {
@@ -48,14 +40,13 @@ namespace PersonalFinance.Services.UserManagement.Application.Commands
                 }
 
                 //Find the user exist or not
-                var user = await _context.Users
-                    .Include(u => u.Profile)
-                    .Include(u => u.UserRoles)
-                        .ThenInclude(ur => ur.Role)
-                    .FirstOrDefaultAsync(u => u.Id == request.UserId, cancellationToken);
+                var user = await UserExistAsync(request.UserId, cancellationToken: cancellationToken);
 
                 if (user == null)
+                {
+                    Logger.LogError("User with ID {UserId} not found", request.UserId);
                     return ApiResponse<UserTransferObject>.ErrorResult("User not found");
+                }
 
                 //Update user's basic info
                 user.UpdateProfile(request.FirstName, request.LastName, request.PhoneNumber);
@@ -72,17 +63,17 @@ namespace PersonalFinance.Services.UserManagement.Application.Commands
                     user.RecordLogin();
                 }
 
-                await _context.SaveChangesAsync(cancellationToken);
+                await Context.SaveChangesAsync(cancellationToken);
                 
                 //Map to DTO and return
-                var userResponse = _mapper.Map<UserTransferObject>(user);
-                _logger.LogInformation("User profile updated successfully: {UserId}", request.UserId);
+                var userResponse = Mapper.Map<UserTransferObject>(user);
+                Logger.LogInformation("User profile updated successfully: {UserId}", request.UserId);
                 return ApiResponse<UserTransferObject>.SuccessResult(userResponse, "User profile updated successfully");
 
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error updatin user: {UserId} : {Name}", request.UserId, $"{request.FirstName} {request.LastName}");
+                Logger.LogError(ex, "Error updating user: {UserId} : {Name}", request.UserId, $"{request.FirstName} {request.LastName}");
                 return ApiResponse<UserTransferObject>.ErrorResult("An error occurred while updating the user profile.");
             }
             

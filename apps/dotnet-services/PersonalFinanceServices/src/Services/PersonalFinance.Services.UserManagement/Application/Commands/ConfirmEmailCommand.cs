@@ -1,4 +1,6 @@
-﻿using MediatR;
+﻿using AutoMapper;
+using MediatR;
+using PersonalFinance.Services.UserManagement.Application.Common;
 using PersonalFinance.Services.UserManagement.Application.DataTransferObjects.Requests;
 using PersonalFinance.Services.UserManagement.Application.DataTransferObjects.Response;
 using PersonalFinance.Services.UserManagement.Infrastructure.Data;
@@ -14,28 +16,26 @@ namespace PersonalFinance.Services.UserManagement.Application.Commands
         }
     }
 
-    public class ConfirmEmailHandler : IRequestHandler<ConfirmEmailCommand, ApiResponse<bool>>
+    public class ConfirmEmailHandler : BaseRequestHandler<ConfirmEmailCommand, ApiResponse<bool>>
     {
-        private readonly UserManagementDbContext _context;
-        private ILogger<ConfirmEmailHandler> _logger;
-        public ConfirmEmailHandler(UserManagementDbContext context, ILogger<ConfirmEmailHandler> logger)
+        public ConfirmEmailHandler(UserManagementDbContext context, ILogger<ConfirmEmailHandler> logger, IMapper mapper) : base(context, logger, mapper)
         {
-            _context = context;
-            _logger = logger;
         }
 
-        public async Task<ApiResponse<bool>> Handle(ConfirmEmailCommand request, CancellationToken token)
+        public override async Task<ApiResponse<bool>> Handle(ConfirmEmailCommand request, CancellationToken token)
         {
-            var user = await _context.Users.FindAsync(request.UserId);
+            var user = await Context.Users.FindAsync(request.UserId);
 
             if(user == null)
+            {
+                Logger.LogError("User with ID {UserId} not found", request.UserId);
                 return ApiResponse<bool>.ErrorResult("User not found");
+            }
 
             user.ConfirmEmail();
-            await _context.SaveChangesAsync();
+            await Context.SaveChangesAsync();
             
-            _logger.LogInformation("Email confirmed for user: {UserId}", request.UserId);
-
+            Logger.LogInformation("Email confirmed for user: {UserId}", request.UserId);
             return ApiResponse<bool>.SuccessResult(true, "Email confirmed successfully");
         }
     }

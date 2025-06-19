@@ -79,6 +79,22 @@ namespace PersonalFinance.Services.UserManagement.Application.Common
         }
 
         /// <summary>  
+        /// Checks if an user exists in the database.  
+        /// </summary>  
+        /// <param name="userId">The username to fidn the user.</param>  
+        /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>  
+        /// <returns>A task that represents the asynchronous operation. The task result contains user object if the user exists; otherwise, null.</returns>  
+        protected async Task<User?> UserExistAsync(Guid userId, bool includeChilds = false, CancellationToken cancellationToken = default)
+        {
+            return await Context.Users
+               .Include(u => includeChilds ? u.Profile : null)
+               .Include(u => includeChilds ? u.UserRoles : null)
+                   .ThenInclude(ur => includeChilds ? ur.Role : null)
+               .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
+        }
+
+
+        /// <summary>  
         /// Retrieves a role by its name if it exists in the Roles table.  
         /// </summary>  
         /// <param name="roleName">The name of the role to retrieve.</param>  

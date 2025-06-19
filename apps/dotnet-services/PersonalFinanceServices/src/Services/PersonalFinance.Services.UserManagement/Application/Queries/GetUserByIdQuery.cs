@@ -5,6 +5,7 @@ using PersonalFinance.Services.UserManagement.Application.DTOs;
 using PersonalFinance.Services.UserManagement.Infrastructure.Data;
 using PersonalFinance.Services.UserManagement.Application.Mappings;
 using PersonalFinance.Services.UserManagement.Application.DataTransferObjects.Response;
+using PersonalFinance.Services.UserManagement.Application.Common;
 
 namespace PersonalFinance.Services.UserManagement.Application.Queries
 {
@@ -18,20 +19,16 @@ namespace PersonalFinance.Services.UserManagement.Application.Queries
         }
     }
 
-    public class GetUserByIdQueryHandler : IRequestHandler<GetUserByIdQuery, ApiResponse<UserTransferObject>>
+    public class GetUserByIdQueryHandler : BaseQueryHandler<GetUserByIdQuery, ApiResponse<UserTransferObject>>
     {
-        private readonly UserManagementDbContext _context;
-        private readonly IMapper _mapper;
-
-        public GetUserByIdQueryHandler(UserManagementDbContext context, IMapper mapper)
+        public GetUserByIdQueryHandler(UserManagementDbContext context, ILogger<GetUserByIdQueryHandler> logger, IMapper mapper)
+            : base(context, logger, mapper)
         {
-            _context = context;
-            _mapper = mapper;
         }
 
-        public async Task<ApiResponse<UserTransferObject>> Handle(GetUserByIdQuery request, CancellationToken cancellationToken)
+        public override async Task<ApiResponse<UserTransferObject>> Handle(GetUserByIdQuery request, CancellationToken cancellationToken)
         {
-            var user = await _context.Users
+            var user = await Context.Users
                 .Include(u => u.Profile)
                 .Include(u => u.UserRoles)
                     .ThenInclude(ur => ur.Role)
@@ -39,10 +36,11 @@ namespace PersonalFinance.Services.UserManagement.Application.Queries
 
             if (user == null)
             {
+                Logger.LogError("User with ID {UserId} not found", request.UserId);
                 return ApiResponse<UserTransferObject>.ErrorResult("User not found");
             }
 
-            var UserTransferObject = user.ToDto(_mapper);
+            var UserTransferObject = user.ToDto(Mapper);
             return ApiResponse<UserTransferObject>.SuccessResult(UserTransferObject);
         }
     }

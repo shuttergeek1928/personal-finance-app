@@ -23,8 +23,7 @@ builder.Services.AddSwaggerGen(c =>
 
 builder.WebHost.ConfigureKestrel(options =>
 {
-    options.ListenAnyIP(5082, listenOption => listenOption.UseHttps()); // Bind to https port 5082
-    options.ListenAnyIP(5012); // Bind to port 5012
+    options.ListenAnyIP(5100); // Bind to http 5100
 });
 
 builder.Services.AddDbContext<UserManagementDbContext>(options =>
@@ -51,7 +50,7 @@ builder.Services.AddLogging();
 // Add CORS
 builder.Services.AddCors(options => options.AddPolicy("AllowMyOrigins", builder =>
 {
-    builder.WithOrigins("https://localhost:5082", "http://localhost:5012")
+    builder.WithOrigins("http://localhost:5100")
         .AllowAnyMethod()
         .AllowAnyHeader();
 }));

@@ -20,7 +20,6 @@ WORKDIR /app
 COPY --from=build /app/publish .
 
 #EXPOSE PORTS
-EXPOSE 5082
-EXPOSE 5012
+EXPOSE 5100
 
 ENTRYPOINT ["dotnet", "PersonalFinance.Services.UserManagement.dll"]

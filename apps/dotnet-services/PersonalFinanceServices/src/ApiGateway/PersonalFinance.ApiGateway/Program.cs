@@ -7,10 +7,12 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddReverseProxy()
+    .LoadFromConfig(builder.Configuration.GetSection("ReverseProxy"));
+
 builder.WebHost.ConfigureKestrel(options =>
 {
-    options.ListenAnyIP(5081); // Bind to port 5081
-    options.ListenAnyIP(5080); // Bind to port 5080
+    options.ListenAnyIP(5000);
 });
 
 var app = builder.Build();
@@ -20,9 +22,11 @@ app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "Api Gateway v1");
+    c.SwaggerEndpoint("/gateway-users/swagger/v1/swagger.json", "User Management v1");
     c.RoutePrefix = string.Empty; // Set Swagger UI at the app's root
 });
 
+app.MapReverseProxy();
 
 app.UseHttpsRedirection();
 

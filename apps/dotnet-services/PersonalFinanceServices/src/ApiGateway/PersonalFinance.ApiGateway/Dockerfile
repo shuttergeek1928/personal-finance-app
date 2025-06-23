@@ -20,7 +20,6 @@ WORKDIR /app
 COPY --from=build /app/publish .
 
 #EXPOSE PORTS
-EXPOSE 5081
-EXPOSE 5080
+EXPOSE 5000
 
 ENTRYPOINT ["dotnet", "PersonalFinance.ApiGateway.dll"]

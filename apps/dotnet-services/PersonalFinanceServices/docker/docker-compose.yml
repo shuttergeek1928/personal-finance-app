@@ -10,45 +10,47 @@
       - MSSQL_PID=Developer
     ports:
       - "1433:1433"
+    networks:
+      - finance_network
     volumes:
       - sqlserver_data:/var/opt/mssql
     restart: unless-stopped
 
-  # Redis
-  redis:
-    image: redis:7-alpine
-    container_name: finance-redis
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
-    restart: unless-stopped
+  # # Redis
+  # redis:
+  #   image: redis:alpine
+  #   container_name: finance-redis
+  #   ports:
+  #     - "6379:6379"
+  #   volumes:
+  #     - redis_data:/data
+  #   restart: unless-stopped
 
-  # RabbitMQ
-  rabbitmq:
-    image: rabbitmq:3-management
-    container_name: finance-rabbitmq
-    environment:
-      - RABBITMQ_DEFAULT_USER=admin
-      - RABBITMQ_DEFAULT_PASS=admin123
-    ports:
-      - "5672:5672"
-      - "15672:15672"
-    volumes:
-      - rabbitmq_data:/var/lib/rabbitmq
-    restart: unless-stopped
+  # # RabbitMQ
+  # rabbitmq:
+  #   image: rabbitmq:management
+  #   container_name: finance-rabbitmq
+  #   environment:
+  #     - RABBITMQ_DEFAULT_USER=admin
+  #     - RABBITMQ_DEFAULT_PASS=admin123
+  #   ports:
+  #     - "5672:5672"
+  #     - "15672:15672"
+  #   volumes:
+  #     - rabbitmq_data:/var/lib/rabbitmq
+  #   restart: unless-stopped
 
-  # Seq
-  seq:
-    image: datalust/seq:latest
-    container_name: finance-seq
-    environment:
-      - ACCEPT_EULA=Y
-    ports:
-      - "5341:80"
-    volumes:
-      - seq_data:/data
-    restart: unless-stopped
+  # # Seq
+  # seq:
+  #   image: datalust/seq:latest
+  #   container_name: finance-seq
+  #   environment:
+  #     - ACCEPT_EULA=Y
+  #   ports:
+  #     - "5341:80"
+  #   volumes:
+  #     - seq_data:/data
+  #   restart: unless-stopped
 
   # API Gateway
   apigateway:
@@ -58,6 +60,9 @@
     container_name: finance-apigateway
     ports:
       - "5000:5081"
+      - "5001:5001"
+    networks:
+      - finance_network
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
     restart: unless-stopped
@@ -69,7 +74,9 @@
       dockerfile: src/Services/PersonalFinance.Services.UserManagement/Dockerfile
     container_name: finance-usermanagement
     ports:
-      - "5001:5082"
+      - "5100:5100"
+    networks:
+      - finance_network
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
     restart: unless-stopped
@@ -79,3 +86,7 @@ volumes:
   redis_data:
   rabbitmq_data:
   seq_data:
+
+networks:
+  finance_network:
+    driver: bridge

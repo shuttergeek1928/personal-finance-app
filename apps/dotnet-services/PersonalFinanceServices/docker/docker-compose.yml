@@ -59,8 +59,7 @@
       dockerfile: src/ApiGateway/PersonalFinance.ApiGateway/Dockerfile
     container_name: finance-apigateway
     ports:
-      - "5000:5081"
-      - "5001:5001"
+      - "5000:5000"
     networks:
       - finance_network
     environment:

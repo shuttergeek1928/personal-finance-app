@@ -64,7 +64,7 @@ namespace PersonalFinance.Services.UserManagement.Application.Commands
                 }
 
                 await Context.SaveChangesAsync(cancellationToken);
-                
+
                 //Map to DTO and return
                 var userResponse = Mapper.Map<UserTransferObject>(user);
                 Logger.LogInformation("User profile updated successfully: {UserId}", request.UserId);
@@ -76,7 +76,7 @@ namespace PersonalFinance.Services.UserManagement.Application.Commands
                 Logger.LogError(ex, "Error updating user: {UserId} : {Name}", request.UserId, $"{request.FirstName} {request.LastName}");
                 return ApiResponse<UserTransferObject>.ErrorResult("An error occurred while updating the user profile.");
             }
-            
+
         }
 
         private async Task<ValidationResult> VerifyProfileUpdateAsync(UpdateUserProfileCommand request, CancellationToken token)

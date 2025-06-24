@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using MediatR;
 using PersonalFinance.Services.UserManagement.Application.Common;
-using PersonalFinance.Services.UserManagement.Application.DataTransferObjects.Requests;
 using PersonalFinance.Services.UserManagement.Application.DataTransferObjects.Response;
 using PersonalFinance.Services.UserManagement.Infrastructure.Data;
 
@@ -26,7 +25,7 @@ namespace PersonalFinance.Services.UserManagement.Application.Commands
         {
             var user = await Context.Users.FindAsync(request.UserId);
 
-            if(user == null)
+            if (user == null)
             {
                 Logger.LogError("User with ID {UserId} not found", request.UserId);
                 return ApiResponse<bool>.ErrorResult("User not found");
@@ -34,7 +33,7 @@ namespace PersonalFinance.Services.UserManagement.Application.Commands
 
             user.ConfirmEmail();
             await Context.SaveChangesAsync();
-            
+
             Logger.LogInformation("Email confirmed for user: {UserId}", request.UserId);
             return ApiResponse<bool>.SuccessResult(true, "Email confirmed successfully");
         }

@@ -1,5 +1,4 @@
-﻿using PersonalFinance.Services.UserManagement.Domain.Entities;
-using PersonalFinance.Shared.Common.Domain;
+﻿using PersonalFinance.Shared.Common.Domain;
 
 namespace PersonalFinance.Services.UserManagement.Domain.Entities
 {

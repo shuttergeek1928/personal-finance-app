@@ -1,6 +1,6 @@
-﻿using PersonalFinance.Shared.Common.Domain;
+﻿using PersonalFinance.Services.UserManagement.Domain.Events;
+using PersonalFinance.Shared.Common.Domain;
 using PersonalFinance.Shared.Common.Domain.ValueObjects;
-using PersonalFinance.Services.UserManagement.Domain.Events;
 
 namespace PersonalFinance.Services.UserManagement.Domain.Entities
 {
@@ -26,7 +26,7 @@ namespace PersonalFinance.Services.UserManagement.Domain.Entities
             FirstName = firstName ?? throw new ArgumentNullException(nameof(firstName));
             LastName = lastName ?? throw new ArgumentNullException(nameof(lastName));
             IsEmailConfirmed = false;
-                
+
             AddDomainEvent(new UserRegisteredEvent(Id, Email, $"{FirstName} {LastName}"));
         }
 

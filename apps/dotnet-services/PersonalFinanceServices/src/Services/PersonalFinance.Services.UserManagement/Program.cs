@@ -1,11 +1,10 @@
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using PersonalFinance.Services.UserManagement.Application.Commands;
 using PersonalFinance.Services.UserManagement.Application.Mappings;
 using PersonalFinance.Services.UserManagement.Application.Services;
 using PersonalFinance.Services.UserManagement.Infrastructure.Data;
-using System.Reflection;
 using Serilog;
+using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 

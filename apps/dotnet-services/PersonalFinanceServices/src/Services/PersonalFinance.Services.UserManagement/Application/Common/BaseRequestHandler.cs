@@ -1,12 +1,9 @@
 ﻿using AutoMapper;
-using Azure.Core;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using PersonalFinance.Services.UserManagement.Application.Services;
 using PersonalFinance.Services.UserManagement.Domain.Entities;
 using PersonalFinance.Services.UserManagement.Infrastructure.Data;
-using PersonalFinance.Shared.Contracts;
 
 namespace PersonalFinance.Services.UserManagement.Application.Common
 {
@@ -202,8 +199,8 @@ namespace PersonalFinance.Services.UserManagement.Application.Common
         }
     }
 
-  
-  /// <summary>  
+
+    /// <summary>  
     /// Represents the result of a validation operation.  
     /// </summary>  
     public class ValidationResult

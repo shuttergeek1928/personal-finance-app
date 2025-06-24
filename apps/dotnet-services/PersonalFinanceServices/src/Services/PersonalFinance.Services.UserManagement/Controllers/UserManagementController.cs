@@ -1,13 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using MediatR;
+﻿using MediatR;
+using Microsoft.AspNetCore.Mvc;
 using PersonalFinance.Services.UserManagement.Application.Commands;
-using PersonalFinance.Services.UserManagement.Application.Queries;
-using PersonalFinance.Services.UserManagement.Application.DTOs;
-using System.ComponentModel.DataAnnotations;
+using PersonalFinance.Services.UserManagement.Application.DataTransferObjects;
 using PersonalFinance.Services.UserManagement.Application.DataTransferObjects.Requests;
 using PersonalFinance.Services.UserManagement.Application.DataTransferObjects.Response;
+using PersonalFinance.Services.UserManagement.Application.DTOs;
+using PersonalFinance.Services.UserManagement.Application.Queries;
 using System.Linq.Dynamic.Core;
-using PersonalFinance.Services.UserManagement.Application.DataTransferObjects;
 
 namespace PersonalFinance.Services.UserManagement.Controllers
 {

@@ -63,7 +63,7 @@
     networks:
       - finance_network
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_ENVIRONMENT=Docker
     restart: unless-stopped
   
   # User Management
@@ -77,7 +77,21 @@
     networks:
       - finance_network
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_ENVIRONMENT=Docker
+    restart: unless-stopped
+
+  # Accounts
+  accounts:
+    build:
+      context: ../           # 👈 Set context to one level above to include src and .sln
+      dockerfile: src/Services/PersonalFinance.Services.Accounts/Dockerfile
+    container_name: finance-accounts
+    ports:
+      - "5200:5200"
+    networks:
+      - finance_network
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Docker
     restart: unless-stopped
 
 volumes:

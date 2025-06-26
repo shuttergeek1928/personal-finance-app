@@ -1,8 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
-using PersonalFinance.Shared.Common.Infrastructure;
-using PersonalFinance.Services.UserManagement.Domain.Entities;
-using MediatR;
+﻿using MediatR;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using PersonalFinance.Services.UserManagement.Domain.Entities;
+using PersonalFinance.Shared.Common.Infrastructure;
 
 namespace PersonalFinance.Services.UserManagement.Infrastructure.Data
 {
@@ -24,7 +24,7 @@ namespace PersonalFinance.Services.UserManagement.Infrastructure.Data
 
             // Apply configurations
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(UserManagementDbContext).Assembly);
-            ConfigureEntityFilters(modelBuilder);          
+            ConfigureEntityFilters(modelBuilder);
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

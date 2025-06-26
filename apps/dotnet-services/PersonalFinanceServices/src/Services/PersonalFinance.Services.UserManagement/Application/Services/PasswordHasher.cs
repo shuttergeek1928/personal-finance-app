@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using PersonalFinance.Services.UserManagement.Application.Services;
 
 namespace PersonalFinance.Services.UserManagement.Application.Services
 {

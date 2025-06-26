@@ -1,10 +1,6 @@
 ﻿// PersonalFinance.Services.UserManagement/Application/Commands/RegisterUserCommand.cs
 using AutoMapper;
 using MediatR;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc.ApiExplorer;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Query;
 using PersonalFinance.Services.UserManagement.Application.Common;
 using PersonalFinance.Services.UserManagement.Application.DataTransferObjects.Response;
 using PersonalFinance.Services.UserManagement.Application.DTOs;
@@ -31,7 +27,7 @@ namespace PersonalFinance.Services.UserManagement.Application.Commands
             UserManagementDbContext context,
             IPasswordHasher passwordHasher,
             IMapper mapper,
-            ILogger<RegisterUserCommandHandler> logger) :  base(context, logger, mapper, passwordHasher) 
+            ILogger<RegisterUserCommandHandler> logger) : base(context, logger, mapper, passwordHasher)
         {
         }
 
@@ -41,7 +37,7 @@ namespace PersonalFinance.Services.UserManagement.Application.Commands
             {
                 Logger.LogInformation("Starting user registration for email: {Email}", request.Email);
 
-                if(await EmailExistAsync(request.Email))
+                if (await EmailExistAsync(request.Email))
                 {
                     return ApiResponse<UserTransferObject>.ErrorResult("A user with this email address already exists");
                 }

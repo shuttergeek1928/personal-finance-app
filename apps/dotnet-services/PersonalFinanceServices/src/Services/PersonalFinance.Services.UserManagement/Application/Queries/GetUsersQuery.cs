@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using PersonalFinance.Services.UserManagement.Application.Commands;
 using PersonalFinance.Services.UserManagement.Application.Common;
 using PersonalFinance.Services.UserManagement.Application.DataTransferObjects;
 using PersonalFinance.Services.UserManagement.Application.DataTransferObjects.Response;

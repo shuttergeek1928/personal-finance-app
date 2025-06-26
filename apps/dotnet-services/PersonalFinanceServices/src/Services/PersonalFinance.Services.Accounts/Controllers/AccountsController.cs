@@ -113,10 +113,39 @@ namespace PersonalFinance.Services.Accounts.Controllers
         /// </summary>
         /// <param name="id">Account Id</param>
         /// <returns>Account details</returns>
+        [HttpGet("userid/{userId:guid}")]
+        [ProducesResponseType(typeof(ApiResponse<AccountTransferObject>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<AccountTransferObject>), StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<ApiResponse<List<AccountTransferObject>>>> GetByUserId(Guid userId)
+        {
+            try
+            {
+                var query = new GetAccountByUserIdQuery(userId);
+                var result = await _mediator.Send(query);
+
+                if (result.Success)
+                {
+                    return Ok(result);
+                }
+
+                return NotFound(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving accounts for userId: {userId}", userId);
+                return StatusCode(500, ApiResponse<AccountTransferObject>.ErrorResult("An internal error occurred"));
+            }
+        }
+        
+        /// <summary>
+        /// Get account by account id
+        /// </summary>
+        /// <param name="id">Account Id</param>
+        /// <returns>Account details</returns>
         [HttpGet("{id:guid}")]
         [ProducesResponseType(typeof(ApiResponse<AccountTransferObject>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<AccountTransferObject>), StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<ApiResponse<AccountTransferObject>>> GetByAccountNumber(Guid id)
+        public async Task<ActionResult<ApiResponse<AccountTransferObject>>> GetByAccountId(Guid id)
         {
             try
             {
@@ -263,6 +292,36 @@ namespace PersonalFinance.Services.Accounts.Controllers
             {
                 _logger.LogError(ex, "Error withdrawing the money: {AccountNumber}", request.AccountNumber);
                 return StatusCode(500, ApiResponse<AccountTransferObject>.ErrorResult("An internal error occurred"));
+            }
+        }
+
+        /// <summary>
+        /// Sets the default account for a user
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="accountNumber"></param>
+        /// <returns>Returns the account object which is set to default</returns>
+        [HttpPut("{userId:guid}/set-default")]
+        [ProducesResponseType(typeof(ApiResponse<AccountTransferObject>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<AccountTransferObject>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ApiResponse<AccountTransferObject>), StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<ApiResponse<AccountTransferObject>>> SetDefaultAccount(Guid userId, string accountNumber)
+        {
+            try
+            {
+                var command = new SetDefaultAccountCommand(userId, accountNumber);
+
+                var result = await _mediator.Send(command);
+
+                if (result.Success)
+                    return Ok(result);
+
+                return BadRequest(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error setting default account for user: {UserId} with account number: {AccountNumber}", userId, accountNumber);
+                return ApiResponse<AccountTransferObject>.ErrorResult("An internal error occurred while setting default account");
             }
         }
     }

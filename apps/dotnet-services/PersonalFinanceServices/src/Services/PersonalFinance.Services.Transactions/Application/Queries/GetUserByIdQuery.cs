@@ -9,39 +9,36 @@ using PersonalFinance.Services.Transactions.Infrastructure.Data;
 
 namespace PersonalFinance.Services.Transactions.Application.Queries
 {
-    public class GetUserByIdQuery : IRequest<ApiResponse<UserTransferObject>>
+    public class GetTransactionByIdQuery : IRequest<ApiResponse<TransactionTransferObject>>
     {
-        public Guid UserId { get; set; }
+        public Guid Id { get; set; }
 
-        public GetUserByIdQuery(Guid userId)
+        public GetTransactionByIdQuery(Guid id)
         {
-            UserId = userId;
+            Id = id;
         }
     }
 
-    public class GetUserByIdQueryHandler : BaseQueryHandler<GetUserByIdQuery, ApiResponse<UserTransferObject>>
+    public class GetUserByIdQueryHandler : BaseRequestHandler<GetTransactionByIdQuery, ApiResponse<TransactionTransferObject>>
     {
-        public GetUserByIdQueryHandler(UserManagementDbContext context, ILogger<GetUserByIdQueryHandler> logger, IMapper mapper)
+        public GetUserByIdQueryHandler(TransactionDbContext context, ILogger<GetUserByIdQueryHandler> logger, IMapper mapper)
             : base(context, logger, mapper)
         {
         }
 
-        public override async Task<ApiResponse<UserTransferObject>> Handle(GetUserByIdQuery request, CancellationToken cancellationToken)
+        public override async Task<ApiResponse<TransactionTransferObject>> Handle(GetTransactionByIdQuery request, CancellationToken cancellationToken)
         {
-            var user = await Context.Users
-                .Include(u => u.Profile)
-                .Include(u => u.UserRoles)
-                    .ThenInclude(ur => ur.Role)
-                .FirstOrDefaultAsync(u => u.Id == request.UserId, cancellationToken);
+            var transaction = await Context.Transactions.AsNoTracking()
+                .FirstOrDefaultAsync(t => t.Id == request.Id, cancellationToken);
 
-            if (user == null)
+            if (transaction == null)
             {
-                Logger.LogError("User with ID {UserId} not found", request.UserId);
-                return ApiResponse<UserTransferObject>.ErrorResult("User not found");
+                Logger.LogError("Transaction with ID {transactionId} not found", request.Id);
+                return ApiResponse<TransactionTransferObject>.ErrorResult("User not found");
             }
 
-            var UserTransferObject = user.ToDto(Mapper);
-            return ApiResponse<UserTransferObject>.SuccessResult(UserTransferObject);
+            var TransactionTransferObject = transaction.ToDto(Mapper);
+            return ApiResponse<TransactionTransferObject>.SuccessResult(TransactionTransferObject);
         }
     }
 }

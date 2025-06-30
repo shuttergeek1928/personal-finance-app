@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using PersonalFinance.Services.Transactions.Application.Commands;
 using PersonalFinance.Services.Transactions.Application.Mappings;
-using PersonalFinance.Services.Transactions.Application.Services;
 using PersonalFinance.Services.Transactions.Infrastructure.Data;
 using Serilog;
 using System.Reflection;
@@ -26,17 +25,20 @@ builder.WebHost.ConfigureKestrel(options =>
     options.ListenAnyIP(5300); // Bind to http 5300
 });
 
-builder.Services.AddDbContext<UserManagementDbContext>(options =>
+builder.Configuration
+    .SetBasePath(Directory.GetCurrentDirectory())
+    .AddJsonFile("appsettings.json")
+    .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true)
+    .AddEnvironmentVariables();
+
+builder.Services.AddDbContext<TransactionDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnectionString")));
 
 // Add AutoMapper
-builder.Services.AddAutoMapper(typeof(UserMappingProfile));
+builder.Services.AddAutoMapper(typeof(TransactionMappingProfile));
 
 // Add MediatR
-builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(RegisterUserCommand).Assembly));
-
-// Add Pssword Hasher
-builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(CreateIncomeTransactionCommand).Assembly));
 
 // Add Logging
 Log.Logger = new LoggerConfiguration()

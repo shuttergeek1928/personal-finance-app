@@ -24,6 +24,7 @@ app.UseSwaggerUI(c =>
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "Api Gateway v1");
     c.SwaggerEndpoint("/gateway-users/swagger/v1/swagger.json", "User Management v1");
     c.SwaggerEndpoint("/gateway-accounts/swagger/v1/swagger.json", "Account v1");
+    c.SwaggerEndpoint("/gateway-transactions/swagger/v1/swagger.json", "Transactions v1");
     c.RoutePrefix = string.Empty; // Set Swagger UI at the app's root
 });
 

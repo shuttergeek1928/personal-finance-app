@@ -46,6 +46,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PersonalFinance.ApiGateway"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PersonalFinance.Services.Accounts", "src\Services\PersonalFinance.Services.Accounts\PersonalFinance.Services.Accounts.csproj", "{49627C1B-87F7-4070-A58E-8F3BBEB9E094}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PersonalFinance.Services.Transactions", "src\Services\PersonalFinance.Services.Transactions\PersonalFinance.Services.Transactions.csproj", "{04F1C823-29D0-426F-A35C-9A256A5D8A07}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -76,6 +78,10 @@ Global
 		{49627C1B-87F7-4070-A58E-8F3BBEB9E094}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{49627C1B-87F7-4070-A58E-8F3BBEB9E094}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{49627C1B-87F7-4070-A58E-8F3BBEB9E094}.Release|Any CPU.Build.0 = Release|Any CPU
+		{04F1C823-29D0-426F-A35C-9A256A5D8A07}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{04F1C823-29D0-426F-A35C-9A256A5D8A07}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{04F1C823-29D0-426F-A35C-9A256A5D8A07}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{04F1C823-29D0-426F-A35C-9A256A5D8A07}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -97,5 +103,6 @@ Global
 		{AD715BD5-F004-4554-8A87-B98069B4EE92} = {47597D8F-4568-4081-8C70-BE4792950071}
 		{580AA3D3-B96E-4858-A375-21D0722C1E54} = {CA8CA5AF-EA5E-43C3-9799-C37F35D9B5C9}
 		{49627C1B-87F7-4070-A58E-8F3BBEB9E094} = {4EBA4483-EBE9-445E-8CDF-486B0F6F7BEA}
+		{04F1C823-29D0-426F-A35C-9A256A5D8A07} = {E004D922-B830-4596-9D3B-F3C5DD5D6244}
 	EndGlobalSection
 EndGlobal

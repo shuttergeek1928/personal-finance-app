@@ -94,6 +94,20 @@
       - ASPNETCORE_ENVIRONMENT=Docker
     restart: unless-stopped
 
+  # Transactions
+  transactions:
+    build:
+      context: ../           # 👈 Set context to one level above to include src and .sln
+      dockerfile: src/Services/PersonalFinance.Services.Transactions/Dockerfile
+    container_name: finance-transactions
+    ports:
+      - "5300:5300"
+    networks:
+      - finance_network
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Docker
+    restart: unless-stopped
+
 volumes:
   sqlserver_data:
   redis_data:

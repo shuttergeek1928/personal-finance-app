@@ -56,7 +56,7 @@ builder.Services.AddLogging();
 // Add CORS
 builder.Services.AddCors(options => options.AddPolicy("AllowMyOrigins", builder =>
 {
-    builder.WithOrigins("http://localhost:5200")
+    builder.AllowAnyOrigin()
         .AllowAnyMethod()
         .AllowAnyHeader();
 }));

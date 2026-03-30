@@ -1,0 +1,35 @@
+# This file automatically overrides docker-compose.yml for local development
+# It's not committed to the repository, so each developer can have their own setup
+
+services:
+  apigateway:
+    build:
+      args:
+        - CONFIGURATION=Debug
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Docker
+      - DOTNET_WATCH_ENABLED=true
+
+  user-management:
+    build:
+      args:
+        - CONFIGURATION=Debug
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Docker
+      - DOTNET_WATCH_ENABLED=true
+
+  accounts:
+    build:
+      args:
+        - CONFIGURATION=Debug
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Docker
+      - DOTNET_WATCH_ENABLED=true
+
+  transactions:
+    build:
+      args:
+        - CONFIGURATION=Debug
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Docker
+      - DOTNET_WATCH_ENABLED=true

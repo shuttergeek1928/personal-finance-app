@@ -63,6 +63,12 @@ namespace PersonalFinance.Services.Accounts.Domain.Entities
             AddDomainEvent(new DefaultAccountChnagedEvent(UserId, Name, IsDefault));
         }
 
+        public void TogggleActiveStatus(bool isActive)
+        {
+            IsActive = isActive;
+            AddDomainEvent(new AccountStatusChangedEvent(UserId, Id, Name, IsActive));
+        }
+
         public void AddDescription(string description)
         {
             if (string.IsNullOrWhiteSpace(description))

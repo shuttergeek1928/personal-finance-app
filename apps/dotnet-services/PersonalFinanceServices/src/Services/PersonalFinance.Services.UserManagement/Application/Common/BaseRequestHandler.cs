@@ -59,7 +59,7 @@ namespace PersonalFinance.Services.UserManagement.Application.Common
         /// <returns>A task that represents the asynchronous operation. The task result contains true if the email exists; otherwise, false.</returns>  
         protected async Task<bool> EmailExistAsync(string email, CancellationToken cancellationToken = default)
         {
-            return await Context.Users
+            return await Context.Users.IgnoreQueryFilters()
                 .AnyAsync(u => u.Email.Value == email.ToLower(), cancellationToken);
         }
 
@@ -81,9 +81,9 @@ namespace PersonalFinance.Services.UserManagement.Application.Common
         /// <param name="userId">The username to fidn the user.</param>  
         /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>  
         /// <returns>A task that represents the asynchronous operation. The task result contains user object if the user exists; otherwise, null.</returns>  
-        protected async Task<User?> UserExistAsync(Guid userId, bool includeChilds = false, CancellationToken cancellationToken = default)
+        protected async Task<User?> UserExistAsync(Guid userId, bool includeChilds = false, CancellationToken cancellationToken = default, bool ignoreQueryfilter = false)
         {
-            IQueryable<User> query = Context.Users;
+            IQueryable<User> query = ignoreQueryfilter ? Context.Users.IgnoreQueryFilters() : Context.Users;
 
             if (includeChilds)
             {

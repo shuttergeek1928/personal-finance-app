@@ -257,6 +257,35 @@ namespace PersonalFinance.Services.UserManagement.Controllers
         }
 
         /// <summary>
+        /// Activate the user after deleting
+        /// </summary>
+        /// <param name="id">User ID</param>
+        /// <returns>Success confirmation</returns>
+        [HttpPut("{id:guid}")]
+        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<ApiResponse<bool>>> ActivateUser(Guid id)
+        {
+            try
+            {
+                var command = new ActivateUserCommand(id);
+                var result = await _mediator.Send(command);
+
+                if (result.Success)
+                {
+                    return Ok(result);
+                }
+
+                return NotFound(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error activating user: {UserId}", id);
+                return StatusCode(500, ApiResponse<bool>.ErrorResult("An internal error occurred"));
+            }
+        }
+
+        /// <summary>
         /// Soft delete user
         /// </summary>
         /// <param name="id">User ID</param>

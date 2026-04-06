@@ -324,5 +324,35 @@ namespace PersonalFinance.Services.Accounts.Controllers
                 return ApiResponse<AccountTransferObject>.ErrorResult("An internal error occurred while setting default account");
             }
         }
+
+        /// <summary>
+        /// Marks the account as inactive instead of deleting it permanently
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="accountId"></param>
+        /// <returns>Returns the account object which is marked inactive</returns>
+        [HttpDelete("{userId:guid}/{accountId:guid}")]
+        [ProducesResponseType(typeof(ApiResponse<AccountTransferObject>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<AccountTransferObject>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ApiResponse<AccountTransferObject>), StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<ApiResponse<AccountTransferObject>>> DeleteAccount(Guid userId, Guid accountId)
+        {
+            try
+            {
+                var command = new DeleteAccountCommand(accountId, userId);
+
+                var result = await _mediator.Send(command);
+
+                if (result.Success)
+                    return Ok(result);
+
+                return BadRequest(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting the account for user: {UserId} with account id: {AccountId}", userId, accountId);
+                return ApiResponse<AccountTransferObject>.ErrorResult("An internal error occurred while deleting the account");
+            }
+        }
     }
 }

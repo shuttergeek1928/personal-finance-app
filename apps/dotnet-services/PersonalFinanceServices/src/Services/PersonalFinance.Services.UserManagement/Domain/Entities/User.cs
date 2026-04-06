@@ -87,6 +87,12 @@ namespace PersonalFinance.Services.UserManagement.Domain.Entities
             Profile = userProfile ?? throw new ArgumentNullException(nameof(userProfile));
         }
 
+        public void Activate(string reason)
+        {
+            IsActive = true;
+            AddDomainEvent(new UserDeactivatedEvent(Id, reason));
+        }
+
         public void Deactivate(string reason)
         {
             // Logic to deactivate user, e.g., setting a flag or removing roles

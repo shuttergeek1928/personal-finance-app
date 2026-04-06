@@ -39,7 +39,8 @@ namespace PersonalFinance.Services.UserManagement.Application.Queries
                     .Include(u => u.Profile)
                     .Include(u => u.UserRoles)
                         .ThenInclude(ur => ur.Role)
-                    .OrderBy(u => u.CreatedAt)
+                    .OrderByDescending(u => u.IsActive)
+                    .ThenBy(u => u.CreatedAt)
                     .Skip((request.PageNumber - 1) * request.PageSize)
                     .Take(request.PageSize)
                     .ToListAsync(cancellationToken);

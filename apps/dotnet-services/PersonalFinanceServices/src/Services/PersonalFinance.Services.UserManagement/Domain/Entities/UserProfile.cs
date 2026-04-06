@@ -33,6 +33,11 @@ namespace PersonalFinance.Services.UserManagement.Domain.Entities
             Language = language ?? throw new ArgumentNullException(nameof(language));
         }
 
+        public void UpdateDateOfBirth(DateTime? dateOfBirth)
+        {
+            DateOfBirth = dateOfBirth;
+        }
+
         public void SetAvatar(string avatarUrl)
         {
             Avatar = avatarUrl;

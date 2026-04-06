@@ -101,4 +101,9 @@ export const accountService = {
     const response = await api.put(`/gateway-accounts/api/Accounts/${userId}/set-default?accountNumber=${accountNumber}`, {}, { baseURL: GATEWAY_BASE_URL });
     return response.data;
   },
+
+  deleteAccount: async (userId: string, accountId: string): Promise<AccountTransferObjectApiResponse> => {
+    const response = await api.delete(`/gateway-accounts/api/Accounts/${userId}/${accountId}`, { baseURL: GATEWAY_BASE_URL });
+    return response.data;
+  },
 };

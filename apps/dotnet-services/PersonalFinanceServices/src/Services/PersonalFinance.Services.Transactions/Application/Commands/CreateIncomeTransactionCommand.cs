@@ -1,13 +1,16 @@
 ﻿// PersonalFinance.Services.Transactions/Application/Commands/RegisterUserCommand.cs
 using AutoMapper;
+using MassTransit;
 using MediatR;
 using PersonalFinance.Services.Transactions.Application.Common;
 using PersonalFinance.Services.Transactions.Application.DataTransferObjects.Response;
 using PersonalFinance.Services.Transactions.Application.DTOs;
 using PersonalFinance.Services.Transactions.Application.Mappings;
 using PersonalFinance.Services.Transactions.Domain.Entities;
+using PersonalFinance.Services.Transactions.Domain.Events;
 using PersonalFinance.Services.Transactions.Infrastructure.Data;
 using PersonalFinance.Shared.Common.Domain.ValueObjects;
+using PersonalFinance.Shared.Events.Events;
 
 namespace PersonalFinance.Services.Transactions.Application.Commands
 {
@@ -27,11 +30,13 @@ namespace PersonalFinance.Services.Transactions.Application.Commands
 
     public class CreateIncomeTransactionCommandHandler : BaseRequestHandler<CreateIncomeTransactionCommand, ApiResponse<TransactionTransferObject>>
     {
+        private readonly IPublishEndpoint _publishEndpoint;
         public CreateIncomeTransactionCommandHandler(
             TransactionDbContext context,
             IMapper mapper,
-            ILogger<CreateIncomeTransactionCommandHandler> logger) : base(context, logger, mapper)
+            ILogger<CreateIncomeTransactionCommandHandler> logger, IPublishEndpoint publishEndpoint) : base(context, logger, mapper)
         {
+            _publishEndpoint = publishEndpoint ?? throw new ArgumentNullException(nameof(publishEndpoint));
         }
 
         public override async Task<ApiResponse<TransactionTransferObject>> Handle(CreateIncomeTransactionCommand request, CancellationToken cancellationToken)
@@ -55,6 +60,18 @@ namespace PersonalFinance.Services.Transactions.Application.Commands
 
                 Context.Transactions.Add(transaction);
                 await Context.SaveChangesAsync(cancellationToken);
+
+                await _publishEndpoint.Publish(new IncomeTransactionCreatedEvent
+                {
+                    TransactionId = transaction.Id,
+                    UserId = transaction.UserId,
+                    AccountId = transaction.AccountId,
+                    Amount = transaction.Money.Amount,
+                    Currency = transaction.Money.Currency,
+                    Description = transaction.Description,
+                    Category = transaction.Category,
+                    TransactionDate = transaction.TransactionDate
+                });
 
                 var UserTransferObject = transaction.ToDto(Mapper);
 

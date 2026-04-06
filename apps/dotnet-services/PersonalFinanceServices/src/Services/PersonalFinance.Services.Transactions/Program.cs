@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Identity;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using PersonalFinance.Services.Transactions.Application.Commands;
 using PersonalFinance.Services.Transactions.Application.Mappings;
@@ -56,6 +56,22 @@ builder.Services.AddCors(options => options.AddPolicy("AllowMyOrigins", builder 
         .AllowAnyMethod()
         .AllowAnyHeader();
 }));
+
+// Existing code remains unchanged  
+
+builder.Services.AddMassTransit(x =>
+{
+    x.AddConsumers(typeof(Program).Assembly); // Registers all consumers in assembly
+    x.UsingRabbitMq((context, cfg) =>
+    {
+        cfg.Host("finance-rabbitmq", "/", h =>
+        {
+            h.Username("guest");
+            h.Password("guest");
+        });
+        cfg.ConfigureEndpoints(context);
+    });
+});
 
 var app = builder.Build();
 

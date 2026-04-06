@@ -16,7 +16,7 @@ export default function UsersPage() {
   const [error, setError] = useState<string | null>(null);
 
   // Search state
-  const [searchEmail, setSearchEmail] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Create User modal
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -35,8 +35,13 @@ export default function UsersPage() {
     setLoading(true);
     setError(null);
     try {
-      if (searchEmail.trim()) {
-        const res = await userService.getUserByEmail(searchEmail);
+      const query = searchQuery.trim();
+      if (query) {
+        const isGuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(query);
+        const res = isGuid 
+          ? await userService.getUserById(query)
+          : await userService.getUserByEmail(query);
+          
         if (res.success && res.data) {
           setUsers([res.data]);
         } else {
@@ -69,7 +74,7 @@ export default function UsersPage() {
   };
 
   const clearSearch = () => {
-    setSearchEmail("");
+    setSearchQuery("");
     // Wait for state to settle then fetch all
     setTimeout(() => {
         userService.getUsers(1, 50).then(res => {
@@ -213,13 +218,13 @@ export default function UsersPage() {
       <div className="bg-card border rounded-lg p-4 flex flex-wrap items-center justify-between gap-4 shadow-sm">
         <form onSubmit={handleSearch} className="flex-1 flex gap-2 w-full">
           <Input 
-            placeholder="Search user by email..." 
-            value={searchEmail} 
-            onChange={e => setSearchEmail(e.target.value)}
+            placeholder="Search user by email or ID..." 
+            value={searchQuery} 
+            onChange={e => setSearchQuery(e.target.value)}
             className="max-w-md bg-background"
           />
           <Button type="submit" variant="secondary" className="gap-2"><Search className="w-4 h-4" /> Search</Button>
-          {searchEmail && (
+          {searchQuery && (
              <Button type="button" variant="ghost" onClick={clearSearch}>Clear</Button>
           )}
         </form>

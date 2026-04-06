@@ -71,7 +71,7 @@ export default function UserDetailsPage() {
         timeZone: editData.timeZone,
         language: editData.language,
       };
-      
+
       const res = await userService.updateProfile(user.id, payload);
       if (res.success) {
         setIsEditOpen(false);
@@ -108,7 +108,7 @@ export default function UserDetailsPage() {
           <h1 className="text-3xl font-bold tracking-tight">User Details</h1>
           <p className="text-muted-foreground mt-1">Viewing profile for {user.fullName || user.email}</p>
         </div>
-        
+
         <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
           <DialogTrigger asChild>
             <Button className="gap-2"><Edit className="w-4 h-4" /> Edit Profile</Button>
@@ -120,14 +120,14 @@ export default function UserDetailsPage() {
             </DialogHeader>
             <div className="py-4 space-y-4 max-h-[60vh] overflow-y-auto">
               <div className="grid grid-cols-2 gap-4">
-                 <div className="space-y-2">
-                   <Label>First Name</Label>
-                   <Input value={editData.firstName || ""} onChange={e => setEditData({ ...editData, firstName: e.target.value })} />
-                 </div>
-                 <div className="space-y-2">
-                   <Label>Last Name</Label>
-                   <Input value={editData.lastName || ""} onChange={e => setEditData({ ...editData, lastName: e.target.value })} />
-                 </div>
+                <div className="space-y-2">
+                  <Label>First Name</Label>
+                  <Input value={editData.firstName || ""} onChange={e => setEditData({ ...editData, firstName: e.target.value })} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Last Name</Label>
+                  <Input value={editData.lastName || ""} onChange={e => setEditData({ ...editData, lastName: e.target.value })} />
+                </div>
               </div>
               <div className="space-y-2">
                 <Label>Phone Number</Label>
@@ -138,14 +138,14 @@ export default function UserDetailsPage() {
                 <Input type="date" value={editData.dateOfBirth || ""} onChange={e => setEditData({ ...editData, dateOfBirth: e.target.value })} />
               </div>
               <div className="grid grid-cols-2 gap-4">
-                 <div className="space-y-2">
-                   <Label>Currency</Label>
-                   <Input value={editData.currency || ""} onChange={e => setEditData({ ...editData, currency: e.target.value })} placeholder="USD" />
-                 </div>
-                 <div className="space-y-2">
-                   <Label>Language</Label>
-                   <Input value={editData.language || ""} onChange={e => setEditData({ ...editData, language: e.target.value })} placeholder="en-US" />
-                 </div>
+                <div className="space-y-2">
+                  <Label>Currency</Label>
+                  <Input value={editData.currency || ""} onChange={e => setEditData({ ...editData, currency: e.target.value })} placeholder="INR" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Language</Label>
+                  <Input value={editData.language || ""} onChange={e => setEditData({ ...editData, language: e.target.value })} placeholder="en-US" />
+                </div>
               </div>
               <div className="space-y-2">
                 <Label>Time Zone</Label>
@@ -191,7 +191,7 @@ export default function UserDetailsPage() {
 
         <Card className="shadow-sm">
           <CardHeader>
-             <CardTitle className="flex items-center gap-2"><Activity className="w-5 h-5 text-primary" /> Profile Settings</CardTitle>
+            <CardTitle className="flex items-center gap-2"><Activity className="w-5 h-5 text-primary" /> Profile Settings</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 text-sm">
             <div className="flex justify-between border-b pb-2">

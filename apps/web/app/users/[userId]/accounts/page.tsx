@@ -10,11 +10,11 @@ import { Label } from "@/components/ui/label";
 import { accountService, AccountTransferObject, AccountType, CreateAccountRequest, UpdateBalanceRequest, TransferMoneyRequest } from "../../../../services/account";
 import { userService, UserTransferObject } from "../../../../services/user";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AlertCircle, Plus, Wallet, ArrowRightLeft, ArrowDownCircle, ArrowUpCircle } from "lucide-react";
+import { AlertCircle, Plus, Wallet, ArrowRightLeft, ArrowDownCircle, ArrowUpCircle, Trash2, Star } from "lucide-react";
 
 export default function UserAccountsPage() {
   const params = useParams<{ userId: string }>();
-  
+
   const [currentUser, setCurrentUser] = useState<UserTransferObject | null>(null);
   const [accounts, setAccounts] = useState<AccountTransferObject[]>([]);
   const [loading, setLoading] = useState(true);
@@ -28,9 +28,10 @@ export default function UserAccountsPage() {
   const [selectedAccount, setSelectedAccount] = useState<AccountTransferObject | null>(null);
 
   // Form states
-  const [createData, setCreateData] = useState({ name: "", type: "0", initialBalance: "0" });
+  const [createData, setCreateData] = useState({ name: "", type: "0", initialBalance: "0", accountNumber: "" });
   const [amount, setAmount] = useState("");
   const [transferData, setTransferData] = useState({ amount: "", toAccountId: "" });
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const fetchData = async () => {
     setLoading(true);
@@ -40,18 +41,26 @@ export default function UserAccountsPage() {
         setError("User ID not provided in route.");
         return;
       }
-      
+
       const userRes = await userService.getUserById(params.userId);
       if (userRes.success && userRes.data) {
         const user = userRes.data;
         setCurrentUser(user);
 
-        const accRes = await accountService.getAccountsByUserId(user.id);
-        if (accRes.success && accRes.data) {
-          const accountsData = Array.isArray(accRes.data) ? accRes.data : [accRes.data];
-          setAccounts(accountsData);
-        } else {
-          setAccounts([]);
+        try {
+          const accRes = await accountService.getAccountsByUserId(user.id);
+          if (accRes.success && accRes.data) {
+            const accountsData = Array.isArray(accRes.data) ? accRes.data : [accRes.data];
+            setAccounts(accountsData);
+          } else {
+            setAccounts([]);
+          }
+        } catch (accErr: any) {
+          if (accErr?.response?.status === 404) {
+            setAccounts([]);
+          } else {
+            throw accErr;
+          }
         }
       } else {
         setError(userRes.message || "Failed to find the specified user.");
@@ -77,15 +86,15 @@ export default function UserAccountsPage() {
         userId: currentUser.id,
         name: createData.name,
         type: parseInt(createData.type) as AccountType,
-        balance: { amount: parseFloat(createData.initialBalance), currency: "USD" },
-        accountNumber: null,
+        balance: { amount: parseFloat(createData.initialBalance), currency: "INR" },
+        accountNumber: createData.accountNumber || null,
         description: "New User Account",
         isDefault: accounts.length === 0,
       };
       const res = await accountService.createAccount(payload);
       if (res.success && res.data) {
         setIsCreateOpen(false);
-        setCreateData({ name: "", type: "0", initialBalance: "0" });
+        setCreateData({ name: "", type: "0", initialBalance: "0", accountNumber: "" });
         fetchData(); // Refresh
       } else {
         alert(res.message || "Failed to create account");
@@ -100,7 +109,7 @@ export default function UserAccountsPage() {
     try {
       const payload: UpdateBalanceRequest = {
         id: selectedAccount.id,
-        balance: { amount: parseFloat(amount), currency: "USD" },
+        balance: { amount: parseFloat(amount), currency: "INR" },
         accountNumber: selectedAccount.accountNumber,
         isDeposit: true,
       };
@@ -119,10 +128,11 @@ export default function UserAccountsPage() {
 
   const handleWithdraw = async () => {
     if (!selectedAccount) return;
+    setActionError(null);
     try {
       const payload: UpdateBalanceRequest = {
         id: selectedAccount.id,
-        balance: { amount: parseFloat(amount), currency: "USD" },
+        balance: { amount: parseFloat(amount), currency: "INR" },
         accountNumber: selectedAccount.accountNumber,
         isDeposit: false,
       };
@@ -132,10 +142,11 @@ export default function UserAccountsPage() {
         setAmount("");
         fetchData();
       } else {
-        alert(res.message || "Withdraw failed");
+        setActionError(res.message || "Withdraw failed");
       }
     } catch (err: any) {
-      alert(err.message);
+      const backendError = err.response?.data?.errors?.[0] || err.response?.data?.message;
+      setActionError(backendError || err.message || "Withdraw failed");
     }
   };
 
@@ -144,7 +155,7 @@ export default function UserAccountsPage() {
     try {
       const payload: TransferMoneyRequest = {
         id: selectedAccount.id,
-        balance: { amount: parseFloat(transferData.amount), currency: "USD" },
+        balance: { amount: parseFloat(transferData.amount), currency: "INR" },
         accountNumber: selectedAccount.accountNumber,
         isDeposit: false,
         toAccountId: transferData.toAccountId,
@@ -159,6 +170,36 @@ export default function UserAccountsPage() {
       }
     } catch (err: any) {
       alert(err.message);
+    }
+  };
+
+  const handleSetDefault = async (accountNumber: string | null) => {
+    if (!currentUser || !accountNumber) return;
+    try {
+      const res = await accountService.setDefault(currentUser.id, accountNumber);
+      if (res.success) {
+        fetchData();
+      } else {
+        alert(res.message || "Failed to set default account");
+      }
+    } catch (err: any) {
+      alert(err.message);
+    }
+  };
+
+  const handleDelete = async (accountId: string) => {
+    if (!currentUser) return;
+    if (confirm("Are you sure you want to delete this account?")) {
+      try {
+        const res = await accountService.deleteAccount(currentUser.id, accountId);
+        if (res.success) {
+          fetchData();
+        } else {
+          alert(res.message || "Failed to delete account");
+        }
+      } catch (err: any) {
+        alert(err.message || "An error occurred");
+      }
     }
   };
 
@@ -223,8 +264,21 @@ export default function UserAccountsPage() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Initial Balance (USD)</Label>
+                <Label>Initial Balance (INR)</Label>
                 <Input type="number" value={createData.initialBalance} onChange={e => setCreateData({ ...createData, initialBalance: e.target.value })} />
+              </div>
+              <div className="space-y-2">
+                <Label>Account Number</Label>
+                <Input 
+                   value={createData.accountNumber} 
+                   onChange={e => {
+                     const val = e.target.value.replace(/\D/g, "");
+                     if (val.length <= 15) {
+                       setCreateData({ ...createData, accountNumber: val });
+                     }
+                   }} 
+                   placeholder="e.g. 1234567890" 
+                />
               </div>
             </div>
             <DialogFooter>
@@ -260,7 +314,7 @@ export default function UserAccountsPage() {
               </CardHeader>
               <CardContent className="flex-1">
                 <div className="text-3xl font-bold text-primary">
-                  {acc.balance?.amount?.toLocaleString("en-US", { style: "currency", currency: acc.balance?.currency || "USD" })}
+                  {acc.balance?.amount?.toLocaleString("en-US", { style: "currency", currency: acc.balance?.currency || "INR" })}
                 </div>
               </CardContent>
               <CardFooter className="bg-muted/30 pt-4 flex gap-2 flex-wrap">
@@ -274,7 +328,7 @@ export default function UserAccountsPage() {
                       <DialogDescription>Add money to {acc.name}</DialogDescription>
                     </DialogHeader>
                     <div className="py-4 space-y-4">
-                      <Label>Amount (USD)</Label>
+                      <Label>Amount (INR)</Label>
                       <Input type="number" placeholder="0.00" value={amount} onChange={e => setAmount(e.target.value)} />
                     </div>
                     <DialogFooter>
@@ -283,7 +337,7 @@ export default function UserAccountsPage() {
                   </DialogContent>
                 </Dialog>
 
-                <Dialog open={isWithdrawOpen && selectedAccount?.id === acc.id} onOpenChange={(val) => { setIsWithdrawOpen(val); if (val) setSelectedAccount(acc); }}>
+                <Dialog open={isWithdrawOpen && selectedAccount?.id === acc.id} onOpenChange={(val) => { setIsWithdrawOpen(val); if (val) setSelectedAccount(acc); setActionError(null); }}>
                   <DialogTrigger asChild>
                     <Button variant="outline" size="sm" className="flex-1 gap-1"><ArrowUpCircle className="w-4 h-4 text-red-500" /> Withdraw</Button>
                   </DialogTrigger>
@@ -292,11 +346,12 @@ export default function UserAccountsPage() {
                       <DialogTitle>Withdraw Funds</DialogTitle>
                       <DialogDescription>Take money from {acc.name}</DialogDescription>
                     </DialogHeader>
-                    <div className="py-4 space-y-4">
-                      <Label>Amount (USD)</Label>
-                      <Input type="number" placeholder="0.00" value={amount} onChange={e => setAmount(e.target.value)} />
+                    <div className="py-2">
+                      <Label className="mb-2 block">Amount (INR)</Label>
+                      <Input type="number" placeholder="0.00" value={amount} onChange={e => { setAmount(e.target.value); setActionError(null); }} />
+                      {actionError && <p className="text-sm text-red-500 mt-2 font-medium">{actionError}</p>}
                     </div>
-                    <DialogFooter>
+                    <DialogFooter className="mt-4">
                       <Button variant="destructive" onClick={handleWithdraw}>Confirm Withdraw</Button>
                     </DialogFooter>
                   </DialogContent>
@@ -317,7 +372,7 @@ export default function UserAccountsPage() {
                         <Input placeholder="Enter Account UUID" value={transferData.toAccountId} onChange={e => setTransferData({ ...transferData, toAccountId: e.target.value })} />
                       </div>
                       <div className="space-y-2">
-                        <Label>Amount (USD)</Label>
+                        <Label>Amount (INR)</Label>
                         <Input type="number" placeholder="0.00" value={transferData.amount} onChange={e => setTransferData({ ...transferData, amount: e.target.value })} />
                       </div>
                     </div>
@@ -326,6 +381,17 @@ export default function UserAccountsPage() {
                     </DialogFooter>
                   </DialogContent>
                 </Dialog>
+
+                <div className="w-full flex gap-2 mt-2">
+                  {!acc.isDefault && acc.accountNumber && (
+                    <Button variant="outline" size="sm" className="flex-1 gap-1" onClick={() => handleSetDefault(acc.accountNumber)}>
+                      <Star className="w-4 h-4 text-yellow-500" /> Set Default
+                    </Button>
+                  )}
+                  <Button variant="destructive" size="sm" className={!acc.isDefault && acc.accountNumber ? "flex-1 gap-1" : "w-full gap-1"} onClick={() => handleDelete(acc.id)}>
+                    <Trash2 className="w-4 h-4" /> Delete
+                  </Button>
+                </div>
               </CardFooter>
             </Card>
           ))}

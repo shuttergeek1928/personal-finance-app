@@ -40,7 +40,7 @@ namespace PersonalFinance.Services.UserManagement.Application.Commands
                 }
 
                 //Find the user exist or not
-                var user = await UserExistAsync(request.UserId, cancellationToken: cancellationToken);
+                var user = await UserExistAsync(request.UserId, true, cancellationToken: cancellationToken);
 
                 if (user == null)
                 {
@@ -60,6 +60,7 @@ namespace PersonalFinance.Services.UserManagement.Application.Commands
                 else
                 {
                     user.Profile.UpdatePreferences(request.Currency, request.TimeZone, request.Language);
+                    user.Profile.UpdateDateOfBirth(request.DateOfBirth);
                     user.RecordLogin();
                 }
 

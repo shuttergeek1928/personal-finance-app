@@ -35,6 +35,7 @@ namespace PersonalFinance.Services.UserManagement.Application.Queries
 
                 //Get user with pagination
                 var users = await Context.Users
+                    .IgnoreQueryFilters()
                     .Include(u => u.Profile)
                     .Include(u => u.UserRoles)
                         .ThenInclude(ur => ur.Role)

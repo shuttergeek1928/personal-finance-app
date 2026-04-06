@@ -83,11 +83,17 @@ namespace PersonalFinance.Services.UserManagement.Application.Common
         /// <returns>A task that represents the asynchronous operation. The task result contains user object if the user exists; otherwise, null.</returns>  
         protected async Task<User?> UserExistAsync(Guid userId, bool includeChilds = false, CancellationToken cancellationToken = default)
         {
-            return await Context.Users
-               .Include(u => includeChilds ? u.Profile : null)
-               .Include(u => includeChilds ? u.UserRoles : null)
-                   .ThenInclude(ur => includeChilds ? ur.Role : null)
-               .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
+            IQueryable<User> query = Context.Users;
+
+            if (includeChilds)
+            {
+                query = query
+                    .Include(u => u.Profile)
+                    .Include(u => u.UserRoles)
+                        .ThenInclude(ur => ur.Role);
+            }
+
+            return await query.FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
         }
 
 

@@ -1,6 +1,7 @@
 import api from "./api";
 
-const GATEWAY_BASE_URL = process.env.NEXT_PUBLIC_GATEWAY_URL || "http://localhost:5000";
+const BASE_URL = process.env.NEXT_PUBLIC_GATEWAY_URL || "http://192.168.1.8:5000";
+const GATEWAY_BASE_URL = `${BASE_URL}/gateway-users`;
 
 export interface UserProfileTransferObject {
   id: string;
@@ -88,37 +89,37 @@ export interface UpdateUserProfileRequest {
 
 export const userService = {
   getUsers: async (page = 1, pageSize = 20): Promise<UserTransferObjectPaginatedResultApiResponse> => {
-    const response = await api.get(`/gateway-users/api/Users?page=${page}&pageSize=${pageSize}`, { baseURL: GATEWAY_BASE_URL });
+    const response = await api.get(`/api/Users?page=${page}&pageSize=${pageSize}`, { baseURL: GATEWAY_BASE_URL });
     return response.data;
   },
 
   registerUser: async (payload: RegisterUserRequest): Promise<UserTransferObjectApiResponse> => {
-    const response = await api.post(`/gateway-users/api/Users/register`, payload, { baseURL: GATEWAY_BASE_URL });
+    const response = await api.post(`/api/Users/register`, payload, { baseURL: GATEWAY_BASE_URL });
     return response.data;
   },
 
   getUserById: async (id: string): Promise<UserTransferObjectApiResponse> => {
-    const response = await api.get(`/gateway-users/api/Users/${id}`, { baseURL: GATEWAY_BASE_URL });
+    const response = await api.get(`/api/Users/${id}`, { baseURL: GATEWAY_BASE_URL });
     return response.data;
   },
 
   deleteUser: async (id: string): Promise<BooleanApiResponse> => {
-    const response = await api.delete(`/gateway-users/api/Users/${id}`, { baseURL: GATEWAY_BASE_URL });
+    const response = await api.delete(`/api/Users/${id}`, { baseURL: GATEWAY_BASE_URL });
     return response.data;
   },
 
   getUserByEmail: async (email: string): Promise<UserTransferObjectApiResponse> => {
-    const response = await api.get(`/gateway-users/api/Users/by-email/${encodeURIComponent(email)}`, { baseURL: GATEWAY_BASE_URL });
+    const response = await api.get(`/api/Users/by-email/${encodeURIComponent(email)}`, { baseURL: GATEWAY_BASE_URL });
     return response.data;
   },
 
   updateProfile: async (id: string, payload: UpdateUserProfileRequest): Promise<UserTransferObjectApiResponse> => {
-    const response = await api.put(`/gateway-users/api/Users/${id}/profile`, payload, { baseURL: GATEWAY_BASE_URL });
+    const response = await api.put(`/api/Users/${id}/profile`, payload, { baseURL: GATEWAY_BASE_URL });
     return response.data;
   },
 
   confirmEmail: async (id: string): Promise<BooleanApiResponse> => {
-    const response = await api.post(`/gateway-users/api/Users/${id}/confirm-email`, {}, { baseURL: GATEWAY_BASE_URL });
+    const response = await api.post(`/api/Users/${id}/confirm-email`, {}, { baseURL: GATEWAY_BASE_URL });
     return response.data;
   }
 };

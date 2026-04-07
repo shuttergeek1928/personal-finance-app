@@ -368,8 +368,17 @@ export default function UserAccountsPage() {
                     </DialogHeader>
                     <div className="py-4 space-y-4">
                       <div className="space-y-2">
-                        <Label>Destination Account ID</Label>
-                        <Input placeholder="Enter Account UUID" value={transferData.toAccountId} onChange={e => setTransferData({ ...transferData, toAccountId: e.target.value })} />
+                        <Label>Destination Account</Label>
+                        <Select value={transferData.toAccountId} onValueChange={(val) => setTransferData({ ...transferData, toAccountId: val })}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select destination account" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {accounts.filter(acc => acc.id !== selectedAccount?.id).map(acc => (
+                              <SelectItem key={acc.id} value={acc.id}>{acc.name} ({acc.balance?.amount?.toLocaleString()} {acc.balance?.currency})</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
                       <div className="space-y-2">
                         <Label>Amount (INR)</Label>

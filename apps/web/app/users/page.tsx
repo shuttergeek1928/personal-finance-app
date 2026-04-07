@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { userService, UserTransferObject, RegisterUserRequest } from "../../services/user";
-import { AlertCircle, UserPlus, Search, ShieldCheck, Trash2, Eye, Wallet, CheckCircle } from "lucide-react";
+import { AlertCircle, UserPlus, Search, ShieldCheck, Trash2, Eye, Wallet, CheckCircle, ArrowLeftRight } from "lucide-react";
 import Link from "next/link";
 
 export default function UsersPage() {
@@ -292,6 +292,14 @@ export default function UsersPage() {
                 <Link href={`/users/${user.id}/accounts`} passHref className="flex-1">
                   <Button variant="default" size="sm" className="w-full gap-2">
                     <Wallet className="w-4 h-4" /> Accounts
+                  </Button>
+                </Link>
+              </div>
+
+              <div className="w-full flex gap-2">
+                <Link href={`/transactions?userId=${user.id}`} passHref className="w-full">
+                  <Button variant="outline" size="sm" className="w-full gap-2 border-indigo-200 text-indigo-700 hover:bg-indigo-50 dark:border-indigo-900/50 dark:text-indigo-400">
+                    <ArrowLeftRight className="w-4 h-4" /> View Transactions
                   </Button>
                 </Link>
               </div>

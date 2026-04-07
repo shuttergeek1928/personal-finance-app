@@ -6,12 +6,12 @@ import { Home, PieChart, ArrowLeftRight, Settings, Wallet } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
-const navigation = [
+export const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: Home },
   { name: "Transactions", href: "/transactions", icon: ArrowLeftRight },
   { name: "Users/Accounts", href: "/users", icon: Wallet },
-  { name: "Budgets", href: "/budgets", icon: PieChart },
-  { name: "Settings", href: "/settings", icon: Settings },
+  // { name: "Budgets", href: "/budgets", icon: PieChart },
+  // { name: "Settings", href: "/settings", icon: Settings },
 ]
 
 export function Sidebar() {

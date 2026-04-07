@@ -1,6 +1,7 @@
 import api from "./api";
 
-const GATEWAY_BASE_URL = process.env.NEXT_PUBLIC_GATEWAY_URL || "http://localhost:5000";
+const BASE_URL = process.env.NEXT_PUBLIC_GATEWAY_URL || "http://192.168.1.8:5000";
+const GATEWAY_BASE_URL = `${BASE_URL}/gateway-accounts`;
 
 export enum AccountType {
   Checking = 0,
@@ -36,6 +37,14 @@ export interface AccountTransferObjectApiResponse {
   timestamp: string;
 }
 
+export interface AccountListTransferObjectApiResponse {
+  success: boolean;
+  data: AccountTransferObject[];
+  message: string | null;
+  errors: string[] | null;
+  timestamp: string;
+}
+
 export interface CreateAccountRequest {
   name: string | null;
   type: AccountType;
@@ -63,47 +72,47 @@ export interface TransferMoneyRequest {
 
 export const accountService = {
   createAccount: async (data: CreateAccountRequest): Promise<AccountTransferObjectApiResponse> => {
-    const response = await api.post("/gateway-accounts/api/Accounts/create", data, { baseURL: GATEWAY_BASE_URL });
+    const response = await api.post("/api/Accounts/create", data, { baseURL: GATEWAY_BASE_URL });
     return response.data;
   },
 
   getAccountById: async (id: string): Promise<AccountTransferObjectApiResponse> => {
-    const response = await api.get(`/gateway-accounts/api/Accounts/${id}`, { baseURL: GATEWAY_BASE_URL });
+    const response = await api.get(`/api/Accounts/${id}`, { baseURL: GATEWAY_BASE_URL });
     return response.data;
   },
 
   getAccountByNumber: async (number: string): Promise<AccountTransferObjectApiResponse> => {
-    const response = await api.get(`/gateway-accounts/api/Accounts/${number}`, { baseURL: GATEWAY_BASE_URL });
+    const response = await api.get(`/api/Accounts/${number}`, { baseURL: GATEWAY_BASE_URL });
     return response.data;
   },
 
-  getAccountsByUserId: async (userId: string): Promise<AccountTransferObjectApiResponse> => {
-    const response = await api.get(`/gateway-accounts/api/Accounts/userid/${userId}`, { baseURL: GATEWAY_BASE_URL });
+  getAccountsByUserId: async (userId: string): Promise<AccountListTransferObjectApiResponse> => {
+    const response = await api.get(`/api/Accounts/userid/${userId}`, { baseURL: GATEWAY_BASE_URL });
     return response.data;
   },
 
   deposit: async (id: string, data: UpdateBalanceRequest): Promise<AccountTransferObjectApiResponse> => {
-    const response = await api.put(`/gateway-accounts/api/Accounts/${id}/deposit`, data, { baseURL: GATEWAY_BASE_URL });
+    const response = await api.put(`/api/Accounts/${id}/deposit`, data, { baseURL: GATEWAY_BASE_URL });
     return response.data;
   },
 
   withdraw: async (id: string, data: UpdateBalanceRequest): Promise<AccountTransferObjectApiResponse> => {
-    const response = await api.put(`/gateway-accounts/api/Accounts/${id}/withdraw`, data, { baseURL: GATEWAY_BASE_URL });
+    const response = await api.put(`/api/Accounts/${id}/withdraw`, data, { baseURL: GATEWAY_BASE_URL });
     return response.data;
   },
 
   transfer: async (data: TransferMoneyRequest): Promise<AccountTransferObjectApiResponse> => {
-    const response = await api.put("/gateway-accounts/api/Accounts/transfer", data, { baseURL: GATEWAY_BASE_URL });
+    const response = await api.put("/api/Accounts/transfer", data, { baseURL: GATEWAY_BASE_URL });
     return response.data;
   },
 
   setDefault: async (userId: string, accountNumber: string): Promise<AccountTransferObjectApiResponse> => {
-    const response = await api.put(`/gateway-accounts/api/Accounts/${userId}/set-default?accountNumber=${accountNumber}`, {}, { baseURL: GATEWAY_BASE_URL });
+    const response = await api.put(`/api/Accounts/${userId}/set-default?accountNumber=${accountNumber}`, {}, { baseURL: GATEWAY_BASE_URL });
     return response.data;
   },
 
   deleteAccount: async (userId: string, accountId: string): Promise<AccountTransferObjectApiResponse> => {
-    const response = await api.delete(`/gateway-accounts/api/Accounts/${userId}/${accountId}`, { baseURL: GATEWAY_BASE_URL });
+    const response = await api.delete(`/api/Accounts/${userId}/${accountId}`, { baseURL: GATEWAY_BASE_URL });
     return response.data;
   },
 };

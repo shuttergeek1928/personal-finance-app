@@ -1,8 +1,9 @@
 "use client"
 
 import { usePathname } from "next/navigation"
-import { Bell, Search, Menu } from "lucide-react"
+import { Bell, Search } from "lucide-react"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { MobileNav } from "./MobileNav"
 
 export function Header() {
   const pathname = usePathname()
@@ -12,9 +13,7 @@ export function Header() {
   return (
     <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center justify-between border-b border-zinc-200 bg-white/80 px-6 backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-950/80">
       <div className="flex items-center gap-4">
-        <button className="md:hidden text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50">
-          <Menu className="h-6 w-6" />
-        </button>
+        <MobileNav />
         <div className="hidden lg:flex relative">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-zinc-500 dark:text-zinc-400" />
           <input

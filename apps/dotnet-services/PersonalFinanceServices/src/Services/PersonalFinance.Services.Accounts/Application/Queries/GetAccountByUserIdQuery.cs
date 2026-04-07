@@ -28,7 +28,11 @@ namespace PersonalFinance.Services.Accounts.Application.Queries
 
         public override async Task<ApiResponse<List<AccountTransferObject>>> Handle(GetAccountByUserIdQuery request, CancellationToken cancellationToken)
         {
-            var accounts = await Context.Accounts.Where(a => a.UserId == request.UserId).ToListAsync();
+            var accounts = await Context.Accounts
+                            .Where(a => a.UserId == request.UserId && a.IsActive)
+                            .OrderByDescending(a => a.IsDefault)
+                            .ThenBy(a => a.CreatedAt)
+                            .ToListAsync();
 
             if (!accounts.Any())
             {

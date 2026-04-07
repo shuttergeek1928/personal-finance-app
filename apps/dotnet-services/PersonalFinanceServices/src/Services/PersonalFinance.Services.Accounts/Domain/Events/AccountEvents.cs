@@ -1,4 +1,5 @@
-﻿using PersonalFinance.Services.Accounts.Domain.Entities;
+﻿using Microsoft.Identity.Client;
+using PersonalFinance.Services.Accounts.Domain.Entities;
 using PersonalFinance.Shared.Common.Domain;
 using PersonalFinance.Shared.Common.Domain.ValueObjects;
 
@@ -50,5 +51,21 @@ namespace PersonalFinance.Services.Accounts.Domain.Events
         public Guid UserId { get; }
         public string Name { get; }
         public bool IsDefault { get; }
+    }
+
+    public class AccountStatusChangedEvent : DomainEvent
+    {
+        public AccountStatusChangedEvent(Guid userId, Guid accountId, string name, bool isActive)
+        {
+            UserId = userId;
+            AccountId = accountId;
+            Name = name ?? throw new ArgumentNullException(nameof(name), "Name cannot be null");
+            IsActive = isActive;
+        }
+
+        public Guid UserId { get; }
+        public Guid AccountId { get; }
+        public string Name { get; }
+        public bool IsActive { get; }
     }
 }

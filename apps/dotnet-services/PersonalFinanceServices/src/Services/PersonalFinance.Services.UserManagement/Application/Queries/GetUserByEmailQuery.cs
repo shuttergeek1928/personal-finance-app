@@ -26,11 +26,12 @@ namespace PersonalFinance.Services.UserManagement.Application.Queries
         }
         public override async Task<ApiResponse<UserTransferObject>> Handle(GetUserByEmailQuery request, CancellationToken cancellationToken)
         {
-            var user = await Context.Users
+            var user = await Context.Users.IgnoreQueryFilters()
                 .Include(u => u.Profile)
                 .Include(u => u.UserRoles)
                     .ThenInclude(ur => ur.Role)
                 .FirstOrDefaultAsync(u => u.Email.Value == request.Email.Value, cancellationToken);
+
             if (user == null)
             {
                 Logger.LogError("User with email {Email} not found", request.Email.Value);

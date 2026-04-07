@@ -28,11 +28,8 @@ namespace PersonalFinance.Services.UserManagement.Application.Queries
 
         public override async Task<ApiResponse<UserTransferObject>> Handle(GetUserByIdQuery request, CancellationToken cancellationToken)
         {
-            var user = await Context.Users
-                .Include(u => u.Profile)
-                .Include(u => u.UserRoles)
-                    .ThenInclude(ur => ur.Role)
-                .FirstOrDefaultAsync(u => u.Id == request.UserId, cancellationToken);
+
+            var user = await UserExistAsync(request.UserId, includeChilds:true, ignoreQueryfilter : true);
 
             if (user == null)
             {

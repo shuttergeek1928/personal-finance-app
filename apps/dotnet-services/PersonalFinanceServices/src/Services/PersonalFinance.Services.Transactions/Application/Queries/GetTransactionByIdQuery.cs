@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using PersonalFinance.Services.Transactions.Application.Common;
@@ -19,9 +19,9 @@ namespace PersonalFinance.Services.Transactions.Application.Queries
         }
     }
 
-    public class GetUserByIdQueryHandler : BaseRequestHandler<GetTransactionByIdQuery, ApiResponse<TransactionTransferObject>>
+    public class GetTransactionByIdQueryHandler : BaseRequestHandler<GetTransactionByIdQuery, ApiResponse<TransactionTransferObject>>
     {
-        public GetUserByIdQueryHandler(TransactionDbContext context, ILogger<GetUserByIdQueryHandler> logger, IMapper mapper)
+        public GetTransactionByIdQueryHandler(TransactionDbContext context, ILogger<GetTransactionByIdQueryHandler> logger, IMapper mapper)
             : base(context, logger, mapper)
         {
         }
@@ -34,11 +34,11 @@ namespace PersonalFinance.Services.Transactions.Application.Queries
             if (transaction == null)
             {
                 Logger.LogError("Transaction with ID {transactionId} not found", request.Id);
-                return ApiResponse<TransactionTransferObject>.ErrorResult("User not found");
+                return ApiResponse<TransactionTransferObject>.ErrorResult("Transaction not found");
             }
 
-            var TransactionTransferObject = transaction.ToDto(Mapper);
-            return ApiResponse<TransactionTransferObject>.SuccessResult(TransactionTransferObject);
+            var transactionDto = transaction.ToDto(Mapper);
+            return ApiResponse<TransactionTransferObject>.SuccessResult(transactionDto);
         }
     }
 }

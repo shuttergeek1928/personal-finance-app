@@ -69,8 +69,8 @@ builder.Services.AddMassTransit(x =>
     {
         cfg.Host("finance-rabbitmq", "/", h =>
         {
-            h.Username("guest");
-            h.Password("guest");
+            h.Username("admin");
+            h.Password("admin123");
         });
         cfg.ConfigureEndpoints(context);
     });

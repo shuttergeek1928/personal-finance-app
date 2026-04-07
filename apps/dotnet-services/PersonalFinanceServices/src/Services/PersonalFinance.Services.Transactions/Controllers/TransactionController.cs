@@ -1,14 +1,10 @@
-﻿using Azure.Core;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using PersonalFinance.Services.Transactions.Application.Commands;
-using PersonalFinance.Services.Transactions.Application.DataTransferObjects;
 using PersonalFinance.Services.Transactions.Application.DataTransferObjects.Requests;
 using PersonalFinance.Services.Transactions.Application.DataTransferObjects.Response;
 using PersonalFinance.Services.Transactions.Application.DTOs;
 using PersonalFinance.Services.Transactions.Application.Queries;
-using System.ComponentModel.DataAnnotations;
-using System.Linq.Dynamic.Core;
 
 namespace PersonalFinance.Services.Transactions.Controllers
 {
@@ -27,33 +23,17 @@ namespace PersonalFinance.Services.Transactions.Controllers
         }
 
         /// <summary>
-        /// Register a new user
+        /// Income/deposit transaction
         /// </summary>
-        /// <param name="request">User registration details</param>
-        /// <returns>Created user information</returns>
-        [HttpPost("create-income")]
+        [HttpPost("income/deposit")]
         [ProducesResponseType(typeof(ApiResponse<TransactionTransferObject>), StatusCodes.Status201Created)]
-        [ProducesResponseType(typeof(ApiResponse<TransactionTransferObject>), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ApiResponse<TransactionTransferObject>), StatusCodes.Status409Conflict)]
         public async Task<ActionResult<ApiResponse<TransactionTransferObject>>> CreateIncomeTransaction([FromBody] CreateIncomeTransactionRequest request)
         {
             try
             {
-                _logger.LogInformation("Transaction creating attempt for user ID: {userId} to account ID {accountId}", request.UserId, request.AccountId);
+                _logger.LogInformation("Creating income transaction for user ID: {userId} to account ID {accountId}", request.UserId, request.AccountId);
 
-                // Validate the request
-                if (!ModelState.IsValid)
-                {
-                    var errors = ModelState.Values
-                        .SelectMany(v => v.Errors)
-                        .Select(e => e.ErrorMessage)
-                        .ToList();
-
-                    return BadRequest(ApiResponse<TransactionTransferObject>.ErrorResult(errors));
-                }
-
-                // Create command from request
-                var command = new CreateIncomeTransactionCommand()
+                var command = new CreateIncomeTransactionCommand
                 {
                     UserId = request.UserId,
                     AccountId = request.AccountId,
@@ -66,63 +46,144 @@ namespace PersonalFinance.Services.Transactions.Controllers
                     RejectionReason = request.RejectionReason
                 };
 
-                // Execute command
                 var result = await _mediator.Send(command);
 
                 if (result.Success)
                 {
-                    _logger.LogInformation("Transaction created successfully for user ID: {Id} to account ID {accountId}", request.UserId, request.AccountId);
-                    return CreatedAtAction(nameof(CreateIncomeTransaction), result.Data!.Id, result);
+                    return CreatedAtAction(nameof(GetTransaction), new { id = result.Data!.Id }, result);
                 }
-
-                _logger.LogInformation("Transaction failed for user ID: {Id} to account ID {accountId}", request.UserId, request.AccountId);
 
                 return BadRequest(result);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error during creating transaction for: {UserId} to account {accountId}", request.UserId, request.AccountId);
+                _logger.LogError(ex, "Error creating income transaction");
+                return StatusCode(500, ApiResponse<TransactionTransferObject>.ErrorResult("An internal error occurred"));
+            }
+        }
+
+        /// <summary>
+        /// Expense/withdraw transaction
+        /// </summary>
+        [HttpPost("expense/withdraw")]
+        [ProducesResponseType(typeof(ApiResponse<TransactionTransferObject>), StatusCodes.Status201Created)]
+        public async Task<ActionResult<ApiResponse<TransactionTransferObject>>> CreateExpenseTransaction([FromBody] CreateExpenseTransactionRequest request)
+        {
+            try
+            {
+                _logger.LogInformation("Creating expense transaction for user ID: {userId} from account ID {accountId}", request.UserId, request.AccountId);
+
+                var command = new CreateExpenseTransactionCommand
+                {
+                    UserId = request.UserId,
+                    AccountId = request.AccountId,
+                    Amount = request.Amount,
+                    Currency = request.Currency,
+                    Description = request.Description,
+                    Category = request.Category,
+                    TransactionDate = request.TransactionDate,
+                    Status = request.Status,
+                    RejectionReason = request.RejectionReason
+                };
+
+                var result = await _mediator.Send(command);
+
+                if (result.Success)
+                {
+                    return CreatedAtAction(nameof(GetTransaction), new { id = result.Data!.Id }, result);
+                }
+
+                return BadRequest(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating expense transaction");
+                return StatusCode(500, ApiResponse<TransactionTransferObject>.ErrorResult("An internal error occurred"));
+            }
+        }
+
+        /// <summary>
+        /// Transfer to another account transaction
+        /// </summary>
+        [HttpPost("transfer")]
+        [ProducesResponseType(typeof(ApiResponse<TransactionTransferObject>), StatusCodes.Status201Created)]
+        public async Task<ActionResult<ApiResponse<TransactionTransferObject>>> CreateTransferTransaction([FromBody] CreateTransferTransactionRequest request)
+        {
+            try
+            {
+                _logger.LogInformation("Creating transfer transaction for user ID: {userId} from account {fromAccountId} to {toAccountId}", 
+                    request.UserId, request.AccountId, request.ToAccountId);
+
+                var command = new CreateTransferTransactionCommand
+                {
+                    UserId = request.UserId,
+                    FromAccountId = request.AccountId,
+                    ToAccountId = request.ToAccountId,
+                    Amount = request.Amount,
+                    Currency = request.Currency,
+                    Description = request.Description,
+                    Category = request.Category,
+                    TransactionDate = request.TransactionDate
+                };
+
+                var result = await _mediator.Send(command);
+
+                if (result.Success)
+                {
+                    return CreatedAtAction(nameof(GetTransaction), new { id = result.Data!.Id }, result);
+                }
+
+                return BadRequest(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating transfer transaction");
                 return StatusCode(500, ApiResponse<TransactionTransferObject>.ErrorResult("An internal error occurred"));
             }
         }
 
         [HttpGet("{id:guid}")]
-        [ProducesResponseType(typeof(ApiResponse<TransactionTransferObject>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<TransactionTransferObject>), StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<ApiResponse<TransactionTransferObject>>> GetTransation(Guid id)
+        public async Task<ActionResult<ApiResponse<TransactionTransferObject>>> GetTransaction(Guid id)
         {
             try
             {
-                // Validate the request
-                if (!ModelState.IsValid)
-                {
-                    var errors = ModelState.Values
-                        .SelectMany(v => v.Errors)
-                        .Select(e => e.ErrorMessage)
-                        .ToList();
-
-                    return BadRequest(ApiResponse<TransactionTransferObject>.ErrorResult(errors));
-                }
-
-                // Create command from request
                 var query = new GetTransactionByIdQuery(id);
-
-                // Execute command
                 var result = await _mediator.Send(query);
 
                 if (result.Success)
                 {
-                    _logger.LogInformation("Transaction fetched successfully for transaction ID: {Id}", id);
                     return Ok(result);
                 }
 
-                _logger.LogInformation("Transaction fetching failed for transaction ID: {Id}", id);
+                return NotFound(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching transaction {Id}", id);
+                return StatusCode(500, ApiResponse<TransactionTransferObject>.ErrorResult("An internal error occurred"));
+            }
+        }
+
+        [HttpGet("user/{userId:guid}")]
+        public async Task<ActionResult<ApiResponse<IEnumerable<TransactionTransferObject>>>> GetTransactionsByUserId(Guid userId)
+        {
+            try
+            {
+                _logger.LogInformation("Fetching transactions for user ID: {userId}", userId);
+                var query = new GetTransactionsByUserIdQuery(userId);
+                var result = await _mediator.Send(query);
+
+                if (result.Success)
+                {
+                    return Ok(result);
+                }
+
                 return BadRequest(result);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error during feting a transaction for ID: {id}", id);
-                return StatusCode(500, ApiResponse<TransactionTransferObject>.ErrorResult("An internal error occurred"));
+                _logger.LogError(ex, "Error fetching transactions for user ID: {userId}", userId);
+                return StatusCode(500, ApiResponse<IEnumerable<TransactionTransferObject>>.ErrorResult("An internal error occurred"));
             }
         }
     }

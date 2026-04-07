@@ -1,11 +1,13 @@
-﻿using MassTransit;
+using MassTransit;
 using PersonalFinance.Services.Accounts.Infrastructure.Data;
 using PersonalFinance.Shared.Common.Domain.ValueObjects;
 using PersonalFinance.Shared.Events.Events;
 
 namespace PersonalFinance.Services.Accounts.Domain.Consumers
 {
-    public class TransactionCreatedConsumer : IConsumer<IncomeTransactionCreatedEvent>
+    public class TransactionCreatedConsumer : 
+        IConsumer<IncomeTransactionCreatedEvent>,
+        IConsumer<ExpenseTransactionCreatedEvent>
     {
         private readonly ILogger<TransactionCreatedConsumer> _logger;
         private readonly AccountDbContext _accountDbContext;
@@ -21,55 +23,72 @@ namespace PersonalFinance.Services.Accounts.Domain.Consumers
             _publishEndpoint = publishEndpoint ?? throw new ArgumentNullException(nameof(publishEndpoint));
         }
 
-        // This consumer is responsible for handling transaction creation events
         public async Task Consume(ConsumeContext<IncomeTransactionCreatedEvent> context)
         {
             var transactionEvent = context.Message;
-
-            _logger.LogInformation(
-                "Received IncomeTransactionCreated event: TransactionId={TransactionId}, UserId={UserId}, Amount={Amount}, Currency={Currency}",
-                transactionEvent.TransactionId,
-                transactionEvent.UserId,
-                transactionEvent.Amount,
-                transactionEvent.Currency);
+            _logger.LogInformation("Processing IncomeTransactionCreated: {TransactionId}", transactionEvent.TransactionId);
 
             try
             {
-                await ProcessTransaction(transactionEvent);
-                
-                _logger.LogInformation(
-                    "Processed IncomeTransactionCreated event successfully: TransactionId={TransactionId}, UserId={UserId}",
-                    transactionEvent.TransactionId,
-                    transactionEvent.UserId);
+                var account = _accountDbContext.Accounts.FirstOrDefault(a => a.Id == transactionEvent.AccountId) 
+                    ?? throw new InvalidOperationException($"Account {transactionEvent.AccountId} not found.");
+
+                var previousBalance = account.Balance.Amount;
+                account.Deposit(new Money(transactionEvent.Amount, transactionEvent.Currency));
+
+                await _accountDbContext.SaveChangesAsync();
+
+                await _publishEndpoint.Publish(new AccountBalanceUpdatedEvent
+                {
+                    AccountId = account.Id,
+                    UserId = transactionEvent.UserId,
+                    NewBalance = account.Balance.Amount,
+                    PreviousBalance = previousBalance,
+                    Currency = transactionEvent.Currency,
+                    UpdateReason = "Income Transaction"
+                });
+
+                _logger.LogInformation("Income transaction {TransactionId} processed successfully", transactionEvent.TransactionId);
             }
             catch (Exception ex)
             {
-                _logger.LogError(
-                    ex,
-                    "Error processing IncomeTransactionCreated event: TransactionId={TransactionId}, UserId={UserId}",
-                    transactionEvent.TransactionId,
-                    transactionEvent.UserId);
+                _logger.LogError(ex, "Error processing IncomeTransactionCreated: {TransactionId}", transactionEvent.TransactionId);
                 throw;
             }
         }
 
-        private async Task ProcessTransaction(IncomeTransactionCreatedEvent transactionEvent)
+        public async Task Consume(ConsumeContext<ExpenseTransactionCreatedEvent> context)
         {
-            var account = _accountDbContext.Accounts.FirstOrDefault(a => a.Id == transactionEvent.AccountId) ?? throw new InvalidOperationException($"Account with ID {transactionEvent.AccountId} not found.");
+            var transactionEvent = context.Message;
+            _logger.LogInformation("Processing ExpenseTransactionCreated: {TransactionId}", transactionEvent.TransactionId);
 
-            account.Deposit(new Money(transactionEvent.Amount, transactionEvent.Currency));
-
-            await _accountDbContext.SaveChangesAsync();
-
-            await _publishEndpoint.Publish(new AccountBalanceUpdatedEvent
+            try
             {
-                AccountId = account.Id,
-                UserId = transactionEvent.UserId,
-                NewBalance = account.Balance.Amount,
-                PreviousBalance = account.Balance.Amount - transactionEvent.Amount,
-                Currency = transactionEvent.Currency,
-                UpdateReason = "Income Transaction Created"
-            });
+                var account = _accountDbContext.Accounts.FirstOrDefault(a => a.Id == transactionEvent.AccountId) 
+                    ?? throw new InvalidOperationException($"Account {transactionEvent.AccountId} not found.");
+
+                var previousBalance = account.Balance.Amount;
+                account.Withdraw(new Money(transactionEvent.Amount, transactionEvent.Currency));
+
+                await _accountDbContext.SaveChangesAsync();
+
+                await _publishEndpoint.Publish(new AccountBalanceUpdatedEvent
+                {
+                    AccountId = account.Id,
+                    UserId = transactionEvent.UserId,
+                    NewBalance = account.Balance.Amount,
+                    PreviousBalance = previousBalance,
+                    Currency = transactionEvent.Currency,
+                    UpdateReason = "Expense Transaction"
+                });
+
+                _logger.LogInformation("Expense transaction {TransactionId} processed successfully", transactionEvent.TransactionId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error processing ExpenseTransactionCreated: {TransactionId}", transactionEvent.TransactionId);
+                throw;
+            }
         }
     }
 }

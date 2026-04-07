@@ -1,4 +1,4 @@
-﻿using PersonalFinance.Services.Transactions.Domain.Entities;
+using PersonalFinance.Services.Transactions.Domain.Entities;
 using PersonalFinance.Shared.Common.Domain.ValueObjects;
 
 namespace PersonalFinance.Services.Transactions.Application.DataTransferObjects.Requests
@@ -33,12 +33,14 @@ namespace PersonalFinance.Services.Transactions.Application.DataTransferObjects.
         }
         public TransactionType Type { get; set; } = TransactionType.Expense;
     }
+
     public class CreateTransferTransactionRequest : CreateTransactionRequest
     {
         public CreateTransferTransactionRequest()
         {
             Type = TransactionType.Transfer;
         }
+        public Guid ToAccountId { get; set; }
         public TransactionType Type { get; set; } = TransactionType.Transfer;
     }
 }

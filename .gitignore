@@ -42,3 +42,5 @@ bin/
 obj/
 .vs/
 Logs/
+/apps/dotnet-services/PersonalFinanceServices/postman
+/apps/dotnet-services/PersonalFinanceServices/.postman

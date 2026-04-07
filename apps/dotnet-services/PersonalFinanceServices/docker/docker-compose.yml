@@ -36,6 +36,8 @@
     ports:
       - "5672:5672"
       - "15672:15672"
+    networks:
+      - finance_network
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
     restart: unless-stopped

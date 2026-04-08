@@ -113,8 +113,8 @@
   # Web Frontend
   web:
     build:
-      context: ../../..      # Navigate to apps/web relative to docker folder
-      dockerfile: apps/web/Dockerfile
+      context: ../../../web      # Navigate to apps/web relative to docker folder
+      dockerfile: Dockerfile
     container_name: finance-web
     ports:
       - "3000:3000"

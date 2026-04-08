@@ -6,7 +6,8 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { userService, UserTransferObject, RegisterUserRequest } from "../../services/user";
+import { userService, UserTransferObject } from "../../services/user";
+import { authService, RegisterUserRequest } from "../../services/auth";
 import { AlertCircle, UserPlus, Search, ShieldCheck, Trash2, Eye, Wallet, CheckCircle, ArrowLeftRight } from "lucide-react";
 import Link from "next/link";
 
@@ -99,7 +100,7 @@ export default function UsersPage() {
         confirmPassword: createData.confirmPassword,
         acceptTerms: createData.acceptTerms,
       };
-      const res = await userService.registerUser(payload);
+      const res = await authService.register(payload);
       if (res.success) {
         setIsCreateOpen(false);
         setCreateData({ firstName: "", lastName: "", userName: "", email: "", phoneNumber: "", password: "", confirmPassword: "", acceptTerms: true });

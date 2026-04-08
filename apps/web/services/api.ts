@@ -26,10 +26,16 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Handle unauthorized (e.g., redirect to login)
+      // Handle unauthorized - clear token and redirect to login
       if (typeof window !== "undefined") {
         localStorage.removeItem("auth_token");
-        window.location.href = "/auth";
+        localStorage.removeItem("auth_user");
+
+        // Only auto-redirect if not already on auth page
+        const currentPath = window.location.pathname;
+        if (!currentPath.startsWith("/auth") && currentPath !== "/") {
+          window.location.href = `/auth?redirect=${encodeURIComponent(currentPath)}`;
+        }
       }
     }
     return Promise.reject(error);

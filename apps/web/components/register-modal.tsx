@@ -7,11 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { userService } from "@/services/user";
+import { authService } from "@/services/auth";
+import { useAuthStore } from "@/store/useAuthStore";
 import { ArrowRight } from "lucide-react";
 
 export function RegisterModal({ children }: { children: React.ReactNode }) {
   const router = useRouter();
+  const { login } = useAuthStore();
   const [open, setOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -69,11 +71,28 @@ export function RegisterModal({ children }: { children: React.ReactNode }) {
         acceptTerms: formData.acceptTerms,
       };
 
-      const res = await userService.registerUser(payload);
-      
+      const res = await authService.register(payload);
+
       if (res.success) {
+        // Auto-login after registration
+        try {
+          const loginRes = await authService.login({
+            email: formData.email,
+            password: formData.password,
+          });
+
+          if (loginRes.success && loginRes.data) {
+            login(loginRes.data.accessToken, loginRes.data.user);
+            setOpen(false);
+            router.push("/my/dashboard");
+            return;
+          }
+        } catch {
+          // If auto-login fails, redirect to login page
+        }
+
         setOpen(false);
-        router.push(`/users/${res.data.id}`);
+        router.push("/auth");
       } else {
         if (res.errors && res.errors.length > 0) {
           setError(res.errors[0]);
@@ -103,12 +122,12 @@ export function RegisterModal({ children }: { children: React.ReactNode }) {
         <DialogHeader>
           <DialogTitle className="text-2xl">Create your account</DialogTitle>
           <DialogDescription>
-            Join FinanceFlow to start analyzing your wealth instantly.
+            Join Finance Flow to start analyzing your wealth instantly.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 py-4">
           {error && <div className="p-3 text-sm text-red-500 bg-red-100 dark:bg-red-900/30 dark:text-red-400 rounded-md">{error}</div>}
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="firstName">First Name</Label>
@@ -139,7 +158,7 @@ export function RegisterModal({ children }: { children: React.ReactNode }) {
               <Input id="confirmPassword" name="confirmPassword" required type="password" value={formData.confirmPassword} onChange={handleChange} />
             </div>
           </div>
-          
+
           <div className="flex items-center space-x-2 pt-2">
             <Checkbox id="terms" checked={formData.acceptTerms} onCheckedChange={handleCheckedChange} />
             <Label htmlFor="terms" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">

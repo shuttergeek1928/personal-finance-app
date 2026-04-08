@@ -12,7 +12,7 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "FinanceFlow | AI Enabled finance tracker",
+  title: "Finance Flow | AI Enabled finance tracker",
   description: "Track your finances across multiple bank accounts and set budgets dynamically.",
 };
 

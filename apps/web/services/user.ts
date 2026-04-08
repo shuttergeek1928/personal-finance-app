@@ -66,17 +66,6 @@ export interface BooleanApiResponse {
   timestamp: string;
 }
 
-export interface RegisterUserRequest {
-  email?: string | null;
-  userName?: string | null;
-  password?: string | null;
-  confirmPassword?: string | null;
-  firstName?: string | null;
-  lastName?: string | null;
-  phoneNumber?: string | null;
-  acceptTerms: boolean;
-}
-
 export interface UpdateUserProfileRequest {
   firstName?: string | null;
   lastName?: string | null;
@@ -90,11 +79,6 @@ export interface UpdateUserProfileRequest {
 export const userService = {
   getUsers: async (page = 1, pageSize = 20): Promise<UserTransferObjectPaginatedResultApiResponse> => {
     const response = await api.get(`/api/Users?page=${page}&pageSize=${pageSize}`, { baseURL: GATEWAY_BASE_URL });
-    return response.data;
-  },
-
-  registerUser: async (payload: RegisterUserRequest): Promise<UserTransferObjectApiResponse> => {
-    const response = await api.post(`/api/Users/register`, payload, { baseURL: GATEWAY_BASE_URL });
     return response.data;
   },
 

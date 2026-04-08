@@ -15,7 +15,7 @@ export default function LandingPage() {
             <div className="h-8 w-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white">
               <LineChart className="h-5 w-5" />
             </div>
-            FinanceFlow
+            Finance Flow
           </div>
           <nav className="hidden md:flex gap-6 text-sm font-medium text-zinc-600 dark:text-zinc-400">
             <Link href="#features" className="hover:text-zinc-900 dark:hover:text-zinc-50 transition">Features</Link>
@@ -33,7 +33,7 @@ export default function LandingPage() {
               </button>
             </RegisterModal>
             <Button asChild className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-full">
-              <Link href="/dashboard">Get Started</Link>
+              <Link href="/auth">Get Started</Link>
             </Button>
           </div>
         </div>
@@ -49,7 +49,7 @@ export default function LandingPage() {
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Button size="lg" asChild className="h-12 px-8 rounded-full bg-indigo-600 text-white hover:bg-indigo-700 text-base">
-              <Link href="/dashboard">
+              <Link href="/auth">
                 Start for Free <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
@@ -112,7 +112,7 @@ export default function LandingPage() {
         <div className="container mx-auto px-4 max-w-6xl flex flex-col md:flex-row justify-between items-center">
           <div className="flex items-center gap-2 font-semibold tracking-tight text-zinc-900 dark:text-zinc-100 mb-4 md:mb-0">
             <LineChart className="h-5 w-5 text-indigo-600" />
-            FinanceFlow
+            Finance Flow
           </div>
           <div className="flex gap-6">
             <Link href="#" className="hover:text-zinc-900 dark:hover:text-zinc-200">Privacy</Link>

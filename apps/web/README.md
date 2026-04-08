@@ -1,6 +1,6 @@
-# FinanceFlow - AI Enabled Finance Tracker
+# Finance Flow - AI Enabled Finance Tracker
 
-This is the production-ready frontend for **FinanceFlow**, an AI-enabled personal finance tracker and optimization platform. It features modern SaaS design, dark mode by default, and robust state management.
+This is the production-ready frontend for **Finance Flow**, an AI-enabled personal finance tracker and optimization platform. It features modern SaaS design, dark mode by default, and robust state management.
 
 ## Tech Stack
 - **Framework**: Next.js 15 (App Router)

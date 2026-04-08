@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using PersonalFinance.Services.UserManagement.Application.Services;
@@ -157,9 +157,19 @@ namespace PersonalFinance.Services.UserManagement.Application.Common
                 errors.Add("Password must contain at least one uppercase letter");
             }
 
+            if (!password.Any(char.IsLower))
+            {
+                errors.Add("Password must contain at least one lowercase letter");
+            }
+
             if (!password.Any(char.IsDigit))
             {
                 errors.Add("Password must contain at least one number");
+            }
+
+            if (!password.Any(ch => !char.IsLetterOrDigit(ch)))
+            {
+                errors.Add("Password must contain at least one special character");
             }
 
             return await Task.FromResult(new ValidationResult
@@ -178,7 +188,7 @@ namespace PersonalFinance.Services.UserManagement.Application.Common
         /// <returns>A task that represents the asynchronous operation. The task result contains true if the passwords match; otherwise, false.</returns>  
         protected async Task<bool> ComparePassword(string password, string hashedPassword, CancellationToken cancellationToken = default)
         {
-            return await Task.Run(() => _passwordHasher.VerifyPassword(hashedPassword, password), cancellationToken);
+            return await Task.Run(() => _passwordHasher.VerifyPassword(password, hashedPassword), cancellationToken);
         }
     }
 

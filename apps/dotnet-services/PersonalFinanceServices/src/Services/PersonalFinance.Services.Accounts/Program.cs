@@ -4,6 +4,7 @@ using PersonalFinance.Services.Accounts.Application.Commands;
 using PersonalFinance.Services.Accounts.Application.Mappings;
 using PersonalFinance.Services.Accounts.Application.Services;
 using PersonalFinance.Services.Accounts.Infrastructure.Data;
+using PersonalFinance.Shared.Common.Security;
 using Serilog;
 using System.Reflection;
 
@@ -14,11 +15,17 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(c =>
+builder.Services.AddSwaggerJwtSecurity("Accounts", "v1", "/gateway-accounts");
+
+// Configure Swagger to include XML comments
+builder.Services.Configure<Swashbuckle.AspNetCore.SwaggerGen.SwaggerGenOptions>(c =>
 {
     var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
     var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-    c.IncludeXmlComments(xmlPath);
+    if (File.Exists(xmlPath))
+    {
+        c.IncludeXmlComments(xmlPath);
+    }
 });
 
 builder.WebHost.ConfigureKestrel(options =>
@@ -42,8 +49,11 @@ builder.Services.AddAutoMapper(typeof(AccountMappingProfile));
 // Add MediatR
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(CreateAccountCommand).Assembly));
 
-// Add Pssword Hasher
+// Add Token Service
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
+
+// Add JWT Authentication
+builder.Services.AddJwtAuthentication(builder.Configuration);
 
 // Add Logging
 Log.Logger = new LoggerConfiguration()
@@ -88,6 +98,8 @@ app.UseSwaggerUI(c =>
 
 app.UseHttpsRedirection();
 app.UseCors("AllowMyOrigins");
+
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.UseSerilogRequestLogging(); // Add Serilog request logging

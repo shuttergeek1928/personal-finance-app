@@ -103,4 +103,20 @@ app.UseSerilogRequestLogging(); // Add Serilog request logging
 
 app.MapControllers();
 
+// Apply database migrations automatically on startup
+try
+{
+    using (var scope = app.Services.CreateScope())
+    {
+        var dbContext = scope.ServiceProvider.GetRequiredService<TransactionDbContext>();
+        dbContext.Database.Migrate();
+        Log.Information("Database migrations applied successfully");
+    }
+}
+catch (Exception ex)
+{
+    Log.Error(ex, "An error occurred while applying database migrations");
+    throw;
+}
+
 app.Run();

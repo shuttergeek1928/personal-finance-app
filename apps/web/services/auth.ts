@@ -1,6 +1,9 @@
 import api from "./api";
 
-const BASE_URL = process.env.NEXT_PUBLIC_GATEWAY_URL || "http://192.168.1.8:5000";
+// Use environment variable to set the API Gateway URL
+// For Docker on local machine: http://localhost:5000
+// For Docker on different machine: http://<machine-ip>:5000
+const BASE_URL = process.env.NEXT_PUBLIC_GATEWAY_URL || "http://localhost:5000";
 const GATEWAY_BASE_URL = `${BASE_URL}/gateway-users`;
 
 export interface LoginRequest {

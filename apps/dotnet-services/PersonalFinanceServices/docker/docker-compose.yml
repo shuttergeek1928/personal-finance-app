@@ -110,6 +110,22 @@
       - ASPNETCORE_ENVIRONMENT=Docker
     restart: unless-stopped
 
+  # Web Frontend
+  web:
+    build:
+      context: ../../../../   # 👈 Navigate to monorepo root
+      dockerfile: apps/web/Dockerfile
+    container_name: finance-web
+    ports:
+      - "3000:3000"
+    networks:
+      - finance_network
+    environment:
+      - NODE_ENV=production
+    depends_on:
+      - apigateway
+    restart: unless-stopped
+
 volumes:
   sqlserver_data:
   redis_data:

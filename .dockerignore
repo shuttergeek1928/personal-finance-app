@@ -1,0 +1,38 @@
+# Git
+.git
+.gitignore
+
+# Node
+node_modules
+npm-debug.log
+.npm
+.next
+dist
+build
+
+# Docker
+.dockerignore
+Dockerfile
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# Dotnet
+bin
+obj
+.vs
+*.user
+*.suo
+
+# Misc
+.env
+.env.local
+.env.*.local

@@ -113,7 +113,7 @@
   # Web Frontend
   web:
     build:
-      context: ../../../../   # 👈 Navigate to monorepo root
+      context: ../../..      # Navigate to apps/web relative to docker folder
       dockerfile: apps/web/Dockerfile
     container_name: finance-web
     ports:

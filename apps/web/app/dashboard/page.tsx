@@ -6,7 +6,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { ArrowDownIcon, ArrowUpIcon, CreditCard, DollarSign, Activity } from "lucide-react"
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts"
 
-export default function DashboardPage() {
+import { AuthGuard } from "@/components/auth-guard"
+
+function DashboardContent() {
   const { accounts, transactions, isLoading, fetchDashboardData } = useFinanceStore()
 
   useEffect(() => {
@@ -141,5 +143,13 @@ export default function DashboardPage() {
         </Card>
       </div>
     </div>
+  )
+}
+
+export default function DashboardPage() {
+  return (
+    <AuthGuard requiredRoles={["Admin"]}>
+      <DashboardContent />
+    </AuthGuard>
   )
 }

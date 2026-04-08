@@ -105,5 +105,10 @@ export const userService = {
   confirmEmail: async (id: string): Promise<BooleanApiResponse> => {
     const response = await api.post(`/api/Users/${id}/confirm-email`, {}, { baseURL: GATEWAY_BASE_URL });
     return response.data;
+  },
+
+  updateRoles: async (id: string, roles: string[]): Promise<BooleanApiResponse> => {
+    const response = await api.put(`/api/Users/${id}/roles`, roles, { baseURL: GATEWAY_BASE_URL });
+    return response.data;
   }
 };

@@ -25,7 +25,7 @@ export { adminNavigation, userNavigation }
 export function Sidebar() {
   const pathname = usePathname()
   const router = useRouter()
-  const { user, isAuthenticated, initialize, logout } = useAuthStore()
+  const { user, isAuthenticated, initialize, logout, isAdmin } = useAuthStore()
 
   useEffect(() => {
     initialize()
@@ -47,7 +47,7 @@ export function Sidebar() {
     : "?"
 
   return (
-    <div className="hidden border-r border-zinc-200 bg-zinc-50/50 dark:border-zinc-800 dark:bg-zinc-900/50 md:flex md:w-64 md:flex-col min-h-screen">
+    <div className="hidden border-r border-zinc-200 bg-zinc-50/50 dark:border-zinc-800 dark:bg-zinc-900/50 md:flex md:w-64 md:flex-col h-full">
       <div className="flex h-16 items-center border-b border-zinc-200 px-6 dark:border-zinc-800">
         <Link href="/" className="flex items-center gap-2 font-semibold tracking-tight text-lg">
           <div className="h-8 w-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white">
@@ -58,7 +58,7 @@ export function Sidebar() {
       </div>
       <div className="flex-1 overflow-auto py-4">
         {/* User section nav */}
-        {!isUserRoute && isAuthenticated && (
+        {isAuthenticated && (
           <div className="px-4 mb-2">
             <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider px-3 mb-2">Personal</p>
           </div>
@@ -84,8 +84,8 @@ export function Sidebar() {
           })}
         </nav>
 
-        {/* Admin section nav - always shown */}
-        {!isUserRoute && (
+        {/* Admin section nav - only shown to Admins */}
+        {isAdmin() && (
           <>
             <div className="px-4 mt-6 mb-2">
               <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider px-3 mb-2">Admin</p>

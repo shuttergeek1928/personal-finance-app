@@ -10,9 +10,11 @@ interface AuthState {
   initialize: () => void;
   login: (token: string, user: LoginResponseUser) => void;
   logout: () => void;
+  isAdmin: () => boolean;
+  hasRole: (role: string) => boolean;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
+export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   token: null,
   isAuthenticated: false,
@@ -60,5 +62,13 @@ export const useAuthStore = create<AuthState>((set) => ({
       isAuthenticated: false,
       isLoading: false,
     });
+  },
+  isAdmin: () => {
+    const { user } = get();
+    return user?.roles?.includes("Admin") ?? false;
+  },
+  hasRole: (role: string) => {
+    const { user } = get();
+    return user?.roles?.includes(role) ?? false;
   },
 }));

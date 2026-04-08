@@ -8,10 +8,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { userService, UserTransferObject } from "../../services/user";
 import { authService, RegisterUserRequest } from "../../services/auth";
-import { AlertCircle, UserPlus, Search, ShieldCheck, Trash2, Eye, Wallet, CheckCircle, ArrowLeftRight } from "lucide-react";
 import Link from "next/link";
+import { AuthGuard } from "@/components/auth-guard";
+import { Shield, ShieldAlert, User as UserIcon, UserPlus, Search, AlertCircle, ShieldCheck, Eye, Wallet, ArrowLeftRight, CheckCircle, Trash2 } from "lucide-react";
 
-export default function UsersPage() {
+function UsersPageContent() {
   const [users, setUsers] = useState<UserTransferObject[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -149,6 +150,28 @@ export default function UsersPage() {
     }
   };
 
+  const handleToggleRole = async (user: UserTransferObject, roleToToggle: string) => {
+    const currentRoles = user.roles || [];
+    let newRoles: string[];
+    
+    if (currentRoles.includes(roleToToggle)) {
+      newRoles = currentRoles.filter(r => r !== roleToToggle);
+    } else {
+      newRoles = [...currentRoles, roleToToggle];
+    }
+
+    try {
+      const res = await userService.updateRoles(user.id, newRoles);
+      if (res.success) {
+        fetchUsers();
+      } else {
+        alert(res.message || "Failed to update roles");
+      }
+    } catch (err: any) {
+      alert(err.message || "Failed to update roles");
+    }
+  };
+
   if (loading && users.length === 0) {
     return <div className="p-8 text-center text-muted-foreground">Loading users...</div>;
   }
@@ -262,6 +285,11 @@ export default function UsersPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 {user.fullName || user.userName || user.email?.split('@')[0] || "Unnamed User"}
+                {user.roles?.includes("Admin") ? (
+                  <span title="Admin User"><Shield className="w-4 h-4 text-indigo-600" /></span>
+                ) : (
+                  <span title="Regular User"><UserIcon className="w-4 h-4 text-zinc-400" /></span>
+                )}
                 {user.isEmailConfirmed && <span title="Email Confirmed" className="flex items-center"><ShieldCheck className="w-4 h-4 text-blue-500" /></span>}
               </CardTitle>
               <CardDescription>
@@ -305,6 +333,26 @@ export default function UsersPage() {
                 </Link>
               </div>
               
+              <div className="w-full flex gap-2 border-t border-zinc-100 dark:border-zinc-800 pt-2 mt-1">
+                <Button 
+                  variant={user.roles?.includes("Admin") ? "default" : "outline"} 
+                  size="sm" 
+                  className="flex-1 gap-1 text-[10px] h-8"
+                  onClick={() => handleToggleRole(user, "Admin")}
+                >
+                  <ShieldAlert className="w-3 h-3" /> {user.roles?.includes("Admin") ? "Revoke Admin" : "Make Admin"}
+                </Button>
+                <Button 
+                  variant={user.roles?.includes("User") ? "secondary" : "outline"} 
+                  size="sm" 
+                  className="flex-1 gap-1 text-[10px] h-8"
+                  disabled={user.roles?.includes("User")}
+                  onClick={() => handleToggleRole(user, "User")}
+                >
+                  <UserIcon className="w-3 h-3" /> {user.roles?.includes("User") ? "Is User" : "Add User Role"}
+                </Button>
+              </div>
+
               <div className="w-full flex gap-2">
                 {!user.isEmailConfirmed && user.isActive && (
                   <Button variant="outline" size="sm" className="flex-1 gap-2" onClick={() => handleConfirmEmail(user.id)}>
@@ -322,5 +370,13 @@ export default function UsersPage() {
         ))}
       </div>
     </div>
+  );
+}
+
+export default function UsersPage() {
+  return (
+    <AuthGuard requiredRoles={["Admin"]}>
+      <UsersPageContent />
+    </AuthGuard>
   );
 }

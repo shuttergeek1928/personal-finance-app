@@ -13,7 +13,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Plus, Trash2, Search, User as UserIcon, RefreshCw, AlertCircle, Calendar, FileText } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
-export default function TransactionsPage() {
+import { AuthGuard } from "@/components/auth-guard"
+
+function TransactionsContent() {
   const searchParams = useSearchParams()
   const initialUserId = searchParams.get("userId")
 
@@ -414,5 +416,13 @@ export default function TransactionsPage() {
         </div>
       )}
     </div>
+  )
+}
+
+export default function TransactionsPage() {
+  return (
+    <AuthGuard requiredRoles={["Admin"]}>
+      <TransactionsContent />
+    </AuthGuard>
   )
 }

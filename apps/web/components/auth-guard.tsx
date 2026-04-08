@@ -4,20 +4,34 @@ import { useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuthStore } from "@/store/useAuthStore";
 
-export function AuthGuard({ children }: { children: React.ReactNode }) {
+export function AuthGuard({ 
+  children, 
+  requiredRoles 
+}: { 
+  children: React.ReactNode, 
+  requiredRoles?: string[] 
+}) {
   const router = useRouter();
   const pathname = usePathname();
-  const { isAuthenticated, isLoading, initialize } = useAuthStore();
+  const { isAuthenticated, isLoading, initialize, user } = useAuthStore();
 
   useEffect(() => {
     initialize();
   }, [initialize]);
 
   useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      router.replace(`/auth?redirect=${encodeURIComponent(pathname)}`);
+    if (!isLoading) {
+      if (!isAuthenticated) {
+        router.replace(`/auth?redirect=${encodeURIComponent(pathname)}`);
+      } else if (requiredRoles && requiredRoles.length > 0) {
+        const hasRequiredRole = requiredRoles.some(role => user?.roles?.includes(role));
+        if (!hasRequiredRole) {
+          // If not authorized, redirect to a safe page or show error
+          router.replace("/my/profile?error=unauthorized");
+        }
+      }
     }
-  }, [isLoading, isAuthenticated, router, pathname]);
+  }, [isLoading, isAuthenticated, router, pathname, requiredRoles, user]);
 
   if (isLoading) {
     return (

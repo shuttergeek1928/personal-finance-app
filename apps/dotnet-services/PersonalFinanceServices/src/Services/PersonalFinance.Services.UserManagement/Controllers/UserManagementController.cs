@@ -1,4 +1,5 @@
-﻿using MediatR;
+using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PersonalFinance.Services.UserManagement.Application.Commands;
 using PersonalFinance.Services.UserManagement.Application.DataTransferObjects;
@@ -228,6 +229,7 @@ namespace PersonalFinance.Services.UserManagement.Controllers
         /// <param name="pageSize">Page size (default: 20, max: 100)</param>
         /// <returns>Paginated list of users</returns>
         [HttpGet]
+        [Authorize(Roles = "Admin")]
         [ProducesResponseType(typeof(ApiResponse<PaginatedResult<UserTransferObject>>), StatusCodes.Status200OK)]
         public async Task<ActionResult<ApiResponse<PaginatedResult<UserTransferObject>>>> GetUsers(
             [FromQuery] int page = 1,
@@ -262,6 +264,7 @@ namespace PersonalFinance.Services.UserManagement.Controllers
         /// <param name="id">User ID</param>
         /// <returns>Success confirmation</returns>
         [HttpPut("{id:guid}")]
+        [Authorize(Roles = "Admin")]
         [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status404NotFound)]
         public async Task<ActionResult<ApiResponse<bool>>> ActivateUser(Guid id)
@@ -291,6 +294,7 @@ namespace PersonalFinance.Services.UserManagement.Controllers
         /// <param name="id">User ID</param>
         /// <returns>Success confirmation</returns>
         [HttpDelete("{id:guid}")]
+        [Authorize(Roles = "Admin")]
         [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status404NotFound)]
         public async Task<ActionResult<ApiResponse<bool>>> DeleteUser(Guid id)
@@ -310,6 +314,38 @@ namespace PersonalFinance.Services.UserManagement.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error deleting user: {UserId}", id);
+                return StatusCode(500, ApiResponse<bool>.ErrorResult("An internal error occurred"));
+            }
+        }
+
+        /// <summary>
+        /// Assign roles to a user (Admin only)
+        /// </summary>
+        /// <param name="id">User ID</param>
+        /// <param name="roles">List of role names</param>
+        /// <returns>Success confirmation</returns>
+        [HttpPut("{id:guid}/roles")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<ApiResponse<bool>>> AssignRoles(Guid id, [FromBody] List<string> roles)
+        {
+            try
+            {
+                var command = new AssignUserRolesCommand { UserId = id, Roles = roles };
+                var result = await _mediator.Send(command);
+
+                if (result.Success)
+                {
+                    return Ok(result);
+                }
+
+                return BadRequest(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error assigning roles to user: {UserId}", id);
                 return StatusCode(500, ApiResponse<bool>.ErrorResult("An internal error occurred"));
             }
         }

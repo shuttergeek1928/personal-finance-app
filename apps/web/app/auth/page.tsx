@@ -35,7 +35,12 @@ export default function AuthPage() {
 
       if (res.success && res.data) {
         login(res.data.accessToken, res.data.user);
-        router.push(redirectUrl);
+        
+        // If a redirect is specified, go there. Otherwise, admins go to /dashboard, users to /my/dashboard
+        const target = searchParams.get("redirect") || 
+          (res.data.user.roles?.includes("Admin") ? "/dashboard" : "/my/dashboard");
+        
+        router.push(target);
       } else {
         if (res.errors && res.errors.length > 0) {
           setError(res.errors[0]);

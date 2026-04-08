@@ -19,7 +19,7 @@ import {
 export function MobileNav() {
   const pathname = usePathname()
   const router = useRouter()
-  const { user, isAuthenticated, initialize, logout } = useAuthStore()
+  const { user, isAuthenticated, initialize, logout, isAdmin } = useAuthStore()
 
   useEffect(() => {
     initialize()
@@ -84,7 +84,7 @@ export function MobileNav() {
               })}
             </nav>
 
-            {!isUserRoute && (
+            {isAdmin() && !isUserRoute && (
               <>
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider px-4 mt-6 mb-3">Admin</p>
                 <nav className="grid gap-2">

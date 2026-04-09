@@ -1,4 +1,4 @@
-﻿services:
+services:
 
   # SQL Server
   sqlserver:
@@ -104,6 +104,20 @@
     container_name: finance-transactions
     ports:
       - "5300:5300"
+    networks:
+      - finance_network
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Docker
+    restart: unless-stopped
+
+  # Obligations
+  obligations:
+    build:
+      context: ../           # 👈 Set context to one level above to include src and .sln
+      dockerfile: src/Services/PersonalFinance.Services.Obligations/Dockerfile
+    container_name: finance-obligations
+    ports:
+      - "5400:5400"
     networks:
       - finance_network
     environment:

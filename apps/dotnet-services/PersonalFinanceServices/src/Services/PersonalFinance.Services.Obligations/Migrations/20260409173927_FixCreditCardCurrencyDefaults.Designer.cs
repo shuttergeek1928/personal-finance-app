@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PersonalFinance.Services.Obligations.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using PersonalFinance.Services.Obligations.Infrastructure.Data;
 namespace PersonalFinance.Services.Obligations.Migrations
 {
     [DbContext(typeof(ObligationDbContext))]
-    partial class ObligationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260409173927_FixCreditCardCurrencyDefaults")]
+    partial class FixCreditCardCurrencyDefaults
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

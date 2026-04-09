@@ -94,6 +94,12 @@ export default function ObligationsPage() {
           >
             <Plus className="h-4 w-4" /> Add Subscription
           </Link>
+          <Link
+            href="/my/obligations/credit-cards"
+            className="inline-flex items-center gap-2 rounded-lg bg-sky-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-sky-700 transition-colors shadow-md hover:shadow-lg"
+          >
+            <Plus className="h-4 w-4" /> Manage Cards
+          </Link>
         </div>
       </div>
 

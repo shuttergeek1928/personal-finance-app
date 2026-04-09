@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PersonalFinance.Services.Obligations.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using PersonalFinance.Services.Obligations.Infrastructure.Data;
 namespace PersonalFinance.Services.Obligations.Migrations
 {
     [DbContext(typeof(ObligationDbContext))]
-    partial class ObligationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260409165416_AddCardNameToCreditCard")]
+    partial class AddCardNameToCreditCard
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -92,8 +95,7 @@ namespace PersonalFinance.Services.Obligations.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid?>("AccountId")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("AccountId");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -102,8 +104,7 @@ namespace PersonalFinance.Services.Obligations.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid?>("CreditCardId")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("CreditCardId");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("datetime2");
@@ -235,65 +236,6 @@ namespace PersonalFinance.Services.Obligations.Migrations
                     b.ToTable("Subscriptions", (string)null);
                 });
 
-            modelBuilder.Entity("PersonalFinance.Services.Obligations.Domain.Entities.CreditCard", b =>
-                {
-                    b.OwnsOne("PersonalFinance.Shared.Common.Domain.ValueObjects.Money", "OutstandingAmount", b1 =>
-                        {
-                            b1.Property<Guid>("CreditCardId")
-                                .HasColumnType("uniqueidentifier");
-
-                            b1.Property<decimal>("Amount")
-                                .HasColumnType("decimal(18,2)")
-                                .HasColumnName("OutstandingAmount");
-
-                            b1.Property<string>("Currency")
-                                .IsRequired()
-                                .ValueGeneratedOnAdd()
-                                .HasMaxLength(3)
-                                .HasColumnType("nvarchar(3)")
-                                .HasDefaultValue("INR")
-                                .HasColumnName("OutstandingCurrency");
-
-                            b1.HasKey("CreditCardId");
-
-                            b1.ToTable("CreditCards");
-
-                            b1.WithOwner()
-                                .HasForeignKey("CreditCardId");
-                        });
-
-                    b.OwnsOne("PersonalFinance.Shared.Common.Domain.ValueObjects.Money", "TotalLimit", b1 =>
-                        {
-                            b1.Property<Guid>("CreditCardId")
-                                .HasColumnType("uniqueidentifier");
-
-                            b1.Property<decimal>("Amount")
-                                .HasColumnType("decimal(18,2)")
-                                .HasColumnName("TotalLimitAmount");
-
-                            b1.Property<string>("Currency")
-                                .IsRequired()
-                                .ValueGeneratedOnAdd()
-                                .HasMaxLength(3)
-                                .HasColumnType("nvarchar(3)")
-                                .HasDefaultValue("INR")
-                                .HasColumnName("TotalLimitCurrency");
-
-                            b1.HasKey("CreditCardId");
-
-                            b1.ToTable("CreditCards");
-
-                            b1.WithOwner()
-                                .HasForeignKey("CreditCardId");
-                        });
-
-                    b.Navigation("OutstandingAmount")
-                        .IsRequired();
-
-                    b.Navigation("TotalLimit")
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("PersonalFinance.Services.Obligations.Domain.Entities.Liability", b =>
                 {
                     b.HasOne("PersonalFinance.Services.Obligations.Domain.Entities.CreditCard", "CreditCard")
@@ -312,10 +254,8 @@ namespace PersonalFinance.Services.Obligations.Migrations
 
                             b1.Property<string>("Currency")
                                 .IsRequired()
-                                .ValueGeneratedOnAdd()
                                 .HasMaxLength(3)
                                 .HasColumnType("nvarchar(3)")
-                                .HasDefaultValue("INR")
                                 .HasColumnName("EmiCurrency");
 
                             b1.HasKey("LiabilityId");
@@ -337,10 +277,8 @@ namespace PersonalFinance.Services.Obligations.Migrations
 
                             b1.Property<string>("Currency")
                                 .IsRequired()
-                                .ValueGeneratedOnAdd()
                                 .HasMaxLength(3)
                                 .HasColumnType("nvarchar(3)")
-                                .HasDefaultValue("INR")
                                 .HasColumnName("OutstandingBalanceCurrency");
 
                             b1.HasKey("LiabilityId");
@@ -362,10 +300,8 @@ namespace PersonalFinance.Services.Obligations.Migrations
 
                             b1.Property<string>("Currency")
                                 .IsRequired()
-                                .ValueGeneratedOnAdd()
                                 .HasMaxLength(3)
                                 .HasColumnType("nvarchar(3)")
-                                .HasDefaultValue("INR")
                                 .HasColumnName("PrincipalCurrency");
 
                             b1.HasKey("LiabilityId");
@@ -387,10 +323,8 @@ namespace PersonalFinance.Services.Obligations.Migrations
 
                             b1.Property<string>("Currency")
                                 .IsRequired()
-                                .ValueGeneratedOnAdd()
                                 .HasMaxLength(3)
                                 .HasColumnType("nvarchar(3)")
-                                .HasDefaultValue("INR")
                                 .HasColumnName("ProcessingFeeCurrency");
 
                             b1.HasKey("LiabilityId");

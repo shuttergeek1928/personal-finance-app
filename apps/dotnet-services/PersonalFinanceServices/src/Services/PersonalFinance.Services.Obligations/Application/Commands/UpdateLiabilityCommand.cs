@@ -21,10 +21,14 @@ namespace PersonalFinance.Services.Obligations.Application.Commands
         public int TenureMonths { get; set; }
         public DateTime StartDate { get; set; }
         public Guid? AccountId { get; set; }
+        public Guid? CreditCardId { get; set; }
+        public bool IsNoCostEmi { get; set; }
+        public decimal? ProcessingFee { get; set; }
 
         public UpdateLiabilityCommand(Guid id, string name, LiabilityType type, string lenderName,
             decimal principalAmount, decimal interestRate, int tenureMonths,
-            DateTime startDate, Guid? accountId)
+            DateTime startDate, Guid? accountId, Guid? creditCardId,
+            bool isNoCostEmi, decimal? processingFee)
         {
             Id = id;
             Name = name;
@@ -35,6 +39,9 @@ namespace PersonalFinance.Services.Obligations.Application.Commands
             TenureMonths = tenureMonths;
             StartDate = startDate;
             AccountId = accountId;
+            CreditCardId = creditCardId;
+            IsNoCostEmi = isNoCostEmi;
+            ProcessingFee = processingFee;
         }
     }
 
@@ -52,6 +59,9 @@ namespace PersonalFinance.Services.Obligations.Application.Commands
             try
             {
                 var liability = await Context.Liabilities.FirstOrDefaultAsync(l => l.Id == request.Id && l.IsActive, cancellationToken);
+                
+                Logger.LogInformation("Updating liability: {Id}. New CreditCardId: {CreditCardId}", 
+                    request.Id, request.CreditCardId);
 
                 if (liability == null)
                 {
@@ -67,7 +77,10 @@ namespace PersonalFinance.Services.Obligations.Application.Commands
                     request.InterestRate,
                     request.TenureMonths,
                     request.StartDate,
-                    request.AccountId);
+                    request.AccountId,
+                    request.CreditCardId,
+                    request.IsNoCostEmi,
+                    request.ProcessingFee);
 
                 await Context.SaveChangesAsync(cancellationToken);
 

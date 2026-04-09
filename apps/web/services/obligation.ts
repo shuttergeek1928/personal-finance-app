@@ -10,7 +10,8 @@ export enum LiabilityType {
   PersonalLoan = 1,
   CarLoan = 2,
   EducationLoan = 3,
-  Other = 4,
+  CreditCardEmi = 4,
+  Other = 5,
 }
 
 export const LiabilityTypeLabels: Record<LiabilityType, string> = {
@@ -18,7 +19,24 @@ export const LiabilityTypeLabels: Record<LiabilityType, string> = {
   [LiabilityType.PersonalLoan]: "Personal Loan",
   [LiabilityType.CarLoan]: "Car Loan",
   [LiabilityType.EducationLoan]: "Education Loan",
+  [LiabilityType.CreditCardEmi]: "Credit Card EMI",
   [LiabilityType.Other]: "Other",
+};
+
+export enum CreditCardNetwork {
+  Visa = 0,
+  MasterCard = 1,
+  Amex = 2,
+  RuPay = 3,
+  Other = 4,
+}
+
+export const CreditCardNetworkLabels: Record<CreditCardNetwork, string> = {
+  [CreditCardNetwork.Visa]: "Visa",
+  [CreditCardNetwork.MasterCard]: "MasterCard",
+  [CreditCardNetwork.Amex]: "American Express",
+  [CreditCardNetwork.RuPay]: "RuPay",
+  [CreditCardNetwork.Other]: "Other",
 };
 
 export enum SubscriptionType {
@@ -150,9 +168,28 @@ export interface LiabilityDto {
   endDate: string;
   userId: string;
   accountId: string | null;
+  creditCardId: string | null;
+  creditCard: CreditCardDto | null;
+  isNoCostEmi: boolean;
+  processingFee: Money | null;
   createdAt: string;
   updatedAt: string;
   isActive: boolean;
+}
+
+export interface CreditCardDto {
+  id: string;
+  userId: string;
+  bankName: string;
+  cardName: string;
+  last4Digits: string;
+  expiryMonth: number;
+  expiryYear: number;
+  networkProvider: CreditCardNetwork;
+  totalLimit: Money;
+  outstandingAmount: Money;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface SubscriptionDto {
@@ -221,6 +258,9 @@ export interface CreateLiabilityRequest {
   startDate: string;
   userId: string;
   accountId?: string | null;
+  creditCardId?: string | null;
+  isNoCostEmi?: boolean;
+  processingFee?: number | null;
 }
 
 export interface UpdateLiabilityRequest {
@@ -232,6 +272,32 @@ export interface UpdateLiabilityRequest {
   tenureMonths: number;
   startDate: string;
   accountId?: string | null;
+  creditCardId?: string | null;
+  isNoCostEmi?: boolean;
+  processingFee?: number | null;
+}
+
+export interface CreateCreditCardRequest {
+  userId: string;
+  bankName: string;
+  cardName: string;
+  last4Digits: string;
+  expiryMonth: number;
+  expiryYear: number;
+  networkProvider: CreditCardNetwork;
+  totalLimit: number;
+  outstandingAmount: number;
+}
+
+export interface UpdateCreditCardRequest {
+  bankName: string;
+  cardName: string;
+  last4Digits: string;
+  expiryMonth: number;
+  expiryYear: number;
+  networkProvider: CreditCardNetwork;
+  totalLimit: number;
+  outstandingAmount: number;
 }
 
 export interface CreateSubscriptionRequest {
@@ -333,6 +399,28 @@ export const obligationService = {
 
   getDashboard: async (userId: string): Promise<ApiResponse<ObligationDashboardDto>> => {
     const response = await api.get<ApiResponse<ObligationDashboardDto>>(`/api/Obligations/dashboard/${userId}`, { baseURL: GATEWAY_BASE_URL });
+    return response.data;
+  },
+
+  // ── Credit Cards ───────────────────────────────────────────────────
+
+  createCreditCard: async (data: CreateCreditCardRequest): Promise<ApiResponse<CreditCardDto>> => {
+    const response = await api.post<ApiResponse<CreditCardDto>>("/api/CreditCards", data, { baseURL: GATEWAY_BASE_URL });
+    return response.data;
+  },
+
+  updateCreditCard: async (id: string, data: UpdateCreditCardRequest): Promise<ApiResponse<CreditCardDto>> => {
+    const response = await api.put<ApiResponse<CreditCardDto>>(`/api/CreditCards/${id}`, data, { baseURL: GATEWAY_BASE_URL });
+    return response.data;
+  },
+
+  deleteCreditCard: async (id: string): Promise<ApiResponse<boolean>> => {
+    const response = await api.delete<ApiResponse<boolean>>(`/api/CreditCards/${id}`, { baseURL: GATEWAY_BASE_URL });
+    return response.data;
+  },
+
+  getCreditCardsByUserId: async (): Promise<ApiResponse<CreditCardDto[]>> => {
+    const response = await api.get<ApiResponse<CreditCardDto[]>>("/api/CreditCards", { baseURL: GATEWAY_BASE_URL });
     return response.data;
   },
 };

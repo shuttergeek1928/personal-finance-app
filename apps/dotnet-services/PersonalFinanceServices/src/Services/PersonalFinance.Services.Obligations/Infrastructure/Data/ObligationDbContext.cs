@@ -15,6 +15,7 @@ namespace PersonalFinance.Services.Obligations.Infrastructure.Data
 
         public DbSet<Liability> Liabilities => Set<Liability>();
         public DbSet<Subscription> Subscriptions => Set<Subscription>();
+        public DbSet<CreditCard> CreditCards => Set<CreditCard>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

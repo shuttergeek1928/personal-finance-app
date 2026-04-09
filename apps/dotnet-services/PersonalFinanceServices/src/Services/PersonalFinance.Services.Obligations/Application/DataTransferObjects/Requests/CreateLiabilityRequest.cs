@@ -14,5 +14,8 @@ namespace PersonalFinance.Services.Obligations.Application.DataTransferObjects.R
         public DateTime StartDate { get; set; }
         public Guid UserId { get; set; }
         public Guid? AccountId { get; set; }
+        public Guid? CreditCardId { get; set; }
+        public bool IsNoCostEmi { get; set; }
+        public decimal? ProcessingFee { get; set; }
     }
 }

@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { Home, ArrowLeftRight, Wallet, Users, PieChart, LogOut, User, Receipt } from "lucide-react"
+import { Home, ArrowLeftRight, Wallet, Users, PieChart, LogOut, User, Receipt, CreditCard, Repeat } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useAuthStore } from "@/store/useAuthStore"
 import { useEffect } from "react"
@@ -18,6 +18,9 @@ const userNavigation = [
   { name: "My Transactions", href: "/my/transactions", icon: ArrowLeftRight },
   { name: "My Accounts", href: "/my/accounts", icon: Wallet },
   { name: "My Obligations", href: "/my/obligations", icon: Receipt },
+  { name: "My Credit Cards", href: "/my/obligations/credit-cards", icon: CreditCard },
+  { name: "My Loans", href: "/my/obligations/liabilities", icon: Receipt },
+  { name: "My Subscriptions", href: "/my/obligations/subscriptions", icon: Repeat },
   { name: "My Profile", href: "/my/profile", icon: User },
 ]
 
@@ -119,7 +122,7 @@ export function Sidebar() {
       <div className="p-4 border-t border-zinc-200 dark:border-zinc-800">
         {isAuthenticated && user ? (
           <div className="space-y-3">
-            <Link 
+            <Link
               href="/my/profile"
               className="flex items-center gap-3 rounded-md p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors group"
             >

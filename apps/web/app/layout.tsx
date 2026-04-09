@@ -22,8 +22,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={`${poppins.variable} font-sans antialiased bg-background text-foreground`}>
+    <html lang="en" suppressHydrationWarning className="h-full overflow-hidden">
+      <body className={`${poppins.variable} font-sans antialiased bg-background text-foreground h-full overflow-hidden`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

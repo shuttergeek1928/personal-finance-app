@@ -43,7 +43,8 @@ namespace PersonalFinance.Services.Obligations.Controllers
                 var command = new CreateLiabilityCommand(
                     request.Name, request.Type, request.LenderName,
                     request.PrincipalAmount, request.InterestRate, request.TenureMonths,
-                    request.StartDate, request.UserId, request.AccountId);
+                    request.StartDate, request.UserId, request.AccountId,
+                    request.CreditCardId, request.IsNoCostEmi, request.ProcessingFee);
 
                 var result = await _mediator.Send(command);
 
@@ -80,7 +81,8 @@ namespace PersonalFinance.Services.Obligations.Controllers
                 var command = new UpdateLiabilityCommand(
                     id, request.Name, request.Type, request.LenderName,
                     request.PrincipalAmount, request.InterestRate, request.TenureMonths,
-                    request.StartDate, request.AccountId);
+                    request.StartDate, request.AccountId, request.CreditCardId,
+                    request.IsNoCostEmi, request.ProcessingFee);
 
                 var result = await _mediator.Send(command);
 

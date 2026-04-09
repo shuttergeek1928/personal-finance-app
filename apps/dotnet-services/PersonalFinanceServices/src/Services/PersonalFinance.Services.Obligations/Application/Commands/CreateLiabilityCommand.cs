@@ -20,10 +20,14 @@ namespace PersonalFinance.Services.Obligations.Application.Commands
         public DateTime StartDate { get; set; }
         public Guid UserId { get; set; }
         public Guid? AccountId { get; set; }
+        public Guid? CreditCardId { get; set; }
+        public bool IsNoCostEmi { get; set; }
+        public decimal? ProcessingFee { get; set; }
 
         public CreateLiabilityCommand(string name, LiabilityType type, string lenderName,
             decimal principalAmount, decimal interestRate, int tenureMonths,
-            DateTime startDate, Guid userId, Guid? accountId)
+            DateTime startDate, Guid userId, Guid? accountId, Guid? creditCardId,
+            bool isNoCostEmi, decimal? processingFee)
         {
             Name = name;
             Type = type;
@@ -34,6 +38,9 @@ namespace PersonalFinance.Services.Obligations.Application.Commands
             StartDate = startDate;
             UserId = userId;
             AccountId = accountId;
+            CreditCardId = creditCardId;
+            IsNoCostEmi = isNoCostEmi;
+            ProcessingFee = processingFee;
         }
     }
 
@@ -50,7 +57,8 @@ namespace PersonalFinance.Services.Obligations.Application.Commands
         {
             try
             {
-                Logger.LogInformation("Creating liability: {Name} for user: {UserId}", request.Name, request.UserId);
+                Logger.LogInformation("Creating liability: {Name} for user: {UserId}. CreditCardId: {CreditCardId}", 
+                    request.Name, request.UserId, request.CreditCardId);
 
                 var liability = new Liability(
                     request.Name,
@@ -61,7 +69,10 @@ namespace PersonalFinance.Services.Obligations.Application.Commands
                     request.TenureMonths,
                     request.StartDate,
                     request.UserId,
-                    request.AccountId);
+                    request.AccountId,
+                    request.CreditCardId,
+                    request.IsNoCostEmi,
+                    request.ProcessingFee);
 
                 Context.Liabilities.Add(liability);
                 await Context.SaveChangesAsync(cancellationToken);

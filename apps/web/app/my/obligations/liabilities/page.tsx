@@ -12,6 +12,7 @@ import {
   AmortizationScheduleDto,
   MakePaymentRequest,
   getLiabilityProgress,
+  CreditCardDto,
 } from "@/services/obligation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -44,6 +45,7 @@ import {
   BadgePercent,
   Clock,
   Banknote,
+  CreditCard as CreditCardIcon,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -56,6 +58,7 @@ export default function LiabilitiesPage() {
   const [scheduleData, setScheduleData] = useState<AmortizationScheduleDto | null>(null);
   const [scheduleOpen, setScheduleOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [creditCards, setCreditCards] = useState<CreditCardDto[]>([]);
 
   // Detail & Payment dialog state
   const [detailItem, setDetailItem] = useState<LiabilityDto | null>(null);
@@ -76,15 +79,26 @@ export default function LiabilitiesPage() {
     tenureMonths: "",
     startDate: "",
     accountId: "",
+    creditCardId: "none",
+    isNoCostEmi: false,
+    processingFee: "",
   });
 
   const fetchData = async () => {
     if (!user) return;
     setLoading(true);
     try {
-      const res = await obligationService.getLiabilitiesByUserId(user.id);
-      if (res.success && res.data) {
-        setLiabilities(Array.isArray(res.data) ? res.data : []);
+      const [liabilitiesRes, cardsRes] = await Promise.all([
+        obligationService.getLiabilitiesByUserId(user.id),
+        obligationService.getCreditCardsByUserId()
+      ]);
+
+      if (liabilitiesRes.success && liabilitiesRes.data) {
+        setLiabilities(Array.isArray(liabilitiesRes.data) ? liabilitiesRes.data : []);
+      }
+
+      if (cardsRes.success && cardsRes.data) {
+        setCreditCards(Array.isArray(cardsRes.data) ? cardsRes.data : []);
       }
     } catch {
       // silent
@@ -98,7 +112,7 @@ export default function LiabilitiesPage() {
   }, [user]);
 
   const resetForm = () => {
-    setForm({ name: "", type: LiabilityType.HomeLoan, lenderName: "", principalAmount: "", interestRate: "", tenureMonths: "", startDate: "", accountId: "" });
+    setForm({ name: "", type: LiabilityType.HomeLoan, lenderName: "", principalAmount: "", interestRate: "", tenureMonths: "", startDate: "", accountId: "", creditCardId: "none", isNoCostEmi: false, processingFee: "" });
     setEditItem(null);
   };
 
@@ -110,6 +124,7 @@ export default function LiabilitiesPage() {
       name: l.name, type: l.type, lenderName: l.lenderName,
       principalAmount: String(l.principalAmount.amount), interestRate: String(l.interestRate),
       tenureMonths: String(l.tenureMonths), startDate: l.startDate.split("T")[0], accountId: l.accountId ?? "",
+      creditCardId: l.creditCardId ?? "none", isNoCostEmi: l.isNoCostEmi, processingFee: l.processingFee ? String(l.processingFee.amount) : "",
     });
     setDetailOpen(false);
     setDialogOpen(true);
@@ -119,11 +134,15 @@ export default function LiabilitiesPage() {
     if (!user) return;
     setSubmitting(true);
     try {
+      const isCC = form.type === LiabilityType.CreditCardEmi;
       if (editItem) {
         const req: UpdateLiabilityRequest = {
           name: form.name, type: form.type, lenderName: form.lenderName,
           principalAmount: parseFloat(form.principalAmount), interestRate: parseFloat(form.interestRate),
           tenureMonths: parseInt(form.tenureMonths), startDate: form.startDate, accountId: form.accountId || null,
+          creditCardId: isCC && form.creditCardId !== "none" ? form.creditCardId : null,
+          isNoCostEmi: isCC ? form.isNoCostEmi : false,
+          processingFee: isCC && form.processingFee ? parseFloat(form.processingFee) : null,
         };
         await obligationService.updateLiability(editItem.id, req);
       } else {
@@ -131,6 +150,9 @@ export default function LiabilitiesPage() {
           name: form.name, type: form.type, lenderName: form.lenderName,
           principalAmount: parseFloat(form.principalAmount), interestRate: parseFloat(form.interestRate),
           tenureMonths: parseInt(form.tenureMonths), startDate: form.startDate, userId: user.id, accountId: form.accountId || null,
+          creditCardId: isCC && form.creditCardId !== "none" ? form.creditCardId : null,
+          isNoCostEmi: isCC ? form.isNoCostEmi : false,
+          processingFee: isCC && form.processingFee ? parseFloat(form.processingFee) : null,
         };
         await obligationService.createLiability(req);
       }
@@ -245,10 +267,24 @@ export default function LiabilitiesPage() {
                 <CardContent className="p-5 space-y-4">
                   <div className="flex items-start justify-between">
                     <div>
-                      <p className="font-semibold text-base">{l.name}</p>
-                      <p className="text-xs text-muted-foreground">{l.lenderName} · {LiabilityTypeLabels[l.type]}</p>
+                      <p className="font-semibold text-base flex items-center gap-2">
+                        {l.name}
+                        {l.type === LiabilityType.CreditCardEmi && l.isNoCostEmi && (
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">No Cost</span>
+                        )}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {l.type === LiabilityType.CreditCardEmi && l.creditCard ? (
+                          <span className="flex items-center gap-1 mt-0.5">
+                            <CreditCardIcon className="h-3 w-3" />
+                            {l.creditCard.cardName} •••• {l.creditCard.last4Digits}
+                          </span>
+                        ) : (
+                          <>{l.lenderName} · {LiabilityTypeLabels[l.type]}</>
+                        )}
+                      </p>
                     </div>
-                    <span className="text-xs px-2 py-1 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 font-medium">
+                    <span className="text-xs px-2 py-1 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 font-medium whitespace-nowrap">
                       {l.interestRate}% p.a.
                     </span>
                   </div>
@@ -358,6 +394,24 @@ export default function LiabilitiesPage() {
                         <p className="font-semibold text-sm">{new Date(l.endDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</p>
                       </div>
                     </div>
+                    {l.type === LiabilityType.CreditCardEmi && l.creditCard && (
+                      <div className="flex items-center gap-3 bg-zinc-50 dark:bg-zinc-900 rounded-lg p-3">
+                        <CreditCardIcon className="h-5 w-5 text-sky-500" />
+                        <div>
+                          <p className="text-xs text-muted-foreground">Credit Card</p>
+                          <p className="font-semibold text-sm">{l.creditCard.cardName} · {l.creditCard.bankName} (Ending {l.creditCard.last4Digits})</p>
+                        </div>
+                      </div>
+                    )}
+                    {l.type === LiabilityType.CreditCardEmi && l.processingFee && (
+                      <div className="flex items-center gap-3 bg-zinc-50 dark:bg-zinc-900 rounded-lg p-3">
+                        <IndianRupee className="h-5 w-5 text-gray-500" />
+                        <div>
+                          <p className="text-xs text-muted-foreground">Processing Fee</p>
+                          <p className="font-semibold text-sm">{fmt(l.processingFee.amount)}</p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -465,7 +519,14 @@ export default function LiabilitiesPage() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="liability-type">Type</Label>
-                <Select value={String(form.type)} onValueChange={(v) => setForm({ ...form, type: parseInt(v) as LiabilityType })}>
+                <Select value={String(form.type)} onValueChange={(v) => {
+                  const newType = parseInt(v) as LiabilityType;
+                  setForm({
+                    ...form,
+                    type: newType,
+                    interestRate: newType === LiabilityType.CreditCardEmi && form.isNoCostEmi ? "0" : form.interestRate
+                  });
+                }}>
                   <SelectTrigger id="liability-type"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {Object.entries(LiabilityTypeLabels).map(([k, v]) => (
@@ -475,8 +536,47 @@ export default function LiabilitiesPage() {
                 </Select>
               </div>
             </div>
+
+            {form.type === LiabilityType.CreditCardEmi && (
+              <div className="bg-indigo-50/50 dark:bg-indigo-950/20 p-4 rounded-lg space-y-4 border border-indigo-100 dark:border-indigo-900/40">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="liability-credit-card">Select Credit Card</Label>
+                    <Select value={form.creditCardId} onValueChange={(v) => setForm({ ...form, creditCardId: v })}>
+                      <SelectTrigger id="liability-credit-card"><SelectValue placeholder="Choose a card" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">None / Not Listed</SelectItem>
+                        {creditCards.map(c => (
+                          <SelectItem key={c.id} value={c.id}>
+                            {c.cardName} · {c.bankName} (•••• {c.last4Digits})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex flex-col justify-end pb-2">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
+                        checked={form.isNoCostEmi}
+                        onChange={(e) => setForm({ ...form, isNoCostEmi: e.target.checked, interestRate: e.target.checked ? "0" : "" })}
+                      />
+                      <span className="text-sm font-medium">No-Cost EMI?</span>
+                    </label>
+                    <p className="text-xs text-muted-foreground ml-6 mt-1">Sets interest to 0%.</p>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="liability-processing-fee">Processing Fee (₹) <span className="text-xs font-normal text-muted-foreground">(Billed separately)</span></Label>
+                  <Input id="liability-processing-fee" type="number" placeholder="299" value={form.processingFee} onChange={(e) => setForm({ ...form, processingFee: e.target.value })} />
+                </div>
+              </div>
+            )}
+
             <div className="space-y-2">
-              <Label htmlFor="liability-lender">Lender Name</Label>
+              <Label htmlFor="liability-lender">Lender Name / Merchant</Label>
               <Input id="liability-lender" placeholder="e.g. SBI, HDFC" value={form.lenderName} onChange={(e) => setForm({ ...form, lenderName: e.target.value })} />
             </div>
             <div className="grid grid-cols-2 gap-4">

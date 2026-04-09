@@ -12,5 +12,8 @@ namespace PersonalFinance.Services.Obligations.Application.DataTransferObjects.R
         public int TenureMonths { get; set; }
         public DateTime StartDate { get; set; }
         public Guid? AccountId { get; set; }
+        public Guid? CreditCardId { get; set; }
+        public bool IsNoCostEmi { get; set; }
+        public decimal? ProcessingFee { get; set; }
     }
 }

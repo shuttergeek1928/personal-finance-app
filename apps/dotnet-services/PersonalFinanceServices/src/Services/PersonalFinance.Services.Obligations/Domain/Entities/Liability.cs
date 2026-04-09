@@ -17,6 +17,10 @@ namespace PersonalFinance.Services.Obligations.Domain.Entities
         public DateTime EndDate { get; private set; }
         public Guid UserId { get; private set; }
         public Guid? AccountId { get; private set; }
+        public Guid? CreditCardId { get; private set; }
+        public CreditCard? CreditCard { get; private set; }
+        public bool IsNoCostEmi { get; private set; }
+        public Money? ProcessingFee { get; private set; }
 
         private Liability() { }
 
@@ -29,7 +33,10 @@ namespace PersonalFinance.Services.Obligations.Domain.Entities
             int tenureMonths,
             DateTime startDate,
             Guid userId,
-            Guid? accountId = null)
+            Guid? accountId = null,
+            Guid? creditCardId = null,
+            bool isNoCostEmi = false,
+            decimal? processingFee = null)
         {
             Name = name ?? throw new ArgumentNullException(nameof(name));
             Type = type;
@@ -40,6 +47,11 @@ namespace PersonalFinance.Services.Obligations.Domain.Entities
             StartDate = startDate;
             UserId = userId;
             AccountId = accountId;
+            CreditCardId = creditCardId;
+            IsNoCostEmi = isNoCostEmi;
+            
+            if (processingFee.HasValue)
+                ProcessingFee = new Money(processingFee.Value);
 
             // Calculate EMI using reducing balance formula
             EmiAmount = new Money(CalculateEmi(principalAmount, interestRate, tenureMonths));
@@ -142,7 +154,10 @@ namespace PersonalFinance.Services.Obligations.Domain.Entities
             decimal interestRate,
             int tenureMonths,
             DateTime startDate,
-            Guid? accountId)
+            Guid? accountId,
+            Guid? creditCardId = null,
+            bool isNoCostEmi = false,
+            decimal? processingFee = null)
         {
             Name = name;
             Type = type;
@@ -151,6 +166,13 @@ namespace PersonalFinance.Services.Obligations.Domain.Entities
             TenureMonths = tenureMonths;
             StartDate = startDate;
             AccountId = accountId;
+            CreditCardId = creditCardId;
+            IsNoCostEmi = isNoCostEmi;
+            
+            if (processingFee.HasValue)
+                ProcessingFee = new Money(processingFee.Value);
+            else
+                ProcessingFee = null;
 
             PrincipalAmount = new Money(principalAmount);
             EmiAmount = new Money(CalculateEmi(principalAmount, interestRate, tenureMonths));
@@ -170,6 +192,7 @@ namespace PersonalFinance.Services.Obligations.Domain.Entities
         PersonalLoan,
         CarLoan,
         EducationLoan,
+        CreditCardEmi,
         Other
     }
 }

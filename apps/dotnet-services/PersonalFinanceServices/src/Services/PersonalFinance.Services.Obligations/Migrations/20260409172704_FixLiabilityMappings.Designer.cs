@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PersonalFinance.Services.Obligations.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using PersonalFinance.Services.Obligations.Infrastructure.Data;
 namespace PersonalFinance.Services.Obligations.Migrations
 {
     [DbContext(typeof(ObligationDbContext))]
-    partial class ObligationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260409172704_FixLiabilityMappings")]
+    partial class FixLiabilityMappings
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -248,10 +251,8 @@ namespace PersonalFinance.Services.Obligations.Migrations
 
                             b1.Property<string>("Currency")
                                 .IsRequired()
-                                .ValueGeneratedOnAdd()
                                 .HasMaxLength(3)
                                 .HasColumnType("nvarchar(3)")
-                                .HasDefaultValue("INR")
                                 .HasColumnName("OutstandingCurrency");
 
                             b1.HasKey("CreditCardId");
@@ -273,10 +274,8 @@ namespace PersonalFinance.Services.Obligations.Migrations
 
                             b1.Property<string>("Currency")
                                 .IsRequired()
-                                .ValueGeneratedOnAdd()
                                 .HasMaxLength(3)
                                 .HasColumnType("nvarchar(3)")
-                                .HasDefaultValue("INR")
                                 .HasColumnName("TotalLimitCurrency");
 
                             b1.HasKey("CreditCardId");
@@ -312,10 +311,8 @@ namespace PersonalFinance.Services.Obligations.Migrations
 
                             b1.Property<string>("Currency")
                                 .IsRequired()
-                                .ValueGeneratedOnAdd()
                                 .HasMaxLength(3)
                                 .HasColumnType("nvarchar(3)")
-                                .HasDefaultValue("INR")
                                 .HasColumnName("EmiCurrency");
 
                             b1.HasKey("LiabilityId");
@@ -337,10 +334,8 @@ namespace PersonalFinance.Services.Obligations.Migrations
 
                             b1.Property<string>("Currency")
                                 .IsRequired()
-                                .ValueGeneratedOnAdd()
                                 .HasMaxLength(3)
                                 .HasColumnType("nvarchar(3)")
-                                .HasDefaultValue("INR")
                                 .HasColumnName("OutstandingBalanceCurrency");
 
                             b1.HasKey("LiabilityId");
@@ -362,10 +357,8 @@ namespace PersonalFinance.Services.Obligations.Migrations
 
                             b1.Property<string>("Currency")
                                 .IsRequired()
-                                .ValueGeneratedOnAdd()
                                 .HasMaxLength(3)
                                 .HasColumnType("nvarchar(3)")
-                                .HasDefaultValue("INR")
                                 .HasColumnName("PrincipalCurrency");
 
                             b1.HasKey("LiabilityId");
@@ -387,10 +380,8 @@ namespace PersonalFinance.Services.Obligations.Migrations
 
                             b1.Property<string>("Currency")
                                 .IsRequired()
-                                .ValueGeneratedOnAdd()
                                 .HasMaxLength(3)
                                 .HasColumnType("nvarchar(3)")
-                                .HasDefaultValue("INR")
                                 .HasColumnName("ProcessingFeeCurrency");
 
                             b1.HasKey("LiabilityId");

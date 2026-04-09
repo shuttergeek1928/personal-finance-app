@@ -29,6 +29,7 @@ namespace PersonalFinance.Services.Obligations.Application.Queries
         public override async Task<ApiResponse<LiabilityDto>> Handle(GetLiabilityByIdQuery request, CancellationToken cancellationToken)
         {
             var liability = await Context.Liabilities
+                .Include(l => l.CreditCard)
                 .FirstOrDefaultAsync(l => l.Id == request.Id && l.IsActive, cancellationToken);
 
             if (liability == null)

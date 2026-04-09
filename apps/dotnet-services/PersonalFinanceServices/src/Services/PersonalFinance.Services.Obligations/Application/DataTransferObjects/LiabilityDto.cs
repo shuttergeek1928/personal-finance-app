@@ -18,6 +18,10 @@ namespace PersonalFinance.Services.Obligations.Application.DataTransferObjects
         public DateTime EndDate { get; set; }
         public Guid UserId { get; set; }
         public Guid? AccountId { get; set; }
+        public Guid? CreditCardId { get; set; }
+        public CreditCardDto? CreditCard { get; set; }
+        public bool IsNoCostEmi { get; set; }
+        public Money? ProcessingFee { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
         public bool IsActive { get; set; }

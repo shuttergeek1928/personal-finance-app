@@ -43,6 +43,20 @@ namespace PersonalFinance.Services.Obligations.Infrastructure.Data.Configuration
             builder.HasIndex(l => l.Type)
                 .HasDatabaseName("IX_Liability_Type");
 
+            builder.Property(l => l.IsNoCostEmi)
+                .HasDefaultValue(false);
+
+            builder.Property(l => l.AccountId)
+                .HasColumnName("AccountId")
+                .IsRequired(false);
+
+            builder.Property(l => l.CreditCardId)
+                .HasColumnName("CreditCardId")
+                .IsRequired(false);
+
+            builder.HasIndex(l => l.CreditCardId)
+                .HasDatabaseName("IX_Liability_CreditCardId");
+
             // Configure Money value objects
             builder.OwnsOne(l => l.PrincipalAmount, money =>
             {
@@ -54,6 +68,7 @@ namespace PersonalFinance.Services.Obligations.Infrastructure.Data.Configuration
                 money.Property(m => m.Currency)
                     .HasColumnName("PrincipalCurrency")
                     .HasMaxLength(3)
+                    .HasDefaultValue("INR")
                     .IsRequired();
             });
 
@@ -67,6 +82,7 @@ namespace PersonalFinance.Services.Obligations.Infrastructure.Data.Configuration
                 money.Property(m => m.Currency)
                     .HasColumnName("OutstandingBalanceCurrency")
                     .HasMaxLength(3)
+                    .HasDefaultValue("INR")
                     .IsRequired();
             });
 
@@ -80,8 +96,29 @@ namespace PersonalFinance.Services.Obligations.Infrastructure.Data.Configuration
                 money.Property(m => m.Currency)
                     .HasColumnName("EmiCurrency")
                     .HasMaxLength(3)
+                    .HasDefaultValue("INR")
                     .IsRequired();
             });
+
+            builder.OwnsOne(l => l.ProcessingFee, money =>
+            {
+                money.Property(m => m.Amount)
+                    .HasColumnName("ProcessingFeeAmount")
+                    .HasColumnType("decimal(18,2)");
+
+                money.Property(m => m.Currency)
+                    .HasColumnName("ProcessingFeeCurrency")
+                    .HasMaxLength(3)
+                    .HasDefaultValue("INR");
+            });
+
+            // If CreditCard service allows setting foreign key constraints, we can explicitly add one here
+            // but for microservices we often store it just as an ID. In this bounded context, CreditCard exists.
+            builder.HasOne(l => l.CreditCard)
+                .WithMany()
+                .HasForeignKey(l => l.CreditCardId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.SetNull);
 
             // Ignore domain events for EF Core
             builder.Ignore(l => l.DomainEvents);

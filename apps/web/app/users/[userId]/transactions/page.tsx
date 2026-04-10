@@ -71,7 +71,8 @@ export default function UserTransactionsPage() {
     }
   }, [params?.userId]);
 
-  const getAccountName = (accountId: string) => {
+  const getAccountName = (accountId?: string) => {
+    if (!accountId) return "N/A";
     const account = accounts.find(a => a.id === accountId);
     return account?.name || "Unknown Account";
   };

@@ -174,7 +174,8 @@ function TransactionsContent() {
     }
   };
 
-  const getAccountName = (id: string) => {
+  const getAccountName = (id?: string) => {
+    if (!id) return "N/A";
     const acc = accounts.find(a => a.id === id);
     return acc?.name || "Unknown Account";
   };

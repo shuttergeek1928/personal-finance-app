@@ -31,12 +31,14 @@ namespace PersonalFinance.Services.Transactions.Controllers
         {
             try
             {
-                _logger.LogInformation("Creating income transaction for user ID: {userId} to account ID {accountId}", request.UserId, request.AccountId);
+                _logger.LogInformation("Creating income transaction for user ID: {userId} (Account: {accountId}, Card: {cardId})", 
+                    request.UserId, request.AccountId, request.CreditCardId);
 
                 var command = new CreateIncomeTransactionCommand
                 {
                     UserId = request.UserId,
                     AccountId = request.AccountId,
+                    CreditCardId = request.CreditCardId,
                     Amount = request.Amount,
                     Currency = request.Currency,
                     Description = request.Description,
@@ -71,12 +73,14 @@ namespace PersonalFinance.Services.Transactions.Controllers
         {
             try
             {
-                _logger.LogInformation("Creating expense transaction for user ID: {userId} from account ID {accountId}", request.UserId, request.AccountId);
+                _logger.LogInformation("Creating expense transaction for user ID: {userId} (Account: {accountId}, Card: {cardId})", 
+                    request.UserId, request.AccountId, request.CreditCardId);
 
                 var command = new CreateExpenseTransactionCommand
                 {
                     UserId = request.UserId,
                     AccountId = request.AccountId,
+                    CreditCardId = request.CreditCardId,
                     Amount = request.Amount,
                     Currency = request.Currency,
                     Description = request.Description,
@@ -111,14 +115,16 @@ namespace PersonalFinance.Services.Transactions.Controllers
         {
             try
             {
-                _logger.LogInformation("Creating transfer transaction for user ID: {userId} from account {fromAccountId} to {toAccountId}", 
-                    request.UserId, request.AccountId, request.ToAccountId);
+                _logger.LogInformation("Creating transfer transaction for user ID: {userId} (FromAcc: {fromAcc}, FromCard: {fromCard}, ToAcc: {toAcc}, ToCard: {toCard})", 
+                    request.UserId, request.AccountId, request.CreditCardId, request.ToAccountId, request.ToCreditCardId);
 
                 var command = new CreateTransferTransactionCommand
                 {
                     UserId = request.UserId,
                     FromAccountId = request.AccountId,
+                    FromCreditCardId = request.CreditCardId,
                     ToAccountId = request.ToAccountId,
+                    ToCreditCardId = request.ToCreditCardId,
                     Amount = request.Amount,
                     Currency = request.Currency,
                     Description = request.Description,

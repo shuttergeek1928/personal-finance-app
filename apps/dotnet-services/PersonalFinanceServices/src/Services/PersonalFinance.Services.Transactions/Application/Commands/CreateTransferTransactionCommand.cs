@@ -15,8 +15,10 @@ namespace PersonalFinance.Services.Transactions.Application.Commands
     public class CreateTransferTransactionCommand : IRequest<ApiResponse<TransactionTransferObject>>
     {
         public Guid UserId { get; set; }
-        public Guid FromAccountId { get; set; }
-        public Guid ToAccountId { get; set; }
+        public Guid? FromAccountId { get; set; }
+        public Guid? ToAccountId { get; set; }
+        public Guid? FromCreditCardId { get; set; }
+        public Guid? ToCreditCardId { get; set; }
         public decimal Amount { get; set; }
         public string Currency { get; set; } = "INR";
         public TransactionType Type { get; set; } = TransactionType.Transfer;
@@ -42,8 +44,8 @@ namespace PersonalFinance.Services.Transactions.Application.Commands
         {
             try
             {
-                Logger.LogInformation("Creating transfer transaction for user {UserId} from account {FromAccountId} to account {ToAccountId} with amount {Amount}", 
-                    request.UserId, request.FromAccountId, request.ToAccountId, request.Amount);
+                Logger.LogInformation("Creating transfer transaction for user {UserId} from {FromId} to {ToId} with amount {Amount}", 
+                    request.UserId, request.FromAccountId ?? request.FromCreditCardId, request.ToAccountId ?? request.ToCreditCardId, request.Amount);
 
                 var money = new Money(request.Amount, request.Currency);
                 
@@ -51,12 +53,14 @@ namespace PersonalFinance.Services.Transactions.Application.Commands
                 var transaction = new Transaction(
                     request.UserId,
                     request.FromAccountId,
+                    request.FromCreditCardId,
                     money,
                     request.Type,
                     request.Description,
                     request.Category,
                     request.TransactionDate,
-                    request.ToAccountId);
+                    request.ToAccountId,
+                    request.ToCreditCardId);
 
                 transaction.Approve();
 
@@ -69,7 +73,9 @@ namespace PersonalFinance.Services.Transactions.Application.Commands
                     TransactionId = transaction.Id,
                     UserId = transaction.UserId,
                     FromAccountId = transaction.AccountId,
-                    ToAccountId = transaction.ToAccountId!.Value,
+                    ToAccountId = transaction.ToAccountId,
+                    FromCreditCardId = transaction.CreditCardId,
+                    ToCreditCardId = transaction.ToCreditCardId,
                     Amount = transaction.Money.Amount,
                     Currency = transaction.Money.Currency,
                     Description = transaction.Description,

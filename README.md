@@ -1,84 +1,139 @@
-# Turborepo starter
+# 💰 Personal Finance Pro
 
-This Turborepo starter is maintained by the Turborepo core team.
+[![Turborepo](https://img.shields.io/badge/Maintained%20with-Turborepo-6366f1?logo=turborepo)](https://turbo.build/)
+[![Next.js](https://img.shields.io/badge/Frontend-Next.js%2014-black?logo=next.js)](https://nextjs.org/)
+[![.NET](https://img.shields.io/badge/Backend-.NET%208-512bd4?logo=dotnet)](https://dotnet.microsoft.com/)
+[![Expo](https://img.shields.io/badge/Mobile-Expo-000020?logo=expo)](https://expo.dev/)
 
-## Using this example
+A high-performance, distributed personal finance management platform designed for the modern user. Featuring real-time analytics, event-driven microservices, and a state-of-the-art UI/UX.
 
-Run the following command:
+---
 
-```sh
-npx create-turbo@latest
+## 🏗️ Architecture Overview
+
+The platform is designed as a **decentralized microservices architecture**, leveraging event-driven communication for ultimate consistency and scalability.
+
+### System Request Flow
+```mermaid
+graph TD
+    Client[Web / Mobile Client] --> Gateway[API Gateway - YARP]
+    
+    subgraph "Microservices Layer"
+        Gateway --> AuthSvc[User Management / Auth]
+        Gateway --> TransSvc[Transactions Service]
+        Gateway --> AccSvc[Accounts Service]
+        Gateway --> OblSvc[Obligations Service]
+    end
+
+    subgraph "Messaging & Persistence"
+        TransSvc -- Publishes Events --> RMQ[RabbitMQ - MassTransit]
+        RMQ -- Consumes Events --> AccSvc
+        RMQ -- Consumes Events --> OblSvc
+        
+        AuthSvc --> DB[(SQL Server)]
+        TransSvc --> DB
+        AccSvc --> DB
+        OblSvc --> DB
+    end
 ```
 
-## What's inside?
+### Monorepo Dependency Graph
+```mermaid
+graph LR
+    Root[Monorepo - Turbo] --> Apps[apps/]
+    Root --> Pkgs[packages/]
 
-This Turborepo includes the following packages/apps:
+    subgraph "Applications"
+        Apps --> Web[web - Next.js]
+        Apps --> Mobile[mobile - Expo]
+        Apps --> Backend[dotnet-services]
+    end
 
-### Apps and Packages
+    subgraph "Shared Packages"
+        Pkgs --> UI[@repo/ui]
+        Pkgs --> TS[@repo/typescript-config]
+        Pkgs --> Lint[@repo/eslint-config]
+    end
 
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
-
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
-
-### Utilities
-
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
-
-```
-cd my-turborepo
-pnpm build
+    Web -.-> UI
+    Mobile -.-> UI
 ```
 
-### Develop
+---
 
-To develop all apps and packages, run the following command:
+## ✨ Core Features
 
+### 📊 Unified Dashboard
+*   **Financial Health Score**: Real-time algorithm assessing your savings rate, debt-to-income ratio, and asset health.
+*   **30-Day Spending Intensity**: Heatmap visualization for daily expense patterns with fixed-height intensity shading.
+*   **Cash Flow Trends**: Multi-axis Recharts analytics comparing income/expense velocity across time periods.
+
+### 💳 Wealth Management
+*   **Digital Wallet (Credit Cards)**: Ultra-realistic 3D-styled physical card UI with real-time limit and utilization tracking.
+*   **Unified Accounts**: Centralized viewing of checking, savings, and credit accounts with peer-to-peer and inter-account transfers.
+*   **Transaction Intelligence**: Server-side filtering, automatic categorization, and high-performance pagination.
+
+### 🛠️ Obligation & Debt Tracking
+*   **LIabilities / Loans**: Visual progress bars for EMI payments, principal reduction tracking, and automated schedules.
+*   **Subscription Shield**: Detects and monitors recurring billing cycles (Netflix, SaaS, etc.) to prevent forgotten charges.
+
+### 📱 Performance & Mobile
+*   **Expo Mobile Client**: Native experience for iOS and Android with shared business logic and real-time push alerts.
+
+---
+
+## 🛠️ Technology Stack
+
+| Layer | Technologies |
+| :--- | :--- |
+| **Frontend** | Next.js 15 (App Router), TypeScript, Tailwind CSS, Lucide React, Recharts, Zustand |
+| **Mobile** | React Native, Expo, NativeWind, React Navigation |
+| **Backend** | .NET 8, Web API, CQRS (MediatR), Entity Framework Core (SQL Server) |
+| **Integrations** | MassTransit, RabbitMQ, Docker, Turbo |
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+*   [Node.js](https://nodejs.org/) (v18+)
+*   [.NET SDK](https://dotnet.microsoft.com/download) (v8.0)
+*   [Docker Desktop](https://www.docker.com/products/docker-desktop)
+*   [Git](https://git-scm.com/)
+
+### 1. Setup Infrastructure
+Spin up the SQL Server and RabbitMQ instances using Docker:
+```bash
+cd apps/dotnet-services/PersonalFinanceServices/docker
+docker-compose up -d
 ```
-cd my-turborepo
-pnpm dev
+
+### 2. Run Backend Services
+You can run the entire solution via Visual Studio or the CLI:
+```bash
+cd apps/dotnet-services/PersonalFinanceServices
+dotnet run --project src/ApiGateway/PersonalFinance.ApiGateway
+# Repeat for other services in /src/Services
 ```
 
-### Remote Caching
-
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
-
-Turborepo can use a technique known as [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
-
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
-
-```
-cd my-turborepo
-npx turbo login
+### 3. Run Web App
+```bash
+# From the root directory
+npm install
+npm run dev --workspace=web
 ```
 
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
-
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
+### 4. Run Mobile App
+```bash
+cd apps/mobile
+npm install
+npm start
 ```
-npx turbo link
-```
 
-## Useful Links
+---
 
-Learn more about the power of Turborepo:
+## 📄 License
+This project is licensed under the MIT License - see the `LICENSE` file for details.
 
-- [Tasks](https://turborepo.com/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.com/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.com/docs/reference/configuration)
-- [CLI Usage](https://turborepo.com/docs/reference/command-line-reference)
+---
+*Built with ❤️ for financial freedom.* 🚀

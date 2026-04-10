@@ -23,7 +23,10 @@ export interface Money {
 export interface Transaction {
   id: string;
   userId: string;
-  accountId: string;
+  accountId?: string;
+  creditCardId?: string;
+  toAccountId?: string;
+  toCreditCardId?: string;
   money: Money;
   type: TransactionType;
   description: string;

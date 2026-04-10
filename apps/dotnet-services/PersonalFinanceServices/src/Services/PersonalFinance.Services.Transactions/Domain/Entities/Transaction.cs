@@ -8,8 +8,10 @@ namespace PersonalFinance.Services.Transactions.Domain.Entities
     {
         // Properties
         public Guid UserId { get; private set; }
-        public Guid AccountId { get; private set; }
+        public Guid? AccountId { get; private set; }
+        public Guid? CreditCardId { get; private set; }
         public Guid? ToAccountId { get; private set; }
+        public Guid? ToCreditCardId { get; private set; }
         public Money Money { get; private set; }
         public TransactionType Type { get; private set; }
         public TransactionStatus Status { get; private set; }
@@ -20,18 +22,30 @@ namespace PersonalFinance.Services.Transactions.Domain.Entities
 
         private Transaction() { }
 
-        public Transaction(Guid userId, Guid accountId, Money money, TransactionType type, string description, string category, DateTime transactionDate, Guid? toAccountId = null)
+        public Transaction(Guid userId, Guid? accountId, Guid? creditCardId, Money money, TransactionType type, string description, string category, DateTime transactionDate, Guid? toAccountId = null, Guid? toCreditCardId = null)
         {
+            // Normalize empty GUIDs to null
+            accountId = accountId == Guid.Empty ? null : accountId;
+            creditCardId = creditCardId == Guid.Empty ? null : creditCardId;
+            toAccountId = toAccountId == Guid.Empty ? null : toAccountId;
+            toCreditCardId = toCreditCardId == Guid.Empty ? null : toCreditCardId;
+
+            if (accountId == null && creditCardId == null)
+                throw new ArgumentException("Either AccountId or CreditCardId must be provided.");
+
             UserId = userId;
             AccountId = accountId;
+            CreditCardId = creditCardId;
             ToAccountId = toAccountId;
+            ToCreditCardId = toCreditCardId;
             Money = money ?? throw new ArgumentNullException(nameof(money));
             Type = type;
             Description = description ?? throw new ArgumentNullException(nameof(description));
             Category = category ?? throw new ArgumentNullException(nameof(category));
             TransactionDate = transactionDate;
+            
             // Add domain event
-            AddDomainEvent(new TransactionCreatedEvent(Id, UserId, AccountId, Type, ToAccountId));
+            AddDomainEvent(new TransactionCreatedEvent(Id, UserId, AccountId, CreditCardId, Type, ToAccountId, ToCreditCardId));
         }
 
         // Business methods

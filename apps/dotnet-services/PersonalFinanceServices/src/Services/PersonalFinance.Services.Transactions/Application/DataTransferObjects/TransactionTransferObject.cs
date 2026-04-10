@@ -1,4 +1,4 @@
-﻿using PersonalFinance.Services.Transactions.Domain.Entities;
+using PersonalFinance.Services.Transactions.Domain.Entities;
 using PersonalFinance.Shared.Common.Domain.ValueObjects;
 
 namespace PersonalFinance.Services.Transactions.Application.DTOs
@@ -7,7 +7,10 @@ namespace PersonalFinance.Services.Transactions.Application.DTOs
     {
         public Guid Id { get; set; }
         public Guid UserId { get; set; }
-        public Guid AccountId { get; set; }
+        public Guid? AccountId { get; set; }
+        public Guid? CreditCardId { get; set; }
+        public Guid? ToAccountId { get; set; }
+        public Guid? ToCreditCardId { get; set; }
         public Money Money { get; set; }
         public TransactionType Type { get; set; }
         public string Description { get; set; }

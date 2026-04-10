@@ -30,6 +30,12 @@ namespace PersonalFinance.Services.Accounts.Domain.Consumers
 
             try
             {
+                if (transactionEvent.AccountId == null)
+                {
+                    _logger.LogInformation("Skipping IncomeTransactionCreated: {TransactionId} as AccountId is null (likely a credit card transaction)", transactionEvent.TransactionId);
+                    return;
+                }
+
                 var account = _accountDbContext.Accounts.FirstOrDefault(a => a.Id == transactionEvent.AccountId) 
                     ?? throw new InvalidOperationException($"Account {transactionEvent.AccountId} not found.");
 
@@ -64,6 +70,12 @@ namespace PersonalFinance.Services.Accounts.Domain.Consumers
 
             try
             {
+                if (transactionEvent.AccountId == null)
+                {
+                    _logger.LogInformation("Skipping ExpenseTransactionCreated: {TransactionId} as AccountId is null (likely a credit card transaction)", transactionEvent.TransactionId);
+                    return;
+                }
+
                 var account = _accountDbContext.Accounts.FirstOrDefault(a => a.Id == transactionEvent.AccountId) 
                     ?? throw new InvalidOperationException($"Account {transactionEvent.AccountId} not found.");
 

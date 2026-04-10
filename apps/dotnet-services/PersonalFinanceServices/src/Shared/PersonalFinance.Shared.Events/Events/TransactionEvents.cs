@@ -21,7 +21,8 @@ namespace PersonalFinance.Shared.Events.Events
 
         public Guid TransactionId { get; init; }
         public Guid UserId { get; init; }
-        public Guid AccountId { get; init; }
+        public Guid? AccountId { get; init; }
+        public Guid? CreditCardId { get; init; }
         public decimal Amount { get; init; }
         public string Currency { get; init; } = "INR";
         public string Description { get; init; } = string.Empty;
@@ -37,7 +38,8 @@ namespace PersonalFinance.Shared.Events.Events
 
         public Guid TransactionId { get; init; }
         public Guid UserId { get; init; }
-        public Guid AccountId { get; init; }
+        public Guid? AccountId { get; init; }
+        public Guid? CreditCardId { get; init; }
         public decimal Amount { get; init; }
         public string Currency { get; init; } = "INR";
         public string Description { get; init; } = string.Empty;
@@ -67,7 +69,8 @@ namespace PersonalFinance.Shared.Events.Events
 
         public Guid TransactionId { get; init; }
         public Guid UserId { get; init; }
-        public Guid AccountId { get; init; }
+        public Guid? AccountId { get; init; }
+        public Guid? CreditCardId { get; init; }
         public decimal AttemptedAmount { get; init; }
         public decimal AvailableBalance { get; init; }
         public string Reason { get; init; } = string.Empty;
@@ -81,8 +84,10 @@ namespace PersonalFinance.Shared.Events.Events
 
         public Guid TransactionId { get; init; }
         public Guid UserId { get; init; }
-        public Guid FromAccountId { get; init; }
-        public Guid ToAccountId { get; init; }
+        public Guid? FromAccountId { get; init; }
+        public Guid? ToAccountId { get; init; }
+        public Guid? FromCreditCardId { get; init; }
+        public Guid? ToCreditCardId { get; init; }
         public decimal Amount { get; init; }
         public string Currency { get; init; } = "INR";
         public string Description { get; init; } = string.Empty;

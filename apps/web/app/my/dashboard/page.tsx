@@ -173,12 +173,12 @@ export default function MyDashboardPage() {
     transactions.forEach(t => {
       const d = new Date(t.transactionDate);
       if (d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth()) {
-        t.type === 0 ? thisMonth.income += t.money.amount : thisMonth.expense += t.money.amount;
+        t.type === 0 ? thisMonth.income += (t.money?.amount || 0) : thisMonth.expense += (t.money?.amount || 0);
       } else if (
         (d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() - 1) ||
         (now.getMonth() === 0 && d.getFullYear() === now.getFullYear() - 1 && d.getMonth() === 11)
       ) {
-        t.type === 0 ? lastMonth.income += t.money.amount : lastMonth.expense += t.money.amount;
+        t.type === 0 ? lastMonth.income += (t.money?.amount || 0) : lastMonth.expense += (t.money?.amount || 0);
       }
     });
 
@@ -245,7 +245,9 @@ export default function MyDashboardPage() {
     maxDate.setHours(0,0,0,0);
     
     transactions.filter(t => t.type === 1).forEach(t => {
-      const dStr = new Date(t.transactionDate).toISOString().split('T')[0];
+      // Use local date string (YYYY-MM-DD) to match the heatmap generation
+      const d = new Date(t.transactionDate);
+      const dStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
       map[dStr] = (map[dStr] || 0) + (t.money?.amount || 0);
     });
 
@@ -255,15 +257,15 @@ export default function MyDashboardPage() {
     }
 
     const days = [];
-    for(let i = 27; i >= 0; i--) {
+    for(let i = 29; i >= 0; i--) {
       const d = new Date(maxDate);
       d.setDate(d.getDate() - i);
-      const dStr = d.toISOString().split('T')[0];
+      const dStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
       const amount = map[dStr] || 0;
       days.push({
         dateStr: d.toLocaleDateString("en-IN", { month: "short", day: "numeric" }),
         amount,
-        intensity: amount > 0 ? Math.max(0.2, amount / maxAmount) : 0
+        intensity: amount > 0 ? Math.max(0.15, Math.min(1, amount / (maxAmount * 0.8 || 1))) : 0
       });
     }
     return days;
@@ -475,18 +477,38 @@ export default function MyDashboardPage() {
           </CardHeader>
           <CardContent>
             {expenseHeatmap.length > 0 ? (
-               <div className="flex bg-zinc-50 dark:bg-zinc-950 p-4 rounded-xl border items-center justify-between overflow-x-auto">
-                 <div className="flex gap-1.5 mx-auto min-w-max">
+               <div className="bg-zinc-50 dark:bg-zinc-950 p-6 rounded-xl border flex flex-col items-center min-h-[140px]">
+                 <div className="flex gap-1 mx-auto w-full items-center h-10 mb-6 px-1">
                    {expenseHeatmap.map((day, i) => (
-                     <div key={i} className="flex flex-col items-center gap-1 group">
+                      <div key={i} className="flex-1 flex flex-col items-center group relative h-full justify-center">
                         <div 
-                           className="w-4 h-12 rounded-sm bg-rose-500 transition-all duration-300 group-hover:scale-110 mb-1" 
-                           style={{ opacity: day.amount === 0 ? 0.05 : day.intensity }}
-                           title={`${day.dateStr}: ${fmt(day.amount)}`}
+                           className="w-full h-8 rounded-sm transition-all duration-300 group-hover:scale-110 shadow-sm" 
+                           style={{ 
+                             backgroundColor: day.amount === 0 ? 'rgba(0,0,0,0.05)' : `rgba(244, 63, 94, ${0.1 + (day.intensity * 0.9)})`,
+                             boxShadow: day.amount > 0 ? `0 0 10px rgba(244, 63, 94, ${day.intensity * 0.2})` : 'none'
+                           }}
                         ></div>
-                        {i % 7 === 0 && <span className="text-[9px] text-muted-foreground absolute -bottom-5">{day.dateStr}</span>}
-                     </div>
+                        {/* Improved Tooltip */}
+                        <div className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 bg-zinc-900 text-white text-[10px] px-2.5 py-2 rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-all whitespace-nowrap z-50 shadow-2xl border border-white/10 scale-90 group-hover:scale-100 origin-bottom">
+                          <p className="font-bold opacity-70 mb-0.5">{day.dateStr}</p>
+                          <p className="text-sm font-black text-rose-400">{fmt(day.amount)}</p>
+                        </div>
+                        {i % 7 === 0 && (
+                          <span className="text-[10px] text-muted-foreground absolute -bottom-7 font-bold whitespace-nowrap pt-1">
+                            {day.dateStr}
+                          </span>
+                        )}
+                      </div>
                    ))}
+                 </div>
+                 <div className="flex items-center gap-4 mt-2 text-[10px] text-muted-foreground font-bold">
+                    <span>Low Spending</span>
+                    <div className="flex gap-1">
+                       {[0.1, 0.3, 0.5, 0.7, 1].map(v => (
+                          <div key={v} className="w-3 h-3 rounded-sm" style={{ backgroundColor: `rgba(244, 63, 94, ${v})` }}></div>
+                       ))}
+                    </div>
+                    <span>High Spending</span>
                  </div>
                </div>
             ) : (
@@ -614,7 +636,7 @@ export default function MyDashboardPage() {
                           dataKey="value"
                           strokeWidth={2} stroke="hsl(var(--background))"
                           className="cursor-pointer transition-all hover:scale-105 outline-none"
-                          onClick={(data) => setSelectedCategory(data.name)}
+                          onClick={(data) => setSelectedCategory(data.name || null)}
                         >
                           {expenseByCategory.slice(0, 10).map((_, i) => (
                             <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />

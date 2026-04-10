@@ -57,5 +57,29 @@ namespace PersonalFinance.Services.Obligations.Domain.Entities
 
             UpdatedAt = DateTime.UtcNow;
         }
+
+        public void Charge(Money amount)
+        {
+            if (amount == null) throw new ArgumentNullException(nameof(amount));
+            if (amount.Amount <= 0) throw new ArgumentException("Charge amount must be positive.");
+            
+            // Check if within limit (optional: allow over-limit with warning?)
+            if (OutstandingAmount.Amount + amount.Amount > TotalLimit.Amount)
+            {
+                // For now, we allow it but ideally we should handle overlimit
+            }
+
+            OutstandingAmount = new Money(OutstandingAmount.Amount + amount.Amount, OutstandingAmount.Currency);
+            UpdatedAt = DateTime.UtcNow;
+        }
+
+        public void PayBill(Money amount)
+        {
+            if (amount == null) throw new ArgumentNullException(nameof(amount));
+            if (amount.Amount <= 0) throw new ArgumentException("Payment amount must be positive.");
+
+            OutstandingAmount = new Money(Math.Max(0, OutstandingAmount.Amount - amount.Amount), OutstandingAmount.Currency);
+            UpdatedAt = DateTime.UtcNow;
+        }
     }
 }

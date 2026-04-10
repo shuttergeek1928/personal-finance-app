@@ -16,21 +16,21 @@ The platform is designed as a **decentralized microservices architecture**, leve
 ### System Request Flow
 ```mermaid
 graph TD
-    Client[Web / Mobile Client] --> Gateway[API Gateway - YARP]
+    Client["Web / Mobile Client"] --> Gateway["API Gateway - YARP"]
     
     subgraph "Microservices Layer"
-        Gateway --> AuthSvc[User Management / Auth]
-        Gateway --> TransSvc[Transactions Service]
-        Gateway --> AccSvc[Accounts Service]
-        Gateway --> OblSvc[Obligations Service]
+        Gateway --> AuthSvc["User Management / Auth"]
+        Gateway --> TransSvc["Transactions Service"]
+        Gateway --> AccSvc["Accounts Service"]
+        Gateway --> OblSvc["Obligations Service"]
     end
 
     subgraph "Messaging & Persistence"
-        TransSvc -- Publishes Events --> RMQ[RabbitMQ - MassTransit]
-        RMQ -- Consumes Events --> AccSvc
-        RMQ -- Consumes Events --> OblSvc
+        TransSvc -- "Publishes Events" --> RMQ["RabbitMQ - MassTransit"]
+        RMQ -- "Consumes Events" --> AccSvc
+        RMQ -- "Consumes Events" --> OblSvc
         
-        AuthSvc --> DB[(SQL Server)]
+        AuthSvc --> DB[("SQL Server")]
         TransSvc --> DB
         AccSvc --> DB
         OblSvc --> DB
@@ -40,23 +40,23 @@ graph TD
 ### Monorepo Dependency Graph
 ```mermaid
 graph LR
-    Root[Monorepo - Turbo] --> Apps[apps/]
-    Root --> Pkgs[packages/]
+    Root["Monorepo - Turbo"] --> Apps["apps/"]
+    Root --> Pkgs["packages/"]
 
     subgraph "Applications"
-        Apps --> Web[web - Next.js]
-        Apps --> Mobile[mobile - Expo]
-        Apps --> Backend[dotnet-services]
+        Apps --> Web["web - Next.js"]
+        Apps --> Mobile["mobile - Expo"]
+        Apps --> Backend["dotnet-services"]
     end
 
     subgraph "Shared Packages"
-        Pkgs --> UI[@repo/ui]
-        Pkgs --> TS[@repo/typescript-config]
-        Pkgs --> Lint[@repo/eslint-config]
+        Pkgs --> UI_Pkg["@repo/ui"]
+        Pkgs --> TS_Pkg["@repo/typescript-config"]
+        Pkgs --> Lint_Pkg["@repo/eslint-config"]
     end
 
-    Web -.-> UI
-    Mobile -.-> UI
+    Web -.-> UI_Pkg
+    Mobile -.-> UI_Pkg
 ```
 
 ---

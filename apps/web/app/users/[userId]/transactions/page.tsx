@@ -149,6 +149,7 @@ export default function UserTransactionsPage() {
                 <th className="h-10 px-4 text-left font-medium text-muted-foreground">Description</th>
                 <th className="h-10 px-4 text-left font-medium text-muted-foreground">Category</th>
                 <th className="h-10 px-4 text-left font-medium text-muted-foreground">Account Name</th>
+                <th className="h-10 px-4 text-left font-medium text-muted-foreground">Status</th>
                 <th className="h-10 px-4 text-right font-medium text-muted-foreground">Amount</th>
               </tr>
             </thead>
@@ -183,7 +184,19 @@ export default function UserTransactionsPage() {
                     <td className="p-4 align-middle text-muted-foreground italic">
                       {getAccountName(t.accountId)}
                     </td>
-                    <td className={`p-4 align-middle text-right font-bold text-base ${t.type === TransactionType.Expense ? 'text-foreground' : 'text-emerald-600'}`}>
+                    <td className="p-4 align-middle">
+                      {t.status === 2 /* TransactionStatus.Rejected */ ? (
+                        <div className="flex flex-col">
+                          <span className="inline-flex items-center rounded-full bg-destructive/10 px-2.5 py-0.5 text-xs font-semibold text-destructive w-fit">Rejected</span>
+                          {t.rejectionReason && <span className="text-[10px] text-destructive/80 mt-1 max-w-[120px] truncate" title={t.rejectionReason}>{t.rejectionReason}</span>}
+                        </div>
+                      ) : t.status === 0 /* TransactionStatus.Pending */ ? (
+                        <span className="inline-flex items-center rounded-full bg-amber-100/50 px-2.5 py-0.5 text-xs font-semibold text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">Pending</span>
+                      ) : (
+                        <span className="inline-flex items-center rounded-full bg-emerald-100/50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">Approved</span>
+                      )}
+                    </td>
+                    <td className={`p-4 align-middle text-right font-bold text-base ${t.status === 2 ? 'text-muted-foreground line-through' : t.type === TransactionType.Expense ? 'text-foreground' : 'text-emerald-600'}`}>
                       {t.type === TransactionType.Expense ? '-' : '+'}{t.money.amount.toLocaleString('en-US', { style: 'currency', currency: t.money.currency || 'INR' })}
                     </td>
                   </tr>

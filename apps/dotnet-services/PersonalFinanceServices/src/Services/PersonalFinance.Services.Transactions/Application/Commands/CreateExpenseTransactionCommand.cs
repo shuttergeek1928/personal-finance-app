@@ -30,14 +30,17 @@ namespace PersonalFinance.Services.Transactions.Application.Commands
     public class CreateExpenseTransactionCommandHandler : BaseRequestHandler<CreateExpenseTransactionCommand, ApiResponse<TransactionTransferObject>>
     {
         private readonly IPublishEndpoint _publishEndpoint;
+        private readonly IRequestClient<CheckBalanceRequest> _checkBalanceClient;
 
         public CreateExpenseTransactionCommandHandler(
             TransactionDbContext context,
             IMapper mapper,
             ILogger<CreateExpenseTransactionCommandHandler> logger,
-            IPublishEndpoint publishEndpoint) : base(context, logger, mapper)
+            IPublishEndpoint publishEndpoint,
+            IRequestClient<CheckBalanceRequest> checkBalanceClient) : base(context, logger, mapper)
         {
             _publishEndpoint = publishEndpoint ?? throw new ArgumentNullException(nameof(publishEndpoint));
+            _checkBalanceClient = checkBalanceClient ?? throw new ArgumentNullException(nameof(checkBalanceClient));
         }
 
         public override async Task<ApiResponse<TransactionTransferObject>> Handle(CreateExpenseTransactionCommand request, CancellationToken cancellationToken)
@@ -46,6 +49,42 @@ namespace PersonalFinance.Services.Transactions.Application.Commands
             {
                 Logger.LogInformation("Creating expense transaction for user {UserId} on account/card {SourceId} with amount {Amount}", 
                     request.UserId, request.AccountId ?? request.CreditCardId, request.Amount);
+
+                // Synchronous balance check using MassTransit Request-Response
+                var accountIdToCheck = request.AccountId ?? request.CreditCardId;
+                if (accountIdToCheck.HasValue)
+                {
+                    var balanceCheckResponse = await _checkBalanceClient.GetResponse<CheckBalanceResponse>(new CheckBalanceRequest
+                    {
+                        AccountId = accountIdToCheck.Value,
+                        Amount = request.Amount,
+                        TransactionType = "Expense"
+                    }, cancellationToken);
+
+                    if (!balanceCheckResponse.Message.HasSufficientFunds)
+                    {
+                        Logger.LogWarning("Insufficient funds for Account {AccountId}. Balance is {Balance}, Requested amount is {Amount}", 
+                            accountIdToCheck.Value, balanceCheckResponse.Message.AvailableBalance, request.Amount);
+
+                        var moneyRej = new Money(request.Amount, request.Currency);
+                        var transactionRej = new Transaction(
+                            request.UserId,
+                            request.AccountId,
+                            request.CreditCardId,
+                            moneyRej,
+                            request.Type,
+                            request.Description,
+                            request.Category,
+                            request.TransactionDate);
+
+                        transactionRej.Reject($"Insufficient funds. Available balance: {balanceCheckResponse.Message.AvailableBalance}");
+                        
+                        Context.Transactions.Add(transactionRej);
+                        await Context.SaveChangesAsync(cancellationToken);
+                        
+                        return ApiResponse<TransactionTransferObject>.SuccessResult(transactionRej.ToDto(Mapper), "Transaction rejected due to insufficient funds.");
+                    }
+                }
 
                 var money = new Money(request.Amount, request.Currency);
                 var transaction = new Transaction(
@@ -58,7 +97,6 @@ namespace PersonalFinance.Services.Transactions.Application.Commands
                     request.Category,
                     request.TransactionDate);
 
-                // Approve the transaction by default (validation will happen via balance check in downstream)
                 transaction.Approve();
 
                 Context.Transactions.Add(transaction);

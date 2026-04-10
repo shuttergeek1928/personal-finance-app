@@ -137,9 +137,12 @@ export default function MyDashboardPage() {
   }, [user]);
 
   // ── Date Filtering Logic ──
+  const validTransactions = useMemo(() => transactions.filter(t => t.status !== 2 /* TransactionStatus.Rejected */), [transactions]);
+
   const filteredTransactions = useMemo(() => {
     const now = new Date();
-    return transactions.filter((t) => {
+    // Exclude rejected transactions from analytics
+    return validTransactions.filter((t) => {
       const txDate = new Date(t.transactionDate);
       if (timePeriod === "ALL_TIME") return true;
       if (timePeriod === "THIS_MONTH") return txDate.getMonth() === now.getMonth() && txDate.getFullYear() === now.getFullYear();
@@ -152,7 +155,7 @@ export default function MyDashboardPage() {
       if (timePeriod === "THIS_YEAR") return txDate.getFullYear() === now.getFullYear();
       return true;
     });
-  }, [transactions, timePeriod]);
+  }, [validTransactions, timePeriod]);
 
 
   // ── Computed Data based on Filter ──
@@ -170,7 +173,7 @@ export default function MyDashboardPage() {
     const thisMonth = { income: 0, expense: 0 };
     const lastMonth = { income: 0, expense: 0 };
 
-    transactions.forEach(t => {
+    validTransactions.forEach(t => {
       const d = new Date(t.transactionDate);
       if (d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth()) {
         t.type === 0 ? thisMonth.income += (t.money?.amount || 0) : thisMonth.expense += (t.money?.amount || 0);
@@ -191,14 +194,14 @@ export default function MyDashboardPage() {
       momIncome: { value: thisMonth.income, change: calcChange(thisMonth.income, lastMonth.income) },
       momExpense: { value: thisMonth.expense, change: calcChange(thisMonth.expense, lastMonth.expense) },
     };
-  }, [transactions]);
+  }, [validTransactions]);
 
   // ── Financial Health Score ──
   const healthScore = useMemo(() => {
     // Score out of 100
     // Savings Rate: up to 40 points (target > 20%)
-    const globalTotalIncome = transactions.filter((t) => t.type === 0).reduce((sum, t) => sum + (t.money?.amount || 0), 0);
-    const globalTotalExpense = transactions.filter((t) => t.type === 1).reduce((sum, t) => sum + (t.money?.amount || 0), 0);
+    const globalTotalIncome = validTransactions.filter((t) => t.type === 0).reduce((sum, t) => sum + (t.money?.amount || 0), 0);
+    const globalTotalExpense = validTransactions.filter((t) => t.type === 1).reduce((sum, t) => sum + (t.money?.amount || 0), 0);
     const savingsRate = globalTotalIncome > 0 ? ((globalTotalIncome - globalTotalExpense) / globalTotalIncome) : 0;
     const savingsScore = savingsRate > 0.2 ? 40 : (savingsRate > 0 ? (savingsRate / 0.2) * 40 : 0);
 
@@ -209,7 +212,7 @@ export default function MyDashboardPage() {
     // Baseline: 30 points for just having setup accounts
     const score = 30 + savingsScore + debtScore;
     return Math.min(Math.round(score), 100);
-  }, [transactions, totalBalance, totalOutstanding]);
+  }, [validTransactions, totalBalance, totalOutstanding]);
 
   // ── Upcoming Payments (Next 7-30 days) ──
   const upcomingPayments = useMemo(() => {
@@ -244,7 +247,7 @@ export default function MyDashboardPage() {
     const maxDate = new Date();
     maxDate.setHours(0,0,0,0);
     
-    transactions.filter(t => t.type === 1).forEach(t => {
+    validTransactions.filter(t => t.type === 1).forEach(t => {
       // Use local date string (YYYY-MM-DD) to match the heatmap generation
       const d = new Date(t.transactionDate);
       const dStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -269,7 +272,7 @@ export default function MyDashboardPage() {
       });
     }
     return days;
-  }, [transactions]);
+  }, [validTransactions]);
 
 
   // ── Chart Data ─────────────────────────────────────────────────────

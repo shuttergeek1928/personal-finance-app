@@ -30,14 +30,17 @@ namespace PersonalFinance.Services.Transactions.Application.Commands
     public class CreateTransferTransactionCommandHandler : BaseRequestHandler<CreateTransferTransactionCommand, ApiResponse<TransactionTransferObject>>
     {
         private readonly IPublishEndpoint _publishEndpoint;
+        private readonly IRequestClient<CheckBalanceRequest> _checkBalanceClient;
 
         public CreateTransferTransactionCommandHandler(
             TransactionDbContext context,
             IMapper mapper,
             ILogger<CreateTransferTransactionCommandHandler> logger,
-            IPublishEndpoint publishEndpoint) : base(context, logger, mapper)
+            IPublishEndpoint publishEndpoint,
+            IRequestClient<CheckBalanceRequest> checkBalanceClient) : base(context, logger, mapper)
         {
             _publishEndpoint = publishEndpoint ?? throw new ArgumentNullException(nameof(publishEndpoint));
+            _checkBalanceClient = checkBalanceClient ?? throw new ArgumentNullException(nameof(checkBalanceClient));
         }
 
         public override async Task<ApiResponse<TransactionTransferObject>> Handle(CreateTransferTransactionCommand request, CancellationToken cancellationToken)
@@ -49,6 +52,43 @@ namespace PersonalFinance.Services.Transactions.Application.Commands
 
                 var money = new Money(request.Amount, request.Currency);
                 
+                // Synchronous balance check using MassTransit Request-Response
+                var accountIdToCheck = request.FromAccountId ?? request.FromCreditCardId;
+                if (accountIdToCheck.HasValue)
+                {
+                    var balanceCheckResponse = await _checkBalanceClient.GetResponse<CheckBalanceResponse>(new CheckBalanceRequest
+                    {
+                        AccountId = accountIdToCheck.Value,
+                        Amount = request.Amount,
+                        TransactionType = "Transfer"
+                    }, cancellationToken);
+
+                    if (!balanceCheckResponse.Message.HasSufficientFunds)
+                    {
+                        Logger.LogWarning("Insufficient funds for Account {AccountId} for Transfer. Balance is {Balance}, Requested amount is {Amount}", 
+                            accountIdToCheck.Value, balanceCheckResponse.Message.AvailableBalance, request.Amount);
+
+                        var transactionRej = new Transaction(
+                            request.UserId,
+                            request.FromAccountId,
+                            request.FromCreditCardId,
+                            money,
+                            request.Type,
+                            request.Description,
+                            request.Category,
+                            request.TransactionDate,
+                            request.ToAccountId,
+                            request.ToCreditCardId);
+
+                        transactionRej.Reject($"Insufficient funds for transfer. Available balance: {balanceCheckResponse.Message.AvailableBalance}");
+                        
+                        Context.Transactions.Add(transactionRej);
+                        await Context.SaveChangesAsync(cancellationToken);
+                        
+                        return ApiResponse<TransactionTransferObject>.SuccessResult(transactionRej.ToDto(Mapper), "Transaction rejected due to insufficient funds.");
+                    }
+                }
+
                 // Record the transaction on the source account
                 var transaction = new Transaction(
                     request.UserId,

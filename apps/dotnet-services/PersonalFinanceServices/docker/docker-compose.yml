@@ -125,20 +125,20 @@ services:
     restart: unless-stopped
 
   # Web Frontend
-  web:
-    build:
-      context: ../../../web      # Navigate to apps/web relative to docker folder
-      dockerfile: Dockerfile
-    container_name: finance-web
-    ports:
-      - "3000:3000"
-    networks:
-      - finance_network
-    environment:
-      - NODE_ENV=production
-    depends_on:
-      - apigateway
-    restart: unless-stopped
+  # web:
+  #   build:
+  #     context: ../../../web      # Navigate to apps/web relative to docker folder
+  #     dockerfile: Dockerfile
+  #   container_name: finance-web
+  #   ports:
+  #     - "3000:3000"
+  #   networks:
+  #     - finance_network
+  #   environment:
+  #     - NODE_ENV=production
+  #   depends_on:
+  #     - apigateway
+  #   restart: unless-stopped
 
 volumes:
   sqlserver_data:

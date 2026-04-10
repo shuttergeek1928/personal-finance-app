@@ -1,4 +1,4 @@
-﻿// PersonalFinance.Services.Transactions/Application/Commands/RegisterUserCommand.cs
+// PersonalFinance.Services.Transactions/Application/Commands/RegisterUserCommand.cs
 using AutoMapper;
 using MassTransit;
 using MediatR;
@@ -17,7 +17,8 @@ namespace PersonalFinance.Services.Transactions.Application.Commands
     public class CreateIncomeTransactionCommand : IRequest<ApiResponse<TransactionTransferObject>>
     {
         public Guid UserId { get; set; }
-        public Guid AccountId { get; set; }
+        public Guid? AccountId { get; set; }
+        public Guid? CreditCardId { get; set; }
         public decimal Amount { get; set; }
         public string Currency { get; set; } = "INR";
         public TransactionType Type { get; set; }
@@ -43,12 +44,13 @@ namespace PersonalFinance.Services.Transactions.Application.Commands
         {
             try
             {
-                Logger.LogInformation("Creating the transaction for user id: {userId} on account {accountId} with amount {amount}", request.UserId, request.AccountId, request.Amount);
+                Logger.LogInformation("Creating the transaction for user id: {userId} on account/card {sourceId} with amount {amount}", request.UserId, request.AccountId ?? request.CreditCardId, request.Amount);
 
                 var money = new Money(request.Amount, request.Currency);
                 var transaction = new Transaction(
                     request.UserId,
                     request.AccountId,
+                    request.CreditCardId,
                     money,
                     request.Type,
                     request.Description,
@@ -66,12 +68,13 @@ namespace PersonalFinance.Services.Transactions.Application.Commands
                     TransactionId = transaction.Id,
                     UserId = transaction.UserId,
                     AccountId = transaction.AccountId,
+                    CreditCardId = transaction.CreditCardId,
                     Amount = transaction.Money.Amount,
                     Currency = transaction.Money.Currency,
                     Description = transaction.Description,
                     Category = transaction.Category,
                     TransactionDate = transaction.TransactionDate
-                });
+                }, cancellationToken);
 
                 var UserTransferObject = transaction.ToDto(Mapper);
 

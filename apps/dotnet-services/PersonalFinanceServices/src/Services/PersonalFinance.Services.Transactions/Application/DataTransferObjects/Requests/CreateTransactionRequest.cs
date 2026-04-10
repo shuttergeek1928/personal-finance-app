@@ -6,7 +6,8 @@ namespace PersonalFinance.Services.Transactions.Application.DataTransferObjects.
     public class CreateTransactionRequest
     {
         public Guid UserId { get; set; }
-        public Guid AccountId { get; set; }
+        public Guid? AccountId { get; set; }
+        public Guid? CreditCardId { get; set; }
         public decimal Amount { get; set; }
         public string Currency { get; set; } = "INR"; // Default currency
         public string Description { get; set; }
@@ -40,7 +41,8 @@ namespace PersonalFinance.Services.Transactions.Application.DataTransferObjects.
         {
             Type = TransactionType.Transfer;
         }
-        public Guid ToAccountId { get; set; }
+        public Guid? ToAccountId { get; set; }
+        public Guid? ToCreditCardId { get; set; }
         public TransactionType Type { get; set; } = TransactionType.Transfer;
     }
 }

@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using PersonalFinance.Services.Transactions.Domain.Entities;
 using System;
@@ -46,7 +46,16 @@ namespace PersonalFinance.Services.Transactions.Infrastructure.Data.Configuratio
                 .IsRequired(false); // Nullable field
 
             builder.Property(a => a.AccountId)
-                .IsRequired();
+                .IsRequired(false);
+
+            builder.Property(a => a.CreditCardId)
+                .IsRequired(false);
+
+            builder.Property(a => a.ToAccountId)
+                .IsRequired(false);
+
+            builder.Property(a => a.ToCreditCardId)
+                .IsRequired(false);
 
             builder.Property(a => a.Status)
                 .IsRequired();

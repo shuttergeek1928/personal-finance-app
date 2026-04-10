@@ -15,7 +15,8 @@ namespace PersonalFinance.Services.Transactions.Application.Commands
     public class CreateExpenseTransactionCommand : IRequest<ApiResponse<TransactionTransferObject>>
     {
         public Guid UserId { get; set; }
-        public Guid AccountId { get; set; }
+        public Guid? AccountId { get; set; }
+        public Guid? CreditCardId { get; set; }
         public decimal Amount { get; set; }
         public string Currency { get; set; } = "INR";
         public TransactionType Type { get; set; } = TransactionType.Expense;
@@ -43,12 +44,14 @@ namespace PersonalFinance.Services.Transactions.Application.Commands
         {
             try
             {
-                Logger.LogInformation("Creating expense transaction for user {UserId} on account {AccountId} with amount {Amount}", request.UserId, request.AccountId, request.Amount);
+                Logger.LogInformation("Creating expense transaction for user {UserId} on account/card {SourceId} with amount {Amount}", 
+                    request.UserId, request.AccountId ?? request.CreditCardId, request.Amount);
 
                 var money = new Money(request.Amount, request.Currency);
                 var transaction = new Transaction(
                     request.UserId,
                     request.AccountId,
+                    request.CreditCardId,
                     money,
                     request.Type,
                     request.Description,
@@ -66,12 +69,15 @@ namespace PersonalFinance.Services.Transactions.Application.Commands
                     TransactionId = transaction.Id,
                     UserId = transaction.UserId,
                     AccountId = transaction.AccountId,
+                    CreditCardId = transaction.CreditCardId,
                     Amount = transaction.Money.Amount,
                     Currency = transaction.Money.Currency,
                     Description = transaction.Description,
                     Category = transaction.Category,
                     TransactionDate = transaction.TransactionDate
                 }, cancellationToken);
+
+                Logger.LogInformation("Integration event ExpenseTransactionCreatedEvent published for Transaction {TransactionId}", transaction.Id);
 
                 var dto = transaction.ToDto(Mapper);
 

@@ -305,18 +305,18 @@ export default function MyTransactionsPage() {
                 <div className="space-y-4 rounded-xl border bg-muted/30 p-4">
                   <div className="flex items-center justify-between mb-2">
                     <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Source</Label>
-                    <div className="flex bg-muted rounded-lg p-0.5">
+                    <div className="flex bg-zinc-100 dark:bg-zinc-800 rounded-lg p-0.5">
                       <button 
                         type="button"
                         onClick={() => setSourceType("account")}
-                        className={cn("px-3 py-1 text-xs font-medium rounded-md transition-all", sourceType === "account" ? "bg-white shadow-sm" : "text-muted-foreground hover:text-foreground")}
+                        className={cn("px-3 py-1 text-xs font-medium rounded-md transition-all", sourceType === "account" ? "bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-sm" : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100")}
                       >
                         Bank
                       </button>
                       <button 
                         type="button"
                         onClick={() => setSourceType("card")}
-                        className={cn("px-3 py-1 text-xs font-medium rounded-md transition-all", sourceType === "card" ? "bg-white shadow-sm" : "text-muted-foreground hover:text-foreground")}
+                        className={cn("px-3 py-1 text-xs font-medium rounded-md transition-all", sourceType === "card" ? "bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-sm" : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100")}
                       >
                         Credit Card
                       </button>
@@ -327,7 +327,7 @@ export default function MyTransactionsPage() {
                     <div className="space-y-2">
                       <Label className="text-xs">Source Account</Label>
                       <Select value={accountId} onValueChange={setAccountId} required>
-                        <SelectTrigger className="bg-white">
+                        <SelectTrigger className="bg-background border-zinc-200 dark:border-zinc-800">
                           <SelectValue placeholder="Select account" />
                         </SelectTrigger>
                         <SelectContent>
@@ -347,7 +347,7 @@ export default function MyTransactionsPage() {
                     <div className="space-y-2">
                       <Label className="text-xs">Source Card</Label>
                       <Select value={creditCardId} onValueChange={setCreditCardId} required>
-                        <SelectTrigger className="bg-white">
+                        <SelectTrigger className="bg-background border-zinc-200 dark:border-zinc-800">
                           <SelectValue placeholder="Select credit card" />
                         </SelectTrigger>
                         <SelectContent>
@@ -375,18 +375,18 @@ export default function MyTransactionsPage() {
                   <div className="space-y-4 rounded-xl border border-indigo-100 bg-indigo-50/10 p-4">
                      <div className="flex items-center justify-between mb-2">
                       <Label className="text-xs font-bold uppercase tracking-wider text-indigo-600/70">Destination</Label>
-                      <div className="flex bg-indigo-100/50 rounded-lg p-0.5">
+                      <div className="flex bg-indigo-100/50 dark:bg-indigo-900/30 rounded-lg p-0.5">
                         <button 
                           type="button"
                           onClick={() => setToSourceType("account")}
-                          className={cn("px-3 py-1 text-xs font-medium rounded-md transition-all", toSourceType === "account" ? "bg-white shadow-sm" : "text-indigo-600/60 hover:text-indigo-600")}
+                          className={cn("px-3 py-1 text-xs font-medium rounded-md transition-all", toSourceType === "account" ? "bg-white dark:bg-indigo-700 text-indigo-700 dark:text-indigo-100 shadow-sm" : "text-indigo-600/60 dark:text-indigo-400/60 hover:text-indigo-600 dark:hover:text-indigo-300")}
                         >
                           Bank
                         </button>
                         <button 
                           type="button"
                           onClick={() => setToSourceType("card")}
-                          className={cn("px-3 py-1 text-xs font-medium rounded-md transition-all", toSourceType === "card" ? "bg-white shadow-sm" : "text-indigo-600/60 hover:text-indigo-600")}
+                          className={cn("px-3 py-1 text-xs font-medium rounded-md transition-all", toSourceType === "card" ? "bg-white dark:bg-indigo-700 text-indigo-700 dark:text-indigo-100 shadow-sm" : "text-indigo-600/60 dark:text-indigo-400/60 hover:text-indigo-600 dark:hover:text-indigo-300")}
                         >
                           Credit Card
                         </button>
@@ -396,7 +396,7 @@ export default function MyTransactionsPage() {
                     {toSourceType === "account" ? (
                       <div className="space-y-2">
                         <Select value={toAccountId} onValueChange={setToAccountId} required>
-                          <SelectTrigger className="bg-white">
+                          <SelectTrigger className="bg-background border-zinc-200 dark:border-zinc-800">
                             <SelectValue placeholder="Select destination account" />
                           </SelectTrigger>
                           <SelectContent>
@@ -409,7 +409,7 @@ export default function MyTransactionsPage() {
                     ) : (
                       <div className="space-y-2">
                         <Select value={toCreditCardId} onValueChange={setToCreditCardId} required>
-                          <SelectTrigger className="bg-white">
+                          <SelectTrigger className="bg-background border-zinc-200 dark:border-zinc-800">
                             <SelectValue placeholder="Select destination card" />
                           </SelectTrigger>
                           <SelectContent>
@@ -652,7 +652,7 @@ export default function MyTransactionsPage() {
                   <Button 
                     variant="outline" 
                     size="sm" 
-                    className="h-8 text-xs bg-white"
+                    className="h-8 text-xs bg-background"
                     disabled={currentPage === 1}
                     onClick={() => setCurrentPage(prev => prev - 1)}
                   >
@@ -679,7 +679,7 @@ export default function MyTransactionsPage() {
                   <Button 
                     variant="outline" 
                     size="sm" 
-                    className="h-8 text-xs bg-white"
+                    className="h-8 text-xs bg-background"
                     disabled={currentPage === Math.ceil(filteredTransactions.length / PAGE_SIZE)}
                     onClick={() => setCurrentPage(prev => prev + 1)}
                   >

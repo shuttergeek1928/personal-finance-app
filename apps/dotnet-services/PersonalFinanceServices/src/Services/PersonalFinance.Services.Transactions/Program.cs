@@ -93,7 +93,7 @@ app.UseSwaggerUI(c =>
     c.RoutePrefix = string.Empty; // Set Swagger UI at the app's root
 });
 
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection(); // Disabled for Docker/Reverse Proxy compatibility
 app.UseCors("AllowMyOrigins");
 
 app.UseAuthentication();
@@ -103,20 +103,25 @@ app.UseSerilogRequestLogging(); // Add Serilog request logging
 
 app.MapControllers();
 
-// Apply database migrations automatically on startup
-try
+// Apply database migrations automatically on startup with retry logic
+for (int i = 0; i < 10; i++)
 {
-    using (var scope = app.Services.CreateScope())
+    try
     {
-        var dbContext = scope.ServiceProvider.GetRequiredService<TransactionDbContext>();
-        dbContext.Database.Migrate();
-        Log.Information("Database migrations applied successfully");
+        using (var scope = app.Services.CreateScope())
+        {
+            var dbContext = scope.ServiceProvider.GetRequiredService<TransactionDbContext>();
+            await dbContext.Database.MigrateAsync();
+            Log.Information("Database migrations applied successfully");
+            break;
+        }
     }
-}
-catch (Exception ex)
-{
-    Log.Error(ex, "An error occurred while applying database migrations");
-    throw;
+    catch (Exception ex)
+    {
+        Log.Warning($"Database migration attempt {i + 1} failed. Retrying... {ex.Message}");
+        if (i == 9) throw;
+        await Task.Delay(5000);
+    }
 }
 
 app.Run();

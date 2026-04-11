@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using PersonalFinance.Services.UserManagement.Domain.Entities;
@@ -39,12 +39,17 @@ namespace PersonalFinance.Services.UserManagement.Infrastructure.Data
             modelBuilder.Entity<User>()
                 .HasQueryFilter(u => u.IsActive);
 
+            // UserProfile follows User filter
+            modelBuilder.Entity<UserProfile>()
+                .HasQueryFilter(up => up.User.IsActive);
+
             // Role entity filter  
             modelBuilder.Entity<Role>()
                 .HasQueryFilter(r => r.IsActive);
 
-            // UserProfile doesn't need IsActive filter (it follows User)
-            // UserRole doesn't need IsActive filter (it's a junction table)
+            // UserRole junction table filter
+            modelBuilder.Entity<UserRole>()
+                .HasQueryFilter(ur => ur.User.IsActive && ur.Role.IsActive);
         }
     }
 }

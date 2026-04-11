@@ -74,10 +74,10 @@ builder.Services.AddMassTransit(x =>
     x.AddConsumers(typeof(Program).Assembly); // Registers all consumers in assembly
     x.UsingRabbitMq((context, cfg) =>
     {
-        cfg.Host("rabbitmq", "/", h =>
+        cfg.Host("finance-rabbitmq", "/", h =>
         {
-            h.Username("guest");
-            h.Password("guest");
+            h.Username("admin");
+            h.Password("admin123");
         });
         cfg.ConfigureEndpoints(context);
     });
@@ -93,7 +93,7 @@ app.UseSwaggerUI(c =>
     c.RoutePrefix = string.Empty; // Set Swagger UI at the app's root
 });
 
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection(); // Disabled for Docker/Reverse Proxy compatibility
 app.UseCors("AllowMyOrigins");
 
 app.UseAuthentication();
@@ -103,20 +103,30 @@ app.UseSerilogRequestLogging(); // Add Serilog request logging
 
 app.MapControllers();
 
-// Apply database migrations automatically on startup
-try
+// Apply database migrations automatically on startup with retry logic
+for (int i = 0; i < 10; i++)
 {
-    using (var scope = app.Services.CreateScope())
+    try
     {
-        var dbContext = scope.ServiceProvider.GetRequiredService<UserManagementDbContext>();
-        dbContext.Database.Migrate();
-        Log.Information("Database migrations applied successfully");
+        using (var scope = app.Services.CreateScope())
+        {
+            var dbContext = scope.ServiceProvider.GetRequiredService<UserManagementDbContext>();
+            // Ensure the database is ready and apply migrations
+            await dbContext.Database.MigrateAsync();
+            Log.Information("Database migrations applied successfully");
+            break; // Success! Exit the loop
+        }
     }
-}
-catch (Exception ex)
-{
-    Log.Error(ex, "An error occurred while applying database migrations");
-    throw;
+    catch (Exception ex)
+    {
+        Log.Warning($"Database migration attempt {i + 1} failed. Retrying in 5 seconds... {ex.Message}");
+        if (i == 9) // Last attempt
+        {
+            Log.Error(ex, "An error occurred while applying database migrations after multiple attempts");
+            throw;
+        }
+        await Task.Delay(5000);
+    }
 }
 
 // Seed Database

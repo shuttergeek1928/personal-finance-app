@@ -7,7 +7,7 @@ services:
       args:
         - CONFIGURATION=Debug
     environment:
-      - ASPNETCORE_ENVIRONMENT=Docker
+      - ASPNETCORE_ENVIRONMENT=Development
       - DOTNET_WATCH_ENABLED=true
 
   user-management:
@@ -15,7 +15,7 @@ services:
       args:
         - CONFIGURATION=Debug
     environment:
-      - ASPNETCORE_ENVIRONMENT=Docker
+      - ASPNETCORE_ENVIRONMENT=Development
       - DOTNET_WATCH_ENABLED=true
 
   accounts:
@@ -23,7 +23,7 @@ services:
       args:
         - CONFIGURATION=Debug
     environment:
-      - ASPNETCORE_ENVIRONMENT=Docker
+      - ASPNETCORE_ENVIRONMENT=Development
       - DOTNET_WATCH_ENABLED=true
 
   transactions:
@@ -31,5 +31,13 @@ services:
       args:
         - CONFIGURATION=Debug
     environment:
-      - ASPNETCORE_ENVIRONMENT=Docker
+      - ASPNETCORE_ENVIRONMENT=Development
+      - DOTNET_WATCH_ENABLED=true
+      
+  obligations:
+    build:
+      args:
+        - CONFIGURATION=Debug
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
       - DOTNET_WATCH_ENABLED=true

@@ -51,7 +51,7 @@ app.UseSwaggerUI(c =>
     c.RoutePrefix = string.Empty; // Set Swagger UI at the app's root
 });
 
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection(); // Disabled for Docker/Reverse Proxy compatibility
 
 app.UseAuthentication();
 app.UseAuthorization();

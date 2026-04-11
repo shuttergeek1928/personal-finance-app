@@ -1,0 +1,119 @@
+services:
+
+  # ================= DATABASE =================
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: finance-sqlserver
+    environment:
+      SA_PASSWORD: YourStrong@Passw0rd
+      ACCEPT_EULA: "Y"
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+    networks:
+      - finance_network
+    restart: unless-stopped
+
+  # ================= RABBITMQ =================
+  rabbitmq:
+    image: rabbitmq:management
+    container_name: finance-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin123
+    ports:
+      - "15672:15672"
+    networks:
+      - finance_network
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    restart: unless-stopped
+
+  # ================= SERVICES =================
+  user-management:
+    build:
+      context: ./apps/dotnet-services/PersonalFinanceServices
+      dockerfile: src/Services/PersonalFinance.Services.UserManagement/Dockerfile
+    container_name: finance-usermanagement
+    depends_on:
+      - sqlserver
+    networks:
+      - finance_network
+
+  accounts:
+    build:
+      context: ./apps/dotnet-services/PersonalFinanceServices
+      dockerfile: src/Services/PersonalFinance.Services.Accounts/Dockerfile
+    container_name: finance-accounts
+    depends_on:
+      - sqlserver
+      - rabbitmq
+    networks:
+      - finance_network
+
+  transactions:
+    build:
+      context: ./apps/dotnet-services/PersonalFinanceServices
+      dockerfile: src/Services/PersonalFinance.Services.Transactions/Dockerfile
+    container_name: finance-transactions
+    depends_on:
+      - sqlserver
+      - rabbitmq
+    networks:
+      - finance_network
+
+  obligations:
+    build:
+      context: ./apps/dotnet-services/PersonalFinanceServices
+      dockerfile: src/Services/PersonalFinance.Services.Obligations/Dockerfile
+    container_name: finance-obligations
+    depends_on:
+      - sqlserver
+    networks:
+      - finance_network
+
+  # ================= API GATEWAY =================
+  apigateway:
+    build:
+      context: ./apps/dotnet-services/PersonalFinanceServices
+      dockerfile: src/ApiGateway/PersonalFinance.ApiGateway/Dockerfile
+    container_name: finance-apigateway
+    ports:
+      - "5000:5000"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Docker
+    depends_on:
+      - user-management
+      - accounts
+      - transactions
+      - obligations
+      - rabbitmq
+      - sqlserver
+    networks:
+      - finance_network
+
+  # ================= FRONTEND =================
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+    container_name: finance-web
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+    depends_on:
+      - apigateway
+    networks:
+      - finance_network
+
+# ================= VOLUMES =================
+volumes:
+  sqlserver_data:
+  rabbitmq_data:
+
+# ================= NETWORK =================
+networks:
+  finance_network:
+    driver: bridge

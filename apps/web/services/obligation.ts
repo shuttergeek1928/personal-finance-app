@@ -1,6 +1,6 @@
 import api from "./api";
 
-const BASE_URL = process.env.NEXT_PUBLIC_GATEWAY_URL || "http://192.168.1.8:5000";
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "";
 const GATEWAY_BASE_URL = `${BASE_URL}/gateway-obligations`;
 
 // ── Enums ──────────────────────────────────────────────────────────────

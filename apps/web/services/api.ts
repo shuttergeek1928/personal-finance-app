@@ -3,7 +3,7 @@ import axios from "axios";
 // This is a base Axios instance. We connect to the .NET REST API eventually.
 // For now, it might be relative or point to a local dev server.
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api",
+  baseURL: process.env.NEXT_PUBLIC_API_URL || "",
   timeout: 10000,
   headers: {
     "Content-Type": "application/json",

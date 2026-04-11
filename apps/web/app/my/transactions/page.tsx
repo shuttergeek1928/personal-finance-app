@@ -95,7 +95,11 @@ export default function MyTransactionsPage() {
     const totalBank = accounts.reduce((acc, curr) => acc + (curr.balance?.amount || 0), 0);
     const totalCredit = creditCards.reduce((acc, curr) => acc + (curr.outstandingAmount?.amount || 0), 0);
     const recentSpending = transactions
-      .filter(t => t.type === TransactionType.Expense && new Date(t.transactionDate).getMonth() === new Date().getMonth())
+      .filter(t => 
+        t.type === TransactionType.Expense && 
+        new Date(t.transactionDate).getMonth() === new Date().getMonth() &&
+        t.status !== TransactionStatus.Rejected
+      )
       .reduce((acc, curr) => acc + (curr.money?.amount || 0), 0);
 
     return { totalBank, totalCredit, recentSpending };
@@ -619,7 +623,9 @@ export default function MyTransactionsPage() {
                         </td>
                         <td className="py-4 px-4">{getStatusBadge(tx.status)}</td>
                         <td className={`py-4 px-6 text-right font-bold text-base ${
-                          tx.type === TransactionType.Income 
+                          tx.status === TransactionStatus.Rejected
+                          ? "text-muted-foreground line-through opacity-50"
+                          : tx.type === TransactionType.Income 
                           ? "text-emerald-600 dark:text-emerald-400" 
                           : tx.type === TransactionType.Expense && tx.creditCardId
                           ? "text-orange-600 dark:text-orange-400"

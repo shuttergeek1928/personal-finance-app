@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { accountService, AccountTransferObject, AccountType } from "@/services/account";
-import { transactionService, Transaction } from "@/services/transaction";
+import { transactionService, Transaction, TransactionStatus } from "@/services/transaction";
 import {
   obligationService,
   ObligationDashboardDto,
@@ -137,7 +137,7 @@ export default function MyDashboardPage() {
   }, [user]);
 
   // ── Date Filtering Logic ──
-  const validTransactions = useMemo(() => transactions.filter(t => t.status !== 2 /* TransactionStatus.Rejected */), [transactions]);
+  const validTransactions = useMemo(() => transactions.filter(t => t.status !== TransactionStatus.Rejected), [transactions]);
 
   const filteredTransactions = useMemo(() => {
     const now = new Date();

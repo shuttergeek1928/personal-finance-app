@@ -37,8 +37,8 @@ The frontend is configured to use **relative paths** in production.
 ### 🛡️ Reverse Proxy (Nginx) Rules
 Nginx identifies the service based on the URL prefix and forwards the request to the .NET Gateway:
 1.  Frontend finds `/gateway-users/`
-2.  Nginx strips `/gateway-users/` and proxies to `http://localhost:5000/`
-3.  The .NET Gateway receives the clean route (e.g., `api/Auth/login`) and routes it to the specific microservice.
+2.  Nginx **retains** the `/gateway-users/` prefix (no trailing slash in `proxy_pass`) and proxies to `http://localhost:5000`.
+3.  The .NET Gateway receives the full route and routes it to the specific microservice.
 
 ---
 
@@ -61,5 +61,6 @@ Nginx identifies the service based on the URL prefix and forwards the request to
 ---
 
 ## 🚨 6. Common Developer "Gotchas"
-*   **Trailing Slashes**: The Nginx `proxy_pass http://localhost:5000/;` must have the trailing slash to correctly strip the gateway prefix.
+*   **Server Block**: All `location` directives must be wrapped in a `server { ... }` block in Nginx.
+*   **No Trailing Slash**: For this Gateway, the Nginx `proxy_pass http://localhost:5000` must **not** have a trailing slash to preserve the service prefix needed by the Gateway.
 *   **Localhost vs IP**: Frontend code must NEVER reference `localhost:5000` directly, as this refers to the user's personal computer, not the server.

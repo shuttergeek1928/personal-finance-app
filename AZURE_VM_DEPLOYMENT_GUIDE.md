@@ -52,9 +52,9 @@ docker-compose up --build -d
 
 ---
 
-## 🌐 Phase 3: Nginx Reverse Proxy Setup
+## 🌐 Phase 3: Nginx Reverse Proxy Setup (Fixed)
 
-Nginx acts as the front door, routing traffic to either the Next.js frontend or the API Gateway.
+Nginx must be configured to pass the **full path** to the API Gateway.
 
 ### 1. Edit Config
 ```bash
@@ -62,33 +62,43 @@ sudo nano /etc/nginx/sites-available/default
 ```
 
 ### 2. Apply Routing Rules
+**IMPORTANT**: Ensure you include the `server { ... }` wrapper.
+
 ```nginx
 server {
     listen 80;
 
-    # Frontend
+    # Frontend - Next.js
     location / {
         proxy_pass http://localhost:3000;
         proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     }
 
-    # API Gateway (stripping prefixes for backend consumption)
+    # API Gateway (IMPORTANT: No trailing slash after 5000)
     location /gateway-users/ {
-        proxy_pass http://localhost:5000/;
+        proxy_pass http://localhost:5000;
     }
 
     location /gateway-accounts/ {
-        proxy_pass http://localhost:5000/;
+        proxy_pass http://localhost:5000;
     }
 
     location /gateway-transactions/ {
-        proxy_pass http://localhost:5000/;
+        proxy_pass http://localhost:5000;
     }
 
     location /gateway-obligations/ {
-        proxy_pass http://localhost:5000/;
+        proxy_pass http://localhost:5000;
     }
 }
+```
+
+### 3. Test and Restart
+```bash
+sudo nginx -t
+sudo systemctl restart nginx
 ```
 
 ---
@@ -96,39 +106,23 @@ server {
 ## 🧨 Phase 4: Troubleshooting & "The Network Error" Fix
 
 ### 1. The "Localhost" Trap (Problem Faced)
-**The Symptom**: Frontend loads, but login/signup fails with "Network Error".
-**The Cause**: The frontend was hardcoded to call `http://localhost:5000`. In a browser, `localhost` refers to the **user's computer**, not the Azure VM.
-**The Fix**: Use `NEXT_PUBLIC_API_URL=` (empty) so the browser makes relative calls to the actual server IP via Nginx.
+**The Symptom**: Login fails with "Network Error".
+**The Cause**: Frontend called `localhost:5000`.
+**The Fix**: Use `NEXT_PUBLIC_API_URL=` (empty).
 
-### 2. Next.js Build-Time Variables
-**Problem**: Changing `.env.production` doesn't seem to update the app.
-**Reason**: Next.js bakes `NEXT_PUBLIC_` variables into the JavaScript files **at build time**.
-**Solution**: You MUST rebuild the container after any env change:
-```bash
-docker-compose build --no-cache web
-docker-compose up -d web
-```
+### 2. 404 Not Found on API
+**The Cause**: Using `proxy_pass http://localhost:5000/;` (with slash) stripped the prefix.
+**The Fix**: Use `proxy_pass http://localhost:5000;` (without slash) to keep the prefix required by the .NET Gateway.
 
-### 3. SQL Server Memory Issues
-**Problem**: Database container keeps restarting.
-**Solution**: Ensure your VM has at least 4GB of RAM (SQL Server requirement) or add a Swap file:
-```bash
-sudo fallocate -l 2G /swapfile
-sudo chmod 600 /swapfile
-sudo mkswap /swapfile
-sudo swapon /swapfile
-```
+### 3. Nginx Config Fail ("location directive not allowed")
+**The Cause**: Pasting `location` blocks outside a `server` block.
+**The Fix**: Wrap everything in `server { ... }`.
 
 ---
 
 ## 📝 Checklists
 
 ### ✅ Verification Checklist
-- [ ] Browser Console shows request to `http://<vm-ip>/gateway-users/...` (No 5000 port).
-- [ ] `docker ps` shows all 7-8 containers as "Up".
+- [ ] Browser Console shows request to `http://<vm-ip>/gateway-users/...`
+- [ ] `docker ps` shows all containers as "Up".
 - [ ] Nginx status is active: `sudo systemctl status nginx`.
-
-### 🛠️ Useful Debug Commands
-*   **View Logs**: `docker-compose logs -f web` (or `apigateway`)
-*   **Test Backend from Server**: `curl http://localhost:5000/api/Auth/login`
-*   **Test Nginx Routing**: `curl http://localhost/gateway-users/api/Auth/login`

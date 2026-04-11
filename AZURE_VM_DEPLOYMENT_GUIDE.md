@@ -52,45 +52,64 @@ docker-compose up --build -d
 
 ---
 
-## 🌐 Phase 3: Nginx Reverse Proxy Setup (Fixed)
+## 🌐 Phase 3: Nginx Reverse Proxy Setup (Full Config)
 
-Nginx must be configured to pass the **full path** to the API Gateway.
+Nginx must be configured to pass the **full path** to the API Gateway and handle Swagger docs.
 
 ### 1. Edit Config
 ```bash
 sudo nano /etc/nginx/sites-available/default
 ```
 
-### 2. Apply Routing Rules
-**IMPORTANT**: Ensure you include the `server { ... }` wrapper.
+### 2. Full Configuration
+Delete the existing contents and paste this block:
 
 ```nginx
 server {
     listen 80;
 
-    # Frontend - Next.js
-    location / {
-        proxy_pass http://localhost:3000;
+    # 1. API Documentation (Swagger)
+    location /swagger/ {
+        proxy_pass http://localhost:5000/;
         proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     }
 
-    # API Gateway (IMPORTANT: No trailing slash after 5000)
+    location /swagger/v1/ {
+        proxy_pass http://localhost:5000/swagger/v1/;
+        proxy_set_header Host $host;
+    }
+
+    # 2. API Gateway routing for services
     location /gateway-users/ {
         proxy_pass http://localhost:5000;
+        proxy_set_header Host $host;
     }
 
     location /gateway-accounts/ {
         proxy_pass http://localhost:5000;
+        proxy_set_header Host $host;
     }
 
     location /gateway-transactions/ {
         proxy_pass http://localhost:5000;
+        proxy_set_header Host $host;
     }
 
     location /gateway-obligations/ {
         proxy_pass http://localhost:5000;
+        proxy_set_header Host $host;
+    }
+
+    # 3. Frontend - Next.js (Matches everything else)
+    location / {
+        proxy_pass http://localhost:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
     }
 }
 ```
@@ -114,7 +133,11 @@ sudo systemctl restart nginx
 **The Cause**: Using `proxy_pass http://localhost:5000/;` (with slash) stripped the prefix.
 **The Fix**: Use `proxy_pass http://localhost:5000;` (without slash) to keep the prefix required by the .NET Gateway.
 
-### 3. Nginx Config Fail ("location directive not allowed")
+### 3. Swagger Assets Not Loading
+**The Cause**: Swagger UI assets are served from the root of port 5000.
+**The Fix**: Added `location /swagger/` with a trailing slash in `proxy_pass` to point directly to the Gateway's root UI.
+
+### 4. Nginx Config Fail ("location directive not allowed")
 **The Cause**: Pasting `location` blocks outside a `server` block.
 **The Fix**: Wrap everything in `server { ... }`.
 
@@ -125,4 +148,5 @@ sudo systemctl restart nginx
 ### ✅ Verification Checklist
 - [ ] Browser Console shows request to `http://<vm-ip>/gateway-users/...`
 - [ ] `docker ps` shows all containers as "Up".
-- [ ] Nginx status is active: `sudo systemctl status nginx`.
+- [ ] Swagger is accessible at `http://<vm-ip>/swagger/`.
+- [ ] Web App is accessible at `http://<vm-ip>/`.

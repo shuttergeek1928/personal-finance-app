@@ -150,3 +150,6 @@ sudo systemctl restart nginx
 - [ ] `docker ps` shows all containers as "Up".
 - [ ] Swagger is accessible at `http://<vm-ip>/swagger/`.
 - [ ] Web App is accessible at `http://<vm-ip>/`.
+
+### Web URL - http://98.70.33.180/
+### Swagger URL - http://98.70.33.180/swagger/index.html

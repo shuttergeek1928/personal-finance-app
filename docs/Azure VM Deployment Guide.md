@@ -17,9 +17,11 @@ This guide details the complete process of deploying the Finance Flow microservi
 
 ### 2. Initial Server Setup
 
-Connect via SSH and install required dependencies: ssh -i C:\Users\atish\.ssh\PFA-Admin.pem financeflow-admin@98.70.33.180
+Connect via SSH and install required dependencies: 
 
 ```bash
+ssh -i C:\Users\atish\.ssh\PFA-Admin.pem financeflow-admin@98.70.33.180
+
 sudo apt update && sudo apt upgrade -y
 sudo apt install docker.io docker-compose nginx git -y
 

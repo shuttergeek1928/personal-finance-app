@@ -1,5 +1,7 @@
-﻿using MediatR;
+using MediatR;
+
 using Microsoft.EntityFrameworkCore;
+
 using PersonalFinance.Shared.Common.Domain;
 
 namespace PersonalFinance.Shared.Common.Infrastructure

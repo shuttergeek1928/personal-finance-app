@@ -1,4 +1,5 @@
 using MassTransit;
+
 using PersonalFinance.Services.Accounts.Infrastructure.Data;
 using PersonalFinance.Shared.Events.Events;
 
@@ -18,7 +19,7 @@ namespace PersonalFinance.Services.Accounts.Domain.Consumers
         public async Task Consume(ConsumeContext<CheckBalanceRequest> context)
         {
             var request = context.Message;
-            _logger.LogInformation("Processing CheckBalanceRequest {RequestId} for Account {AccountId}, Amount {Amount}", 
+            _logger.LogInformation("Processing CheckBalanceRequest {RequestId} for Account {AccountId}, Amount {Amount}",
                 request.RequestId, request.AccountId, request.Amount);
 
             var account = await _accountDbContext.Accounts.FindAsync(new object[] { request.AccountId }, context.CancellationToken);
@@ -45,7 +46,7 @@ namespace PersonalFinance.Services.Accounts.Domain.Consumers
             if (account.Balance.Amount < request.Amount)
             {
                 hasSufficientFunds = false;
-                _logger.LogWarning("Insufficient funds for Account {AccountId}. Requested: {Amount}, Available: {Available}", 
+                _logger.LogWarning("Insufficient funds for Account {AccountId}. Requested: {Amount}, Available: {Available}",
                     request.AccountId, request.Amount, account.Balance.Amount);
             }
 

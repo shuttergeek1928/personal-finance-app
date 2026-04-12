@@ -1,11 +1,14 @@
-﻿using MediatR;
+using System.Linq.Dynamic.Core;
+
+using MediatR;
+
 using Microsoft.AspNetCore.Mvc;
+
 using PersonalFinance.Services.Accounts.Application.Commands;
 using PersonalFinance.Services.Accounts.Application.DataTransferObjects.Requests;
 using PersonalFinance.Services.Accounts.Application.DataTransferObjects.Response;
 using PersonalFinance.Services.Accounts.Application.DTOs;
 using PersonalFinance.Services.Accounts.Application.Queries;
-using System.Linq.Dynamic.Core;
 
 namespace PersonalFinance.Services.Accounts.Controllers
 {
@@ -136,7 +139,7 @@ namespace PersonalFinance.Services.Accounts.Controllers
                 return StatusCode(500, ApiResponse<AccountTransferObject>.ErrorResult("An internal error occurred"));
             }
         }
-        
+
         /// <summary>
         /// Get account by account id
         /// </summary>

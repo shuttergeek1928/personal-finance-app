@@ -1,11 +1,12 @@
 using MassTransit;
+
 using PersonalFinance.Services.Accounts.Infrastructure.Data;
 using PersonalFinance.Shared.Common.Domain.ValueObjects;
 using PersonalFinance.Shared.Events.Events;
 
 namespace PersonalFinance.Services.Accounts.Domain.Consumers
 {
-    public class TransactionCreatedConsumer : 
+    public class TransactionCreatedConsumer :
         IConsumer<IncomeTransactionCreatedEvent>,
         IConsumer<ExpenseTransactionCreatedEvent>
     {
@@ -36,7 +37,7 @@ namespace PersonalFinance.Services.Accounts.Domain.Consumers
                     return;
                 }
 
-                var account = _accountDbContext.Accounts.FirstOrDefault(a => a.Id == transactionEvent.AccountId) 
+                var account = _accountDbContext.Accounts.FirstOrDefault(a => a.Id == transactionEvent.AccountId)
                     ?? throw new InvalidOperationException($"Account {transactionEvent.AccountId} not found.");
 
                 var previousBalance = account.Balance.Amount;
@@ -76,7 +77,7 @@ namespace PersonalFinance.Services.Accounts.Domain.Consumers
                     return;
                 }
 
-                var account = _accountDbContext.Accounts.FirstOrDefault(a => a.Id == transactionEvent.AccountId) 
+                var account = _accountDbContext.Accounts.FirstOrDefault(a => a.Id == transactionEvent.AccountId)
                     ?? throw new InvalidOperationException($"Account {transactionEvent.AccountId} not found.");
 
                 var previousBalance = account.Balance.Amount;

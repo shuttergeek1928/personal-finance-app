@@ -1,6 +1,7 @@
-﻿using AutoMapper;
+using AutoMapper;
+
 using MediatR;
-using Microsoft.EntityFrameworkCore;
+
 using PersonalFinance.Services.UserManagement.Application.Common;
 using PersonalFinance.Services.UserManagement.Application.DataTransferObjects.Response;
 using PersonalFinance.Services.UserManagement.Application.DTOs;
@@ -29,7 +30,7 @@ namespace PersonalFinance.Services.UserManagement.Application.Queries
         public override async Task<ApiResponse<UserTransferObject>> Handle(GetUserByIdQuery request, CancellationToken cancellationToken)
         {
 
-            var user = await UserExistAsync(request.UserId, includeChilds:true, ignoreQueryfilter : true);
+            var user = await UserExistAsync(request.UserId, includeChilds: true, ignoreQueryfilter: true);
 
             if (user == null)
             {

@@ -1,7 +1,7 @@
-﻿using AutoMapper;
+using AutoMapper;
+
 using MediatR;
-using Microsoft.EntityFrameworkCore;
-using PersonalFinance.Services.Transactions.Domain.Entities;
+
 using PersonalFinance.Services.Transactions.Infrastructure.Data;
 
 namespace PersonalFinance.Services.Transactions.Application.Common

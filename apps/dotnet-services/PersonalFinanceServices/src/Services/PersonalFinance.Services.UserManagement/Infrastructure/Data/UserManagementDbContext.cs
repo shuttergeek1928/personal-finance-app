@@ -1,6 +1,8 @@
 using MediatR;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+
 using PersonalFinance.Services.UserManagement.Domain.Entities;
 using PersonalFinance.Shared.Common.Infrastructure;
 

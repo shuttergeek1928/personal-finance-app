@@ -49,7 +49,7 @@ namespace PersonalFinance.Services.Obligations.Domain.Entities
             AccountId = accountId;
             CreditCardId = creditCardId;
             IsNoCostEmi = isNoCostEmi;
-            
+
             if (processingFee.HasValue)
                 ProcessingFee = new Money(processingFee.Value);
 
@@ -168,7 +168,7 @@ namespace PersonalFinance.Services.Obligations.Domain.Entities
             AccountId = accountId;
             CreditCardId = creditCardId;
             IsNoCostEmi = isNoCostEmi;
-            
+
             if (processingFee.HasValue)
                 ProcessingFee = new Money(processingFee.Value);
             else

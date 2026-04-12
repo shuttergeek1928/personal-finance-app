@@ -3,7 +3,14 @@
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { LineChart, ArrowRight, Eye, EyeOff, ShieldCheck, Zap } from "lucide-react";
+import {
+  LineChart,
+  ArrowRight,
+  Eye,
+  EyeOff,
+  ShieldCheck,
+  Zap,
+} from "lucide-react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -88,25 +95,35 @@ export default function AuthClient() {
             <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-700 flex items-center justify-center shadow-xl shadow-indigo-500/20 border border-white/20">
               <LineChart className="h-7 w-7 text-white" />
             </div>
-            <span className="text-3xl font-extrabold tracking-tighter">Finance Flow</span>
+            <span className="text-3xl font-extrabold tracking-tighter">
+              Finance Flow
+            </span>
           </div>
 
           <div className="max-w-md space-y-6">
             <h1 className="text-5xl font-bold leading-tight tracking-tight">
-              Master your wealth with <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">AI Intelligence.</span>
+              Master your wealth with{" "}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">
+                AI Intelligence.
+              </span>
             </h1>
             <p className="text-xl text-zinc-300 font-light">
-              Experience the next generation of personal finance tracking. Secure, automated, and beautifully designed.
+              Experience the next generation of personal finance tracking.
+              Secure, automated, and beautifully designed.
             </p>
             <div className="flex gap-6 pt-4">
-               <div className="flex items-center gap-2">
-                  <ShieldCheck className="text-indigo-400 h-5 w-5" />
-                  <span className="text-sm font-medium text-zinc-400">Bank-level Security</span>
-               </div>
-               <div className="flex items-center gap-2">
-                  <Zap className="text-amber-400 h-5 w-5" />
-                  <span className="text-sm font-medium text-zinc-400">Real-time Sync</span>
-               </div>
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="text-indigo-400 h-5 w-5" />
+                <span className="text-sm font-medium text-zinc-400">
+                  Bank-level Security
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Zap className="text-amber-400 h-5 w-5" />
+                <span className="text-sm font-medium text-zinc-400">
+                  Real-time Sync
+                </span>
+              </div>
             </div>
           </div>
 
@@ -125,7 +142,9 @@ export default function AuthClient() {
         <div className="w-full max-w-md space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-1000">
           <div className="space-y-2">
             <h2 className="text-4xl font-bold tracking-tight">Welcome back</h2>
-            <p className="text-muted-foreground">Please enter your credentials to access your account.</p>
+            <p className="text-muted-foreground">
+              Please enter your credentials to access your account.
+            </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -151,7 +170,12 @@ export default function AuthClient() {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label htmlFor="password">Password</Label>
-                <Link href="#" className="text-xs text-indigo-600 hover:underline">Forgot password?</Link>
+                <Link
+                  href="#"
+                  className="text-xs text-indigo-600 hover:underline"
+                >
+                  Forgot password?
+                </Link>
               </div>
               <div className="relative">
                 <Input
@@ -173,7 +197,11 @@ export default function AuthClient() {
               </div>
             </div>
 
-            <Button type="submit" disabled={isLoading} className="w-full h-12 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-lg shadow-lg shadow-indigo-600/20 transition-all active:scale-[0.98]">
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="w-full h-12 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-lg shadow-lg shadow-indigo-600/20 transition-all active:scale-[0.98]"
+            >
               {isLoading ? (
                 <div className="flex items-center gap-2">
                   <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -193,18 +221,24 @@ export default function AuthClient() {
               <span className="w-full border-t border-zinc-200 dark:border-zinc-800" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-zinc-50 dark:bg-zinc-950 px-2 text-muted-foreground">Or continue with</span>
+              <span className="bg-zinc-50 dark:bg-zinc-950 px-2 text-muted-foreground">
+                Or continue with
+              </span>
             </div>
           </div>
 
           <div className="flex flex-col gap-4 text-center">
             <RegisterModal>
               <button className="text-sm font-medium hover:text-indigo-600 transition-colors">
-                Don't have an account? <span className="text-indigo-600">Sign up</span>
+                Don't have an account?{" "}
+                <span className="text-indigo-600">Sign up</span>
               </button>
             </RegisterModal>
 
-            <Link href="/" className="text-xs text-muted-foreground hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors">
+            <Link
+              href="/"
+              className="text-xs text-muted-foreground hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
+            >
               &larr; Back to home
             </Link>
           </div>
@@ -212,4 +246,4 @@ export default function AuthClient() {
       </div>
     </div>
   );
-}
+}

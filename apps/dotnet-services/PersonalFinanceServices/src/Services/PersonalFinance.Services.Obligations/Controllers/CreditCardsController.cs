@@ -1,12 +1,15 @@
+using System.Security.Claims;
+
 using MediatR;
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+
 using PersonalFinance.Services.Obligations.Application.Commands;
 using PersonalFinance.Services.Obligations.Application.DataTransferObjects;
 using PersonalFinance.Services.Obligations.Application.DataTransferObjects.Requests;
 using PersonalFinance.Services.Obligations.Application.DataTransferObjects.Response;
 using PersonalFinance.Services.Obligations.Application.Queries;
-using System.Security.Claims;
 
 namespace PersonalFinance.Services.Obligations.API.Controllers
 {
@@ -50,7 +53,7 @@ namespace PersonalFinance.Services.Obligations.API.Controllers
         public async Task<IActionResult> AddCreditCard([FromBody] CreateCreditCardRequest request)
         {
             var userId = GetUserId();
-            
+
             var command = new AddCreditCardCommand
             {
                 UserId = userId,

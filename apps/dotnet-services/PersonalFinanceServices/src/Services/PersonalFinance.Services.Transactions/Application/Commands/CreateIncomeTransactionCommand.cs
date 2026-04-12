@@ -1,13 +1,15 @@
 // PersonalFinance.Services.Transactions/Application/Commands/RegisterUserCommand.cs
 using AutoMapper;
+
 using MassTransit;
+
 using MediatR;
+
 using PersonalFinance.Services.Transactions.Application.Common;
 using PersonalFinance.Services.Transactions.Application.DataTransferObjects.Response;
 using PersonalFinance.Services.Transactions.Application.DTOs;
 using PersonalFinance.Services.Transactions.Application.Mappings;
 using PersonalFinance.Services.Transactions.Domain.Entities;
-using PersonalFinance.Services.Transactions.Domain.Events;
 using PersonalFinance.Services.Transactions.Infrastructure.Data;
 using PersonalFinance.Shared.Common.Domain.ValueObjects;
 using PersonalFinance.Shared.Events.Events;

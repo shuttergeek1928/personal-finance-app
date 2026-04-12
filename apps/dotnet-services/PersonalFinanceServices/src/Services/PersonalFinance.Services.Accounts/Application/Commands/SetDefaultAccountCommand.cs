@@ -1,6 +1,9 @@
-﻿using AutoMapper;
+using AutoMapper;
+
 using MediatR;
+
 using Microsoft.EntityFrameworkCore;
+
 using PersonalFinance.Services.Accounts.Application.Common;
 using PersonalFinance.Services.Accounts.Application.DataTransferObjects.Response;
 using PersonalFinance.Services.Accounts.Application.DTOs;
@@ -30,7 +33,7 @@ namespace PersonalFinance.Services.Accounts.Application.Commands
         public async override Task<ApiResponse<AccountTransferObject>> Handle(SetDefaultAccountCommand request, CancellationToken cancellationToken)
         {
             var accounts = await Context.Accounts.Where(x => x.UserId == request.UserId).ToListAsync();
-            
+
             if (!accounts.Any())
             {
                 Logger.LogError("Account with number {AccountNumber} does not exist for user {UserId}", request.AccountNumber, request.UserId);

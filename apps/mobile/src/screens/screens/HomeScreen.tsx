@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   View,
   Text,
@@ -6,17 +6,17 @@ import {
   ScrollView,
   TouchableOpacity,
   SafeAreaView,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import Layout from '../components/layout.tsx';
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import Layout from "../components/layout.tsx";
 
 const HomeScreen = ({ navigation }: { navigation: any }) => {
   // Mock data - replace with actual data from your state management
-  const balance = 2500.00;
+  const balance = 2500.0;
   const recentTransactions = [
-    { id: 1, title: 'Grocery Shopping', amount: -85.50, date: '2024-03-20' },
-    { id: 2, title: 'Salary', amount: 3000.00, date: '2024-03-19' },
-    { id: 3, title: 'Netflix', amount: -15.99, date: '2024-03-18' },
+    { id: 1, title: "Grocery Shopping", amount: -85.5, date: "2024-03-20" },
+    { id: 2, title: "Salary", amount: 3000.0, date: "2024-03-19" },
+    { id: 3, title: "Netflix", amount: -15.99, date: "2024-03-18" },
   ];
 
   return (
@@ -43,11 +43,17 @@ const HomeScreen = ({ navigation }: { navigation: any }) => {
 
           {/* Quick Actions */}
           <View style={styles.quickActions}>
-            <TouchableOpacity style={styles.actionButton} onPress={() => navigation.navigate("Income")}>
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={() => navigation.navigate("Income")}
+            >
               <Ionicons name="add-circle-outline" size={24} color="#333" />
               <Text style={styles.actionText}>Add Income</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.actionButton} onPress={() => navigation.navigate("Expense")}>
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={() => navigation.navigate("Expense")}
+            >
               <Ionicons name="remove-circle-outline" size={24} color="#333" />
               <Text style={styles.actionText}>Add Expense</Text>
             </TouchableOpacity>
@@ -63,17 +69,19 @@ const HomeScreen = ({ navigation }: { navigation: any }) => {
             {recentTransactions.map((transaction) => (
               <View key={transaction.id} style={styles.transactionItem}>
                 <View style={styles.transactionInfo}>
-                  <Text style={styles.transactionTitle}>{transaction.title}</Text>
+                  <Text style={styles.transactionTitle}>
+                    {transaction.title}
+                  </Text>
                   <Text style={styles.transactionDate}>{transaction.date}</Text>
                 </View>
                 <Text
                   style={[
                     styles.transactionAmount,
-                    { color: transaction.amount > 0 ? '#4CAF50' : '#F44336' },
+                    { color: transaction.amount > 0 ? "#4CAF50" : "#F44336" },
                   ]}
                 >
-                  {transaction.amount > 0 ? '+' : ''}
-                  ${Math.abs(transaction.amount).toFixed(2)}
+                  {transaction.amount > 0 ? "+" : ""}$
+                  {Math.abs(transaction.amount).toFixed(2)}
                 </Text>
               </View>
             ))}
@@ -87,111 +95,111 @@ const HomeScreen = ({ navigation }: { navigation: any }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: "#f5f5f5",
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     padding: 16,
   },
   greeting: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
+    fontWeight: "bold",
+    color: "#333",
   },
   profileButton: {
     padding: 4,
   },
   balanceCard: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     margin: 16,
     padding: 20,
     borderRadius: 12,
     elevation: 2,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
   },
   balanceLabel: {
     fontSize: 16,
-    color: '#666',
+    color: "#666",
   },
   balanceAmount: {
     fontSize: 32,
-    fontWeight: 'bold',
-    color: '#333',
+    fontWeight: "bold",
+    color: "#333",
     marginVertical: 8,
   },
   balanceTrend: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   trendText: {
-    color: '#4CAF50',
+    color: "#4CAF50",
     marginLeft: 4,
   },
   quickActions: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
+    flexDirection: "row",
+    justifyContent: "space-around",
     padding: 16,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     marginHorizontal: 16,
     borderRadius: 12,
     elevation: 2,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
   },
   actionButton: {
-    alignItems: 'center',
+    alignItems: "center",
   },
   actionText: {
     marginTop: 4,
-    color: '#333',
+    color: "#333",
   },
   transactionsSection: {
     margin: 16,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 12,
     padding: 16,
     elevation: 2,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
+    fontWeight: "bold",
+    color: "#333",
     marginBottom: 16,
   },
   transactionItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: "#f0f0f0",
   },
   transactionInfo: {
     flex: 1,
   },
   transactionTitle: {
     fontSize: 16,
-    color: '#333',
+    color: "#333",
   },
   transactionDate: {
     fontSize: 12,
-    color: '#666',
+    color: "#666",
     marginTop: 4,
   },
   transactionAmount: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
 });
 

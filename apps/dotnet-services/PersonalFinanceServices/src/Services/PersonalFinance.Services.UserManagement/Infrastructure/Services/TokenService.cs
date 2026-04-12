@@ -1,11 +1,12 @@
-using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.Tokens;
-using PersonalFinance.Services.UserManagement.Application.Services;
-using PersonalFinance.Services.UserManagement.Domain.Entities;
-using PersonalFinance.Shared.Common.Security;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+
+using Microsoft.IdentityModel.Tokens;
+
+using PersonalFinance.Services.UserManagement.Application.Services;
+using PersonalFinance.Services.UserManagement.Domain.Entities;
+using PersonalFinance.Shared.Common.Security;
 
 namespace PersonalFinance.Services.UserManagement.Infrastructure.Services
 {

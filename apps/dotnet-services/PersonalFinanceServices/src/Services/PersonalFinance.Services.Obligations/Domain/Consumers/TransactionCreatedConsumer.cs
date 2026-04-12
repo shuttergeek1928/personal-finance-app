@@ -1,12 +1,14 @@
 using MassTransit;
+
 using Microsoft.EntityFrameworkCore;
+
 using PersonalFinance.Services.Obligations.Infrastructure.Data;
 using PersonalFinance.Shared.Common.Domain.ValueObjects;
 using PersonalFinance.Shared.Events.Events;
 
 namespace PersonalFinance.Services.Obligations.Domain.Consumers
 {
-    public class TransactionCreatedConsumer : 
+    public class TransactionCreatedConsumer :
         IConsumer<IncomeTransactionCreatedEvent>,
         IConsumer<ExpenseTransactionCreatedEvent>,
         IConsumer<TransferTransactionCreatedEvent>
@@ -42,8 +44,8 @@ namespace PersonalFinance.Services.Obligations.Domain.Consumers
         {
             var txEvent = context.Message;
             _logger.LogInformation("CONSUMER REACHED: ExpenseTransactionCreatedEvent for Transaction {TransactionId}, Card {CardId}", txEvent.TransactionId, txEvent.CreditCardId);
-            
-            if (txEvent.CreditCardId == null) 
+
+            if (txEvent.CreditCardId == null)
             {
                 _logger.LogWarning("Skipping consumption as CreditCardId is null for Transaction {TransactionId}", txEvent.TransactionId);
                 return;
@@ -61,7 +63,7 @@ namespace PersonalFinance.Services.Obligations.Domain.Consumers
         public async Task Consume(ConsumeContext<TransferTransactionCreatedEvent> context)
         {
             var txEvent = context.Message;
-            
+
             // Handle From Credit Card (Spend/Cash Withdrawal)
             if (txEvent.FromCreditCardId != null)
             {

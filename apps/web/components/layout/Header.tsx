@@ -1,28 +1,28 @@
-"use client"
+"use client";
 
-import { usePathname, useRouter } from "next/navigation"
-import { Bell, Search, LogOut } from "lucide-react"
-import Link from "next/link"
-import { ThemeToggle } from "@/components/theme-toggle"
-import { MobileNav } from "./MobileNav"
-import { useAuthStore } from "@/store/useAuthStore"
-import { useEffect } from "react"
+import { usePathname, useRouter } from "next/navigation";
+import { Bell, Search, LogOut } from "lucide-react";
+import Link from "next/link";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { MobileNav } from "./MobileNav";
+import { useAuthStore } from "@/store/useAuthStore";
+import { useEffect } from "react";
 
 export function Header() {
-  const pathname = usePathname()
-  const router = useRouter()
-  const { user, isAuthenticated, initialize, logout } = useAuthStore()
+  const pathname = usePathname();
+  const router = useRouter();
+  const { user, isAuthenticated, initialize, logout } = useAuthStore();
 
   useEffect(() => {
-    initialize()
-  }, [initialize])
+    initialize();
+  }, [initialize]);
 
   if (pathname === "/" || pathname.startsWith("/auth")) return null;
 
   const handleLogout = () => {
-    logout()
-    router.push("/auth")
-  }
+    logout();
+    router.push("/auth");
+  };
 
   return (
     <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center justify-between border-b border-zinc-200 bg-white/80 px-6 backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-950/80">
@@ -51,7 +51,9 @@ export function Header() {
               className="hover:ring-2 hover:ring-indigo-500 hover:ring-offset-2 rounded-full transition-all"
             >
               <div className="h-8 w-8 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 rounded-full flex items-center justify-center text-xs font-bold">
-                {`${(user.firstName || "")[0] || ""}${(user.lastName || "")[0] || ""}`.toUpperCase() || "U"}
+                {`${(user.firstName || "")[0] || ""}${
+                  (user.lastName || "")[0] || ""
+                }`.toUpperCase() || "U"}
               </div>
             </Link>
             <button
@@ -65,5 +67,5 @@ export function Header() {
         )}
       </div>
     </header>
-  )
+  );
 }

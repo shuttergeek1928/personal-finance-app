@@ -1,14 +1,14 @@
 using AutoMapper;
+
 using MediatR;
+
 using Microsoft.EntityFrameworkCore;
+
 using PersonalFinance.Services.UserManagement.Application.Common;
 using PersonalFinance.Services.UserManagement.Application.DataTransferObjects.Response;
-using PersonalFinance.Services.UserManagement.Application.DTOs;
-using PersonalFinance.Services.UserManagement.Application.Services;
-using PersonalFinance.Services.UserManagement.Domain.Entities;
-using PersonalFinance.Services.UserManagement.Infrastructure.Data;
 using PersonalFinance.Services.UserManagement.Application.Mappings;
-using Microsoft.Extensions.Logging;
+using PersonalFinance.Services.UserManagement.Application.Services;
+using PersonalFinance.Services.UserManagement.Infrastructure.Data;
 
 namespace PersonalFinance.Services.UserManagement.Application.Commands
 {

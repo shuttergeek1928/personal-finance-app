@@ -1,6 +1,6 @@
 import api from "./api";
 
-// Use environment variable to set the API Gateway URL. 
+// Use environment variable to set the API Gateway URL.
 // Defaults to relative path if NEXT_PUBLIC_API_URL is empty (ideal for Nginx proxy).
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "";
 const GATEWAY_BASE_URL = `${BASE_URL}/gateway-users`;
@@ -79,38 +79,67 @@ export interface UpdateUserProfileRequest {
 }
 
 export const userService = {
-  getUsers: async (page = 1, pageSize = 20): Promise<UserTransferObjectPaginatedResultApiResponse> => {
-    const response = await api.get(`/api/Users?page=${page}&pageSize=${pageSize}`, { baseURL: GATEWAY_BASE_URL });
+  getUsers: async (
+    page = 1,
+    pageSize = 20
+  ): Promise<UserTransferObjectPaginatedResultApiResponse> => {
+    const response = await api.get(
+      `/api/Users?page=${page}&pageSize=${pageSize}`,
+      { baseURL: GATEWAY_BASE_URL }
+    );
     return response.data;
   },
 
   getUserById: async (id: string): Promise<UserTransferObjectApiResponse> => {
-    const response = await api.get(`/api/Users/${id}`, { baseURL: GATEWAY_BASE_URL });
+    const response = await api.get(`/api/Users/${id}`, {
+      baseURL: GATEWAY_BASE_URL,
+    });
     return response.data;
   },
 
   deleteUser: async (id: string): Promise<BooleanApiResponse> => {
-    const response = await api.delete(`/api/Users/${id}`, { baseURL: GATEWAY_BASE_URL });
+    const response = await api.delete(`/api/Users/${id}`, {
+      baseURL: GATEWAY_BASE_URL,
+    });
     return response.data;
   },
 
-  getUserByEmail: async (email: string): Promise<UserTransferObjectApiResponse> => {
-    const response = await api.get(`/api/Users/by-email/${encodeURIComponent(email)}`, { baseURL: GATEWAY_BASE_URL });
+  getUserByEmail: async (
+    email: string
+  ): Promise<UserTransferObjectApiResponse> => {
+    const response = await api.get(
+      `/api/Users/by-email/${encodeURIComponent(email)}`,
+      { baseURL: GATEWAY_BASE_URL }
+    );
     return response.data;
   },
 
-  updateProfile: async (id: string, payload: UpdateUserProfileRequest): Promise<UserTransferObjectApiResponse> => {
-    const response = await api.put(`/api/Users/${id}/profile`, payload, { baseURL: GATEWAY_BASE_URL });
+  updateProfile: async (
+    id: string,
+    payload: UpdateUserProfileRequest
+  ): Promise<UserTransferObjectApiResponse> => {
+    const response = await api.put(`/api/Users/${id}/profile`, payload, {
+      baseURL: GATEWAY_BASE_URL,
+    });
     return response.data;
   },
 
   confirmEmail: async (id: string): Promise<BooleanApiResponse> => {
-    const response = await api.post(`/api/Users/${id}/confirm-email`, {}, { baseURL: GATEWAY_BASE_URL });
+    const response = await api.post(
+      `/api/Users/${id}/confirm-email`,
+      {},
+      { baseURL: GATEWAY_BASE_URL }
+    );
     return response.data;
   },
 
-  updateRoles: async (id: string, roles: string[]): Promise<BooleanApiResponse> => {
-    const response = await api.put(`/api/Users/${id}/roles`, roles, { baseURL: GATEWAY_BASE_URL });
+  updateRoles: async (
+    id: string,
+    roles: string[]
+  ): Promise<BooleanApiResponse> => {
+    const response = await api.put(`/api/Users/${id}/roles`, roles, {
+      baseURL: GATEWAY_BASE_URL,
+    });
     return response.data;
-  }
+  },
 };

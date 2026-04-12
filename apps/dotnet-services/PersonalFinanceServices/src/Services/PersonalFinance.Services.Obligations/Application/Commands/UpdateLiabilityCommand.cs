@@ -1,6 +1,9 @@
 using AutoMapper;
+
 using MediatR;
+
 using Microsoft.EntityFrameworkCore;
+
 using PersonalFinance.Services.Obligations.Application.Common;
 using PersonalFinance.Services.Obligations.Application.DataTransferObjects;
 using PersonalFinance.Services.Obligations.Application.DataTransferObjects.Response;
@@ -59,8 +62,8 @@ namespace PersonalFinance.Services.Obligations.Application.Commands
             try
             {
                 var liability = await Context.Liabilities.FirstOrDefaultAsync(l => l.Id == request.Id && l.IsActive, cancellationToken);
-                
-                Logger.LogInformation("Updating liability: {Id}. New CreditCardId: {CreditCardId}", 
+
+                Logger.LogInformation("Updating liability: {Id}. New CreditCardId: {CreditCardId}",
                     request.Id, request.CreditCardId);
 
                 if (liability == null)

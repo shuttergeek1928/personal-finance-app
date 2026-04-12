@@ -1,5 +1,7 @@
-﻿using AutoMapper;
+using AutoMapper;
+
 using MediatR;
+
 using PersonalFinance.Services.UserManagement.Application.Common;
 using PersonalFinance.Services.UserManagement.Application.DataTransferObjects.Response;
 using PersonalFinance.Services.UserManagement.Infrastructure.Data;
@@ -26,7 +28,7 @@ namespace PersonalFinance.Services.UserManagement.Application.Commands
             try
             {
 
-                var user = await UserExistAsync(request.UserId, cancellationToken: cancellationToken, ignoreQueryfilter:true);
+                var user = await UserExistAsync(request.UserId, cancellationToken: cancellationToken, ignoreQueryfilter: true);
 
                 if (user == null)
                 {

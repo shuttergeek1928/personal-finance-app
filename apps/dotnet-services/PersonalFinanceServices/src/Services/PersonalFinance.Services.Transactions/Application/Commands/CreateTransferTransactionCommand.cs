@@ -1,14 +1,17 @@
 using AutoMapper;
+
 using MassTransit;
+
 using MediatR;
+
 using PersonalFinance.Services.Transactions.Application.Common;
 using PersonalFinance.Services.Transactions.Application.DataTransferObjects.Response;
 using PersonalFinance.Services.Transactions.Application.DTOs;
+using PersonalFinance.Services.Transactions.Application.Mappings;
 using PersonalFinance.Services.Transactions.Domain.Entities;
 using PersonalFinance.Services.Transactions.Infrastructure.Data;
 using PersonalFinance.Shared.Common.Domain.ValueObjects;
 using PersonalFinance.Shared.Events.Events;
-using PersonalFinance.Services.Transactions.Application.Mappings;
 
 namespace PersonalFinance.Services.Transactions.Application.Commands
 {
@@ -47,11 +50,11 @@ namespace PersonalFinance.Services.Transactions.Application.Commands
         {
             try
             {
-                Logger.LogInformation("Creating transfer transaction for user {UserId} from {FromId} to {ToId} with amount {Amount}", 
+                Logger.LogInformation("Creating transfer transaction for user {UserId} from {FromId} to {ToId} with amount {Amount}",
                     request.UserId, request.FromAccountId ?? request.FromCreditCardId, request.ToAccountId ?? request.ToCreditCardId, request.Amount);
 
                 var money = new Money(request.Amount, request.Currency);
-                
+
                 // Synchronous balance check using MassTransit Request-Response
                 var accountIdToCheck = request.FromAccountId ?? request.FromCreditCardId;
                 if (accountIdToCheck.HasValue)
@@ -65,7 +68,7 @@ namespace PersonalFinance.Services.Transactions.Application.Commands
 
                     if (!balanceCheckResponse.Message.HasSufficientFunds)
                     {
-                        Logger.LogWarning("Insufficient funds for Account {AccountId} for Transfer. Balance is {Balance}, Requested amount is {Amount}", 
+                        Logger.LogWarning("Insufficient funds for Account {AccountId} for Transfer. Balance is {Balance}, Requested amount is {Amount}",
                             accountIdToCheck.Value, balanceCheckResponse.Message.AvailableBalance, request.Amount);
 
                         var transactionRej = new Transaction(
@@ -81,10 +84,10 @@ namespace PersonalFinance.Services.Transactions.Application.Commands
                             request.ToCreditCardId);
 
                         transactionRej.Reject($"Insufficient funds for transfer. Available balance: {balanceCheckResponse.Message.AvailableBalance}");
-                        
+
                         Context.Transactions.Add(transactionRej);
                         await Context.SaveChangesAsync(cancellationToken);
-                        
+
                         return ApiResponse<TransactionTransferObject>.SuccessResult(transactionRej.ToDto(Mapper), "Transaction rejected due to insufficient funds.");
                     }
                 }

@@ -25,7 +25,7 @@ namespace PersonalFinance.Services.Obligations.Domain.Entities
                 throw new ArgumentException("Must provide exactly the last 4 digits of the card.", nameof(last4Digits));
             if (expiryMonth < 1 || expiryMonth > 12)
                 throw new ArgumentException("Expiry month must be between 1 and 12.", nameof(expiryMonth));
-            
+
             UserId = userId;
             BankName = bankName;
             CardName = cardName ?? string.Empty;
@@ -62,7 +62,7 @@ namespace PersonalFinance.Services.Obligations.Domain.Entities
         {
             if (amount == null) throw new ArgumentNullException(nameof(amount));
             if (amount.Amount <= 0) throw new ArgumentException("Charge amount must be positive.");
-            
+
             // Check if within limit (optional: allow over-limit with warning?)
             if (OutstandingAmount.Amount + amount.Amount > TotalLimit.Amount)
             {

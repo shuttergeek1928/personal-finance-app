@@ -2,15 +2,43 @@
 
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { userService, UserTransferObject } from "../../services/user";
 import { authService, RegisterUserRequest } from "../../services/auth";
 import Link from "next/link";
 import { AuthGuard } from "@/components/auth-guard";
-import { Shield, ShieldAlert, User as UserIcon, UserPlus, Search, AlertCircle, ShieldCheck, Eye, Wallet, ArrowLeftRight, CheckCircle, Trash2 } from "lucide-react";
+import {
+  Shield,
+  ShieldAlert,
+  User as UserIcon,
+  UserPlus,
+  Search,
+  AlertCircle,
+  ShieldCheck,
+  Eye,
+  Wallet,
+  ArrowLeftRight,
+  CheckCircle,
+  Trash2,
+} from "lucide-react";
 
 function UsersPageContent() {
   const [users, setUsers] = useState<UserTransferObject[]>([]);
@@ -39,11 +67,14 @@ function UsersPageContent() {
     try {
       const query = searchQuery.trim();
       if (query) {
-        const isGuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(query);
-        const res = isGuid 
+        const isGuid =
+          /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+            query
+          );
+        const res = isGuid
           ? await userService.getUserById(query)
           : await userService.getUserByEmail(query);
-          
+
         if (res.success && res.data) {
           setUsers([res.data]);
         } else {
@@ -79,13 +110,13 @@ function UsersPageContent() {
     setSearchQuery("");
     // Wait for state to settle then fetch all
     setTimeout(() => {
-        userService.getUsers(1, 50).then(res => {
-            if (res.success && res.data && res.data.items) {
-                setUsers(res.data.items);
-              } else {
-                setUsers([]);
-              }
-        });
+      userService.getUsers(1, 50).then((res) => {
+        if (res.success && res.data && res.data.items) {
+          setUsers(res.data.items);
+        } else {
+          setUsers([]);
+        }
+      });
     }, 0);
   };
 
@@ -104,7 +135,16 @@ function UsersPageContent() {
       const res = await authService.register(payload);
       if (res.success) {
         setIsCreateOpen(false);
-        setCreateData({ firstName: "", lastName: "", userName: "", email: "", phoneNumber: "", password: "", confirmPassword: "", acceptTerms: true });
+        setCreateData({
+          firstName: "",
+          lastName: "",
+          userName: "",
+          email: "",
+          phoneNumber: "",
+          password: "",
+          confirmPassword: "",
+          acceptTerms: true,
+        });
         fetchUsers();
       } else {
         if (res.errors && res.errors.length > 0) {
@@ -150,12 +190,15 @@ function UsersPageContent() {
     }
   };
 
-  const handleToggleRole = async (user: UserTransferObject, roleToToggle: string) => {
+  const handleToggleRole = async (
+    user: UserTransferObject,
+    roleToToggle: string
+  ) => {
     const currentRoles = user.roles || [];
     let newRoles: string[];
-    
+
     if (currentRoles.includes(roleToToggle)) {
-      newRoles = currentRoles.filter(r => r !== roleToToggle);
+      newRoles = currentRoles.filter((r) => r !== roleToToggle);
     } else {
       newRoles = [...currentRoles, roleToToggle];
     }
@@ -173,7 +216,11 @@ function UsersPageContent() {
   };
 
   if (loading && users.length === 0) {
-    return <div className="p-8 text-center text-muted-foreground">Loading users...</div>;
+    return (
+      <div className="p-8 text-center text-muted-foreground">
+        Loading users...
+      </div>
+    );
   }
 
   return (
@@ -181,58 +228,127 @@ function UsersPageContent() {
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">User Management</h1>
-          <p className="text-muted-foreground mt-1">Admin access to manage all system users</p>
+          <p className="text-muted-foreground mt-1">
+            Admin access to manage all system users
+          </p>
         </div>
-        
+
         <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
           <DialogTrigger asChild>
-            <Button className="gap-2"><UserPlus className="w-4 h-4" /> Register New User</Button>
+            <Button className="gap-2">
+              <UserPlus className="w-4 h-4" /> Register New User
+            </Button>
           </DialogTrigger>
           <DialogContent className="max-w-md">
             <DialogHeader>
               <DialogTitle>Register User</DialogTitle>
-              <DialogDescription>Add a new user to the platform.</DialogDescription>
+              <DialogDescription>
+                Add a new user to the platform.
+              </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4 max-h-[60vh] overflow-y-auto">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>First Name</Label>
-                  <Input value={createData.firstName} onChange={e => setCreateData({ ...createData, firstName: e.target.value })} />
+                  <Input
+                    value={createData.firstName}
+                    onChange={(e) =>
+                      setCreateData({
+                        ...createData,
+                        firstName: e.target.value,
+                      })
+                    }
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label>Last Name</Label>
-                  <Input value={createData.lastName} onChange={e => setCreateData({ ...createData, lastName: e.target.value })} />
+                  <Input
+                    value={createData.lastName}
+                    onChange={(e) =>
+                      setCreateData({ ...createData, lastName: e.target.value })
+                    }
+                  />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Email</Label>
-                  <Input type="email" value={createData.email} onChange={e => setCreateData({ ...createData, email: e.target.value })} />
+                  <Input
+                    type="email"
+                    value={createData.email}
+                    onChange={(e) =>
+                      setCreateData({ ...createData, email: e.target.value })
+                    }
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label>Username</Label>
-                  <Input value={createData.userName} onChange={e => setCreateData({ ...createData, userName: e.target.value })} />
+                  <Input
+                    value={createData.userName}
+                    onChange={(e) =>
+                      setCreateData({ ...createData, userName: e.target.value })
+                    }
+                  />
                 </div>
               </div>
               <div className="space-y-2">
                 <Label>Phone Number</Label>
-                <Input value={createData.phoneNumber} onChange={e => setCreateData({ ...createData, phoneNumber: e.target.value })} />
+                <Input
+                  value={createData.phoneNumber}
+                  onChange={(e) =>
+                    setCreateData({
+                      ...createData,
+                      phoneNumber: e.target.value,
+                    })
+                  }
+                />
               </div>
               <div className="space-y-2">
                 <Label>Password</Label>
-                <Input type="password" value={createData.password} onChange={e => setCreateData({ ...createData, password: e.target.value })} />
+                <Input
+                  type="password"
+                  value={createData.password}
+                  onChange={(e) =>
+                    setCreateData({ ...createData, password: e.target.value })
+                  }
+                />
               </div>
               <div className="space-y-2">
                 <Label>Confirm Password</Label>
-                <Input type="password" value={createData.confirmPassword} onChange={e => setCreateData({ ...createData, confirmPassword: e.target.value })} />
+                <Input
+                  type="password"
+                  value={createData.confirmPassword}
+                  onChange={(e) =>
+                    setCreateData({
+                      ...createData,
+                      confirmPassword: e.target.value,
+                    })
+                  }
+                />
               </div>
-              <div className="flex items-center gap-2 pt-2 cursor-pointer" onClick={() => setCreateData({ ...createData, acceptTerms: !createData.acceptTerms })}>
-                <input type="checkbox" checked={createData.acceptTerms} readOnly />
-                <Label className="text-sm font-normal cursor-pointer">Accept Terms and Conditions</Label>
+              <div
+                className="flex items-center gap-2 pt-2 cursor-pointer"
+                onClick={() =>
+                  setCreateData({
+                    ...createData,
+                    acceptTerms: !createData.acceptTerms,
+                  })
+                }
+              >
+                <input
+                  type="checkbox"
+                  checked={createData.acceptTerms}
+                  readOnly
+                />
+                <Label className="text-sm font-normal cursor-pointer">
+                  Accept Terms and Conditions
+                </Label>
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setIsCreateOpen(false)}>Cancel</Button>
+              <Button variant="outline" onClick={() => setIsCreateOpen(false)}>
+                Cancel
+              </Button>
               <Button onClick={handleCreateUser}>Register</Button>
             </DialogFooter>
           </DialogContent>
@@ -241,15 +357,19 @@ function UsersPageContent() {
 
       <div className="bg-card border rounded-lg p-4 flex flex-wrap items-center justify-between gap-4 shadow-sm">
         <form onSubmit={handleSearch} className="flex-1 flex gap-2 w-full">
-          <Input 
-            placeholder="Search user by email or ID..." 
-            value={searchQuery} 
-            onChange={e => setSearchQuery(e.target.value)}
+          <Input
+            placeholder="Search user by email or ID..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
             className="max-w-md bg-background"
           />
-          <Button type="submit" variant="secondary" className="gap-2"><Search className="w-4 h-4" /> Search</Button>
+          <Button type="submit" variant="secondary" className="gap-2">
+            <Search className="w-4 h-4" /> Search
+          </Button>
           {searchQuery && (
-             <Button type="button" variant="ghost" onClick={clearSearch}>Clear</Button>
+            <Button type="button" variant="ghost" onClick={clearSearch}>
+              Clear
+            </Button>
           )}
         </form>
       </div>
@@ -269,28 +389,42 @@ function UsersPageContent() {
       )}
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {users.map(user => (
-          <Card key={user.id} className="flex flex-col relative overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+        {users.map((user) => (
+          <Card
+            key={user.id}
+            className="flex flex-col relative overflow-hidden shadow-sm hover:shadow-md transition-shadow"
+          >
             {!user.isActive && (
               <div className="absolute top-0 right-0 bg-red-100 text-red-700 text-xs px-3 py-1 font-semibold rounded-bl-lg">
                 Deleted / Inactive
               </div>
             )}
             {user.isActive && user.isEmailConfirmed && (
-               <div className="absolute top-0 right-0 bg-green-100 text-green-700 text-xs px-3 py-1 font-semibold rounded-bl-lg">
+              <div className="absolute top-0 right-0 bg-green-100 text-green-700 text-xs px-3 py-1 font-semibold rounded-bl-lg">
                 Active
               </div>
             )}
-            
+
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                {user.fullName || user.userName || user.email?.split('@')[0] || "Unnamed User"}
+                {user.fullName ||
+                  user.userName ||
+                  user.email?.split("@")[0] ||
+                  "Unnamed User"}
                 {user.roles?.includes("Admin") ? (
-                  <span title="Admin User"><Shield className="w-4 h-4 text-indigo-600" /></span>
+                  <span title="Admin User">
+                    <Shield className="w-4 h-4 text-indigo-600" />
+                  </span>
                 ) : (
-                  <span title="Regular User"><UserIcon className="w-4 h-4 text-zinc-400" /></span>
+                  <span title="Regular User">
+                    <UserIcon className="w-4 h-4 text-zinc-400" />
+                  </span>
                 )}
-                {user.isEmailConfirmed && <span title="Email Confirmed" className="flex items-center"><ShieldCheck className="w-4 h-4 text-blue-500" /></span>}
+                {user.isEmailConfirmed && (
+                  <span title="Email Confirmed" className="flex items-center">
+                    <ShieldCheck className="w-4 h-4 text-blue-500" />
+                  </span>
+                )}
               </CardTitle>
               <CardDescription>
                 <div className="flex flex-col gap-1 mt-1">
@@ -303,10 +437,18 @@ function UsersPageContent() {
               <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-muted-foreground">
                 <span className="font-semibold text-foreground">Phone:</span>
                 <span>{user.phoneNumber || "-"}</span>
-                <span className="font-semibold text-foreground">Member Since:</span>
+                <span className="font-semibold text-foreground">
+                  Member Since:
+                </span>
                 <span>{new Date(user.createdAt).toLocaleDateString()}</span>
                 <span className="font-semibold text-foreground">Status:</span>
-                <span className={user.isEmailConfirmed ? "text-green-600 font-medium" : "text-amber-500 font-medium"}>
+                <span
+                  className={
+                    user.isEmailConfirmed
+                      ? "text-green-600 font-medium"
+                      : "text-amber-500 font-medium"
+                  }
+                >
                   {user.isEmailConfirmed ? "Confirmed" : "Pending Confirmation"}
                 </span>
               </div>
@@ -318,7 +460,11 @@ function UsersPageContent() {
                     <Eye className="w-4 h-4" /> Profile
                   </Button>
                 </Link>
-                <Link href={`/users/${user.id}/accounts`} passHref className="flex-1">
+                <Link
+                  href={`/users/${user.id}/accounts`}
+                  passHref
+                  className="flex-1"
+                >
                   <Button variant="default" size="sm" className="w-full gap-2">
                     <Wallet className="w-4 h-4" /> Accounts
                   </Button>
@@ -326,41 +472,69 @@ function UsersPageContent() {
               </div>
 
               <div className="w-full flex gap-2">
-                <Link href={`/transactions?userId=${user.id}`} passHref className="w-full">
-                  <Button variant="outline" size="sm" className="w-full gap-2 border-indigo-200 text-indigo-700 hover:bg-indigo-50 dark:border-indigo-900/50 dark:text-indigo-400">
+                <Link
+                  href={`/transactions?userId=${user.id}`}
+                  passHref
+                  className="w-full"
+                >
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full gap-2 border-indigo-200 text-indigo-700 hover:bg-indigo-50 dark:border-indigo-900/50 dark:text-indigo-400"
+                  >
                     <ArrowLeftRight className="w-4 h-4" /> View Transactions
                   </Button>
                 </Link>
               </div>
-              
+
               <div className="w-full flex gap-2 border-t border-zinc-100 dark:border-zinc-800 pt-2 mt-1">
-                <Button 
-                  variant={user.roles?.includes("Admin") ? "default" : "outline"} 
-                  size="sm" 
+                <Button
+                  variant={
+                    user.roles?.includes("Admin") ? "default" : "outline"
+                  }
+                  size="sm"
                   className="flex-1 gap-1 text-[10px] h-8"
                   onClick={() => handleToggleRole(user, "Admin")}
                 >
-                  <ShieldAlert className="w-3 h-3" /> {user.roles?.includes("Admin") ? "Revoke Admin" : "Make Admin"}
+                  <ShieldAlert className="w-3 h-3" />{" "}
+                  {user.roles?.includes("Admin")
+                    ? "Revoke Admin"
+                    : "Make Admin"}
                 </Button>
-                <Button 
-                  variant={user.roles?.includes("User") ? "secondary" : "outline"} 
-                  size="sm" 
+                <Button
+                  variant={
+                    user.roles?.includes("User") ? "secondary" : "outline"
+                  }
+                  size="sm"
                   className="flex-1 gap-1 text-[10px] h-8"
                   disabled={user.roles?.includes("User")}
                   onClick={() => handleToggleRole(user, "User")}
                 >
-                  <UserIcon className="w-3 h-3" /> {user.roles?.includes("User") ? "Is User" : "Add User Role"}
+                  <UserIcon className="w-3 h-3" />{" "}
+                  {user.roles?.includes("User") ? "Is User" : "Add User Role"}
                 </Button>
               </div>
 
               <div className="w-full flex gap-2">
                 {!user.isEmailConfirmed && user.isActive && (
-                  <Button variant="outline" size="sm" className="flex-1 gap-2" onClick={() => handleConfirmEmail(user.id)}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1 gap-2"
+                    onClick={() => handleConfirmEmail(user.id)}
+                  >
                     <CheckCircle className="w-4 h-4" /> Confirm Email
                   </Button>
                 )}
                 {user.isActive && (
-                  <Button variant="destructive" size="sm" className={user.isEmailConfirmed ? "w-full gap-2" : "flex-1 gap-2"} onClick={() => handleDelete(user.id)}>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    className={
+                      user.isEmailConfirmed ? "w-full gap-2" : "flex-1 gap-2"
+                    }
+                    onClick={() => handleDelete(user.id)}
+                  >
                     <Trash2 className="w-4 h-4" /> Delete
                   </Button>
                 )}

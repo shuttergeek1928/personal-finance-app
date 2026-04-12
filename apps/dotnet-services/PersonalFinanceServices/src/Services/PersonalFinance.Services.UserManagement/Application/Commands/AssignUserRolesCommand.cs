@@ -1,12 +1,9 @@
 using MediatR;
+
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using PersonalFinance.Services.UserManagement.Application.Common;
+
 using PersonalFinance.Services.UserManagement.Application.DataTransferObjects.Response;
-using PersonalFinance.Services.UserManagement.Domain.Entities;
 using PersonalFinance.Services.UserManagement.Infrastructure.Data;
-using AutoMapper;
-using PersonalFinance.Services.UserManagement.Application.Mappings;
 
 namespace PersonalFinance.Services.UserManagement.Application.Commands
 {
@@ -54,7 +51,7 @@ namespace PersonalFinance.Services.UserManagement.Application.Commands
                 {
                     if (!request.Roles.Contains(userRole.Role.Name))
                     {
-                         _context.UserRoles.Remove(userRole);
+                        _context.UserRoles.Remove(userRole);
                     }
                 }
 

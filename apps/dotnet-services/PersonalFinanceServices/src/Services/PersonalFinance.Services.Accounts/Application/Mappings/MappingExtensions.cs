@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+using AutoMapper;
+
 using PersonalFinance.Services.Accounts.Application.DTOs;
 using PersonalFinance.Services.Accounts.Domain.Entities;
 

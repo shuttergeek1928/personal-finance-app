@@ -43,7 +43,7 @@ namespace PersonalFinance.Services.Transactions.Domain.Entities
             Description = description ?? throw new ArgumentNullException(nameof(description));
             Category = category ?? throw new ArgumentNullException(nameof(category));
             TransactionDate = transactionDate;
-            
+
             // Add domain event
             AddDomainEvent(new TransactionCreatedEvent(Id, UserId, AccountId, CreditCardId, Type, ToAccountId, ToCreditCardId));
         }

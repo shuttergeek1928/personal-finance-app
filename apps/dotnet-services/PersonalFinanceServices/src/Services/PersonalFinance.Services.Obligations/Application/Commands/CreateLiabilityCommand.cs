@@ -1,5 +1,7 @@
 using AutoMapper;
+
 using MediatR;
+
 using PersonalFinance.Services.Obligations.Application.Common;
 using PersonalFinance.Services.Obligations.Application.DataTransferObjects;
 using PersonalFinance.Services.Obligations.Application.DataTransferObjects.Response;
@@ -57,7 +59,7 @@ namespace PersonalFinance.Services.Obligations.Application.Commands
         {
             try
             {
-                Logger.LogInformation("Creating liability: {Name} for user: {UserId}. CreditCardId: {CreditCardId}", 
+                Logger.LogInformation("Creating liability: {Name} for user: {UserId}. CreditCardId: {CreditCardId}",
                     request.Name, request.UserId, request.CreditCardId);
 
                 var liability = new Liability(

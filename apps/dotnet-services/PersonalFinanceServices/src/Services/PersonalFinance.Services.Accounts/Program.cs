@@ -1,12 +1,16 @@
+using System.Reflection;
+
 using MassTransit;
+
 using Microsoft.EntityFrameworkCore;
+
 using PersonalFinance.Services.Accounts.Application.Commands;
 using PersonalFinance.Services.Accounts.Application.Mappings;
 using PersonalFinance.Services.Accounts.Application.Services;
 using PersonalFinance.Services.Accounts.Infrastructure.Data;
 using PersonalFinance.Shared.Common.Security;
+
 using Serilog;
-using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 

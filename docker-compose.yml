@@ -98,11 +98,14 @@ services:
     build:
       context: ./apps/web
       dockerfile: Dockerfile
+      args:
+        INTERNAL_API_URL: http://apigateway:5000
     container_name: finance-web
     ports:
       - "3000:3000"
     environment:
       NODE_ENV: production
+      INTERNAL_API_URL: http://apigateway:5000
     depends_on:
       - apigateway
     networks:

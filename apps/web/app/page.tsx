@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import Link from "next/link";
 import { Bot, LineChart, Shield, Smartphone, ArrowRight } from "lucide-react";
@@ -18,13 +18,31 @@ export default function LandingPage() {
             Finance Flow
           </div>
           <nav className="hidden md:flex gap-6 text-sm font-medium text-zinc-600 dark:text-zinc-400">
-            <Link href="#features" className="hover:text-zinc-900 dark:hover:text-zinc-50 transition">Features</Link>
-            <Link href="#how-it-works" className="hover:text-zinc-900 dark:hover:text-zinc-50 transition">How it Works</Link>
-            <Link href="#pricing" className="hover:text-zinc-900 dark:hover:text-zinc-50 transition">Pricing</Link>
+            <Link
+              href="#features"
+              className="hover:text-zinc-900 dark:hover:text-zinc-50 transition"
+            >
+              Features
+            </Link>
+            <Link
+              href="#how-it-works"
+              className="hover:text-zinc-900 dark:hover:text-zinc-50 transition"
+            >
+              How it Works
+            </Link>
+            <Link
+              href="#pricing"
+              className="hover:text-zinc-900 dark:hover:text-zinc-50 transition"
+            >
+              Pricing
+            </Link>
           </nav>
           <div className="flex items-center gap-4">
             <ThemeToggle />
-            <Link href="/auth" className="text-sm font-medium hover:underline underline-offset-4">
+            <Link
+              href="/auth"
+              className="text-sm font-medium hover:underline underline-offset-4"
+            >
               Log in
             </Link>
             <RegisterModal>
@@ -32,7 +50,10 @@ export default function LandingPage() {
                 Sign Up
               </button>
             </RegisterModal>
-            <Button asChild className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-full">
+            <Button
+              asChild
+              className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-full"
+            >
               <Link href="/auth">Get Started</Link>
             </Button>
           </div>
@@ -42,18 +63,28 @@ export default function LandingPage() {
       <main className="pt-32 pb-16">
         <section className="container mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-6 bg-gradient-to-r from-zinc-900 to-zinc-500 bg-clip-text text-transparent dark:from-white dark:to-zinc-500">
-            AI-Powered Personal <br className="hidden md:block" /> Finance Optimization
+            AI-Powered Personal <br className="hidden md:block" /> Finance
+            Optimization
           </h1>
           <p className="max-w-2xl mx-auto text-lg md:text-xl text-zinc-600 dark:text-zinc-400 mb-10">
-            Track your wealth across bank accounts, set automated budgets, and get AI recommendations to improve your financial situation.
+            Track your wealth across bank accounts, set automated budgets, and
+            get AI recommendations to improve your financial situation.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Button size="lg" asChild className="h-12 px-8 rounded-full bg-indigo-600 text-white hover:bg-indigo-700 text-base">
+            <Button
+              size="lg"
+              asChild
+              className="h-12 px-8 rounded-full bg-indigo-600 text-white hover:bg-indigo-700 text-base"
+            >
               <Link href="/auth">
                 Start for Free <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
-            <Button size="lg" variant="outline" className="h-12 px-8 rounded-full text-base">
+            <Button
+              size="lg"
+              variant="outline"
+              className="h-12 px-8 rounded-full text-base"
+            >
               View Demo
             </Button>
           </div>
@@ -63,16 +94,24 @@ export default function LandingPage() {
               {/* Concept placeholder for an image/app screenshot */}
               <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500/10 to-purple-500/10" />
               <LineChart className="h-24 w-24 text-zinc-300 dark:text-zinc-700" />
-              <p className="absolute bottom-4 font-medium text-zinc-500">Dashboard Preview</p>
+              <p className="absolute bottom-4 font-medium text-zinc-500">
+                Dashboard Preview
+              </p>
             </div>
           </div>
         </section>
 
-        <section id="features" className="container mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 mt-32">
+        <section
+          id="features"
+          className="container mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 mt-32"
+        >
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">Everything you need to grow your wealth</h2>
+            <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">
+              Everything you need to grow your wealth
+            </h2>
             <p className="text-zinc-600 dark:text-zinc-400 max-w-2xl mx-auto">
-              Our platform syncs seamlessly with all your financial institutions to give you a complete picture of your net worth and spending.
+              Our platform syncs seamlessly with all your financial institutions
+              to give you a complete picture of your net worth and spending.
             </p>
           </div>
 
@@ -83,16 +122,20 @@ export default function LandingPage() {
               </div>
               <h3 className="text-xl font-semibold mb-2">AI Insights</h3>
               <p className="text-zinc-600 dark:text-zinc-400">
-                Get personalized recommendations on how to cut unnecessary subscriptions, pay down debt faster, and optimize savings.
+                Get personalized recommendations on how to cut unnecessary
+                subscriptions, pay down debt faster, and optimize savings.
               </p>
             </div>
             <div className="p-6 rounded-2xl bg-white border border-zinc-200 shadow-sm dark:bg-zinc-900 dark:border-zinc-800">
               <div className="h-12 w-12 rounded-lg bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400 flex items-center justify-center mb-6">
                 <Shield className="h-6 w-6" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">Bank-grade Security</h3>
+              <h3 className="text-xl font-semibold mb-2">
+                Bank-grade Security
+              </h3>
               <p className="text-zinc-600 dark:text-zinc-400">
-                Your data is protected with 256-bit encryption. We never store your banking credentials or sell your personal data.
+                Your data is protected with 256-bit encryption. We never store
+                your banking credentials or sell your personal data.
               </p>
             </div>
             <div className="p-6 rounded-2xl bg-white border border-zinc-200 shadow-sm dark:bg-zinc-900 dark:border-zinc-800">
@@ -101,7 +144,8 @@ export default function LandingPage() {
               </div>
               <h3 className="text-xl font-semibold mb-2">Omnichannel Access</h3>
               <p className="text-zinc-600 dark:text-zinc-400">
-                Track your finances on the go with our beautifully designed mobile applications for iOS and Android.
+                Track your finances on the go with our beautifully designed
+                mobile applications for iOS and Android.
               </p>
             </div>
           </div>
@@ -115,12 +159,27 @@ export default function LandingPage() {
             Finance Flow
           </div>
           <div className="flex gap-6">
-            <Link href="#" className="hover:text-zinc-900 dark:hover:text-zinc-200">Privacy</Link>
-            <Link href="#" className="hover:text-zinc-900 dark:hover:text-zinc-200">Terms</Link>
-            <Link href="#" className="hover:text-zinc-900 dark:hover:text-zinc-200">Contact</Link>
+            <Link
+              href="#"
+              className="hover:text-zinc-900 dark:hover:text-zinc-200"
+            >
+              Privacy
+            </Link>
+            <Link
+              href="#"
+              className="hover:text-zinc-900 dark:hover:text-zinc-200"
+            >
+              Terms
+            </Link>
+            <Link
+              href="#"
+              className="hover:text-zinc-900 dark:hover:text-zinc-200"
+            >
+              Contact
+            </Link>
           </div>
         </div>
       </footer>
     </div>
-  )
+  );
 }

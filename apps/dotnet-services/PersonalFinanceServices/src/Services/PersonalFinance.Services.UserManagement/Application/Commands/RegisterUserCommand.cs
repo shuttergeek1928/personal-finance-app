@@ -1,6 +1,8 @@
-﻿// PersonalFinance.Services.UserManagement/Application/Commands/RegisterUserCommand.cs
+// PersonalFinance.Services.UserManagement/Application/Commands/RegisterUserCommand.cs
 using AutoMapper;
+
 using MediatR;
+
 using PersonalFinance.Services.UserManagement.Application.Common;
 using PersonalFinance.Services.UserManagement.Application.DataTransferObjects.Response;
 using PersonalFinance.Services.UserManagement.Application.DTOs;

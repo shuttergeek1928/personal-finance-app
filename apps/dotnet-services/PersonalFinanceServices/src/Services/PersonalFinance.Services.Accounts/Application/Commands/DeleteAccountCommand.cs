@@ -1,6 +1,7 @@
-﻿using AutoMapper;
+using AutoMapper;
+
 using MediatR;
-using Microsoft.EntityFrameworkCore;
+
 using PersonalFinance.Services.Accounts.Application.Common;
 using PersonalFinance.Services.Accounts.Application.DataTransferObjects.Response;
 using PersonalFinance.Services.Accounts.Application.DTOs;
@@ -32,7 +33,7 @@ namespace PersonalFinance.Services.Accounts.Application.Commands
         {
 
             var account = await Context.Accounts.FindAsync(request.AccountId);
-            
+
             if (account is null && !account.IsActive)
             {
                 Logger.LogError("Account with account id {AccountId} does not exist for user {UserId}", request.AccountId, request.UserId);

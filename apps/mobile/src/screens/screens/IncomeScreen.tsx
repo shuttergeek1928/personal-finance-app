@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -7,9 +7,9 @@ import {
   ScrollView,
   StyleSheet,
   SafeAreaView,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import Layout from '../components/layout.tsx';
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import Layout from "../components/layout.tsx";
 
 interface IncomeEntry {
   id: string;
@@ -18,9 +18,9 @@ interface IncomeEntry {
   date: string;
 }
 
-const IncomeScreen = ({navigation}:{navigation:any}) => {
-  const [amount, setAmount] = useState('');
-  const [description, setDescription] = useState('');
+const IncomeScreen = ({ navigation }: { navigation: any }) => {
+  const [amount, setAmount] = useState("");
+  const [description, setDescription] = useState("");
   const [incomes, setIncomes] = useState<IncomeEntry[]>([]);
 
   const handleAddIncome = () => {
@@ -32,8 +32,8 @@ const IncomeScreen = ({navigation}:{navigation:any}) => {
         date: new Date().toLocaleDateString(),
       };
       setIncomes([...incomes, newIncome]);
-      setAmount('');
-      setDescription('');
+      setAmount("");
+      setDescription("");
     }
   };
 
@@ -78,48 +78,52 @@ const IncomeScreen = ({navigation}:{navigation:any}) => {
           {incomes.map((income) => (
             <View key={income.id} style={styles.incomeItem}>
               <View>
-                <Text style={styles.incomeDescription}>{income.description}</Text>
+                <Text style={styles.incomeDescription}>
+                  {income.description}
+                </Text>
                 <Text style={styles.incomeDate}>{income.date}</Text>
               </View>
-              <Text style={styles.incomeAmount}>${income.amount.toFixed(2)}</Text>
+              <Text style={styles.incomeAmount}>
+                ${income.amount.toFixed(2)}
+              </Text>
             </View>
           ))}
         </View>
       </ScrollView>
-      </Layout>
+    </Layout>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: "#f5f5f5",
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     padding: 16,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: "#e0e0e0",
   },
   menuButton: {
     marginRight: 16,
   },
   headerTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
-    color: '#333',
+    fontWeight: "bold",
+    color: "#333",
   },
   content: {
     flex: 1,
   },
   formContainer: {
     padding: 16,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     margin: 16,
     borderRadius: 12,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -127,36 +131,36 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 16,
-    color: '#333',
+    color: "#333",
   },
   input: {
-    backgroundColor: '#f5f5f5',
+    backgroundColor: "#f5f5f5",
     padding: 12,
     borderRadius: 8,
     marginBottom: 12,
     fontSize: 16,
   },
   addButton: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: "#4CAF50",
     padding: 14,
     borderRadius: 8,
-    alignItems: 'center',
+    alignItems: "center",
   },
   addButtonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   summaryContainer: {
     padding: 16,
   },
   summaryCard: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     padding: 16,
     borderRadius: 12,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -164,26 +168,26 @@ const styles = StyleSheet.create({
   },
   summaryLabel: {
     fontSize: 16,
-    color: '#666',
+    color: "#666",
   },
   summaryAmount: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: '#4CAF50',
+    fontWeight: "bold",
+    color: "#4CAF50",
     marginTop: 8,
   },
   listContainer: {
     padding: 16,
   },
   incomeItem: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     padding: 16,
     borderRadius: 12,
     marginBottom: 8,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    shadowColor: '#000',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
@@ -191,39 +195,39 @@ const styles = StyleSheet.create({
   },
   incomeDescription: {
     fontSize: 16,
-    fontWeight: '500',
-    color: '#333',
+    fontWeight: "500",
+    color: "#333",
   },
   incomeDate: {
     fontSize: 14,
-    color: '#666',
+    color: "#666",
     marginTop: 4,
   },
   incomeAmount: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: '#4CAF50',
+    fontWeight: "bold",
+    color: "#4CAF50",
   },
   footer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
+    flexDirection: "row",
+    justifyContent: "space-around",
     padding: 16,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
+    borderTopColor: "#e0e0e0",
   },
   footerButton: {
-    alignItems: 'center',
+    alignItems: "center",
   },
   footerText: {
     marginTop: 4,
     fontSize: 12,
-    color: '#666',
+    color: "#666",
   },
   activeText: {
-    color: '#4CAF50',
-    fontWeight: 'bold',
+    color: "#4CAF50",
+    fontWeight: "bold",
   },
 });
 
-export default IncomeScreen; 
+export default IncomeScreen;

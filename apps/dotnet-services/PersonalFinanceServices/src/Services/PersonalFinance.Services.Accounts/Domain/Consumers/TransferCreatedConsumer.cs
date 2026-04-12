@@ -1,4 +1,5 @@
 using MassTransit;
+
 using PersonalFinance.Services.Accounts.Infrastructure.Data;
 using PersonalFinance.Shared.Common.Domain.ValueObjects;
 using PersonalFinance.Shared.Events.Events;
@@ -24,7 +25,7 @@ namespace PersonalFinance.Services.Accounts.Domain.Consumers
         public async Task Consume(ConsumeContext<TransferTransactionCreatedEvent> context)
         {
             var transferEvent = context.Message;
-            _logger.LogInformation("Processing TransferTransactionCreated: {TransactionId} from {FromAccountId} to {ToAccountId}", 
+            _logger.LogInformation("Processing TransferTransactionCreated: {TransactionId} from {FromAccountId} to {ToAccountId}",
                 transferEvent.TransactionId, transferEvent.FromAccountId, transferEvent.ToAccountId);
 
             using var transaction = await _accountDbContext.Database.BeginTransactionAsync();

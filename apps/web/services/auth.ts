@@ -1,6 +1,6 @@
 import api from "./api";
 
-// Use environment variable to set the API Gateway URL. 
+// Use environment variable to set the API Gateway URL.
 // Defaults to relative path if NEXT_PUBLIC_API_URL is empty (ideal for Nginx proxy).
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "";
 const GATEWAY_BASE_URL = `${BASE_URL}/gateway-users`;
@@ -69,7 +69,9 @@ export const authService = {
     return response.data;
   },
 
-  register: async (payload: RegisterUserRequest): Promise<RegisterApiResponse> => {
+  register: async (
+    payload: RegisterUserRequest
+  ): Promise<RegisterApiResponse> => {
     const response = await api.post("/api/Auth/register", payload, {
       baseURL: GATEWAY_BASE_URL,
     });

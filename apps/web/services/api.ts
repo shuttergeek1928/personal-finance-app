@@ -13,7 +13,8 @@ const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     // Inject token if available
-    const token = typeof window !== "undefined" ? localStorage.getItem("auth_token") : null;
+    const token =
+      typeof window !== "undefined" ? localStorage.getItem("auth_token") : null;
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -34,7 +35,9 @@ api.interceptors.response.use(
         // Only auto-redirect if not already on auth page
         const currentPath = window.location.pathname;
         if (!currentPath.startsWith("/auth") && currentPath !== "/") {
-          window.location.href = `/auth?redirect=${encodeURIComponent(currentPath)}`;
+          window.location.href = `/auth?redirect=${encodeURIComponent(
+            currentPath
+          )}`;
         }
       }
     }

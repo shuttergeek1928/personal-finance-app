@@ -2,13 +2,43 @@
 
 import { useEffect, useState } from "react";
 import { useAuthStore } from "@/store/useAuthStore";
-import { userService, UserTransferObject, UpdateUserProfileRequest } from "@/services/user";
+import {
+  userService,
+  UserTransferObject,
+  UpdateUserProfileRequest,
+} from "@/services/user";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogClose,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { User as UserIcon, Calendar, Globe, DollarSign, Activity, Edit, ShieldCheck, Mail, Phone, Clock } from "lucide-react";
+import {
+  User as UserIcon,
+  Calendar,
+  Globe,
+  DollarSign,
+  Activity,
+  Edit,
+  ShieldCheck,
+  Mail,
+  Phone,
+  Clock,
+} from "lucide-react";
 
 export default function MyProfilePage() {
   const { user: authUser, initialize } = useAuthStore();
@@ -25,7 +55,7 @@ export default function MyProfilePage() {
     dateOfBirth: "",
     currency: "INR",
     timeZone: "UTC",
-    language: "en-US"
+    language: "en-US",
   });
 
   const fetchData = async () => {
@@ -40,7 +70,7 @@ export default function MyProfilePage() {
           firstName: res.data.firstName || "",
           lastName: res.data.lastName || "",
           phoneNumber: res.data.phoneNumber || "",
-          dateOfBirth: p?.dateOfBirth ? p.dateOfBirth.split('T')[0] : "",
+          dateOfBirth: p?.dateOfBirth ? p.dateOfBirth.split("T")[0] : "",
           currency: p?.currency || "INR",
           timeZone: p?.timeZone || "UTC",
           language: p?.language || "en-US",
@@ -62,14 +92,16 @@ export default function MyProfilePage() {
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
-    
+
     setIsSubmitting(true);
     try {
       const payload: UpdateUserProfileRequest = {
         firstName: editData.firstName,
         lastName: editData.lastName,
         phoneNumber: editData.phoneNumber,
-        dateOfBirth: editData.dateOfBirth ? new Date(editData.dateOfBirth).toISOString() : null,
+        dateOfBirth: editData.dateOfBirth
+          ? new Date(editData.dateOfBirth).toISOString()
+          : null,
         currency: editData.currency,
         timeZone: editData.timeZone,
         language: editData.language,
@@ -96,7 +128,9 @@ export default function MyProfilePage() {
       <div className="p-8 flex items-center justify-center min-h-[50vh]">
         <div className="flex flex-col items-center gap-3">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-600 border-t-transparent" />
-          <p className="text-sm text-muted-foreground">Loading your profile...</p>
+          <p className="text-sm text-muted-foreground">
+            Loading your profile...
+          </p>
         </div>
       </div>
     );
@@ -120,7 +154,9 @@ export default function MyProfilePage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">My Profile</h1>
-          <p className="text-muted-foreground mt-1">Manage your personal information and preferences.</p>
+          <p className="text-muted-foreground mt-1">
+            Manage your personal information and preferences.
+          </p>
         </div>
 
         <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
@@ -132,44 +168,97 @@ export default function MyProfilePage() {
           <DialogContent className="max-w-md">
             <DialogHeader>
               <DialogTitle>Update Profile</DialogTitle>
-              <DialogDescription>Modify your account details and financial preferences.</DialogDescription>
+              <DialogDescription>
+                Modify your account details and financial preferences.
+              </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleUpdate} className="space-y-4 pt-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="firstName">First Name</Label>
-                  <Input id="firstName" value={editData.firstName || ""} onChange={e => setEditData({ ...editData, firstName: e.target.value })} required />
+                  <Input
+                    id="firstName"
+                    value={editData.firstName || ""}
+                    onChange={(e) =>
+                      setEditData({ ...editData, firstName: e.target.value })
+                    }
+                    required
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="lastName">Last Name</Label>
-                  <Input id="lastName" value={editData.lastName || ""} onChange={e => setEditData({ ...editData, lastName: e.target.value })} required />
+                  <Input
+                    id="lastName"
+                    value={editData.lastName || ""}
+                    onChange={(e) =>
+                      setEditData({ ...editData, lastName: e.target.value })
+                    }
+                    required
+                  />
                 </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="phone">Phone Number</Label>
-                <Input id="phone" value={editData.phoneNumber || ""} onChange={e => setEditData({ ...editData, phoneNumber: e.target.value })} placeholder="+91 XXXX XXX XXX" />
+                <Input
+                  id="phone"
+                  value={editData.phoneNumber || ""}
+                  onChange={(e) =>
+                    setEditData({ ...editData, phoneNumber: e.target.value })
+                  }
+                  placeholder="+91 XXXX XXX XXX"
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="dob">Date of Birth</Label>
-                <Input id="dob" type="date" value={editData.dateOfBirth || ""} onChange={e => setEditData({ ...editData, dateOfBirth: e.target.value })} />
+                <Input
+                  id="dob"
+                  type="date"
+                  value={editData.dateOfBirth || ""}
+                  onChange={(e) =>
+                    setEditData({ ...editData, dateOfBirth: e.target.value })
+                  }
+                />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="currency">Currency</Label>
-                  <Input id="currency" value={editData.currency || ""} onChange={e => setEditData({ ...editData, currency: e.target.value })} placeholder="INR" />
+                  <Input
+                    id="currency"
+                    value={editData.currency || ""}
+                    onChange={(e) =>
+                      setEditData({ ...editData, currency: e.target.value })
+                    }
+                    placeholder="INR"
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="language">Language</Label>
-                  <Input id="language" value={editData.language || ""} onChange={e => setEditData({ ...editData, language: e.target.value })} placeholder="en-US" />
+                  <Input
+                    id="language"
+                    value={editData.language || ""}
+                    onChange={(e) =>
+                      setEditData({ ...editData, language: e.target.value })
+                    }
+                    placeholder="en-US"
+                  />
                 </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="timezone">Time Zone</Label>
-                <Input id="timezone" value={editData.timeZone || ""} onChange={e => setEditData({ ...editData, timeZone: e.target.value })} placeholder="UTC" />
+                <Input
+                  id="timezone"
+                  value={editData.timeZone || ""}
+                  onChange={(e) =>
+                    setEditData({ ...editData, timeZone: e.target.value })
+                  }
+                  placeholder="UTC"
+                />
               </div>
               <DialogFooter className="pt-4">
                 <DialogClose asChild>
-                  <Button variant="outline" type="button">Cancel</Button>
+                  <Button variant="outline" type="button">
+                    Cancel
+                  </Button>
                 </DialogClose>
                 <Button type="submit" disabled={isSubmitting}>
                   {isSubmitting ? "Saving..." : "Save Changes"}
@@ -185,66 +274,81 @@ export default function MyProfilePage() {
         <Card className="shadow-sm border-zinc-200 dark:border-zinc-800">
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
-              <UserIcon className="w-5 h-5 text-indigo-600" /> Account Information
+              <UserIcon className="w-5 h-5 text-indigo-600" /> Account
+              Information
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-5">
             <div className="flex items-center justify-between pb-2 border-b border-zinc-100 dark:border-zinc-900 last:border-0 last:pb-0">
-               <div className="flex items-center gap-3">
-                 <div className="bg-zinc-100 dark:bg-zinc-900 p-2 rounded-lg">
-                    <UserIcon className="w-4 h-4 text-zinc-500" />
-                 </div>
-                 <div className="flex flex-col">
-                   <span className="text-xs text-muted-foreground">Full Name</span>
-                   <span className="font-medium">{user.fullName || "N/A"}</span>
-                 </div>
-               </div>
-               {user.isActive && (
-                 <span title="Account Active">
-                   <ShieldCheck className="w-4 h-4 text-emerald-500" />
-                 </span>
-               )}
+              <div className="flex items-center gap-3">
+                <div className="bg-zinc-100 dark:bg-zinc-900 p-2 rounded-lg">
+                  <UserIcon className="w-4 h-4 text-zinc-500" />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-xs text-muted-foreground">
+                    Full Name
+                  </span>
+                  <span className="font-medium">{user.fullName || "N/A"}</span>
+                </div>
+              </div>
+              {user.isActive && (
+                <span title="Account Active">
+                  <ShieldCheck className="w-4 h-4 text-emerald-500" />
+                </span>
+              )}
             </div>
 
             <div className="flex items-center justify-between pb-2 border-b border-zinc-100 dark:border-zinc-900 last:border-0 last:pb-0">
-               <div className="flex items-center gap-3">
-                 <div className="bg-zinc-100 dark:bg-zinc-900 p-2 rounded-lg">
-                    <Mail className="w-4 h-4 text-zinc-500" />
-                 </div>
-                 <div className="flex flex-col">
-                   <span className="text-xs text-muted-foreground">Email Address</span>
-                   <span className="font-medium truncate max-w-[180px]">{user.email || "N/A"}</span>
-                 </div>
-               </div>
-               {user.isEmailConfirmed && (
-                 <span title="Email Confirmed">
-                   <ShieldCheck className="w-4 h-4 text-emerald-500" />
-                 </span>
-               )}
+              <div className="flex items-center gap-3">
+                <div className="bg-zinc-100 dark:bg-zinc-900 p-2 rounded-lg">
+                  <Mail className="w-4 h-4 text-zinc-500" />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-xs text-muted-foreground">
+                    Email Address
+                  </span>
+                  <span className="font-medium truncate max-w-[180px]">
+                    {user.email || "N/A"}
+                  </span>
+                </div>
+              </div>
+              {user.isEmailConfirmed && (
+                <span title="Email Confirmed">
+                  <ShieldCheck className="w-4 h-4 text-emerald-500" />
+                </span>
+              )}
             </div>
 
             <div className="flex items-center justify-between pb-2 border-b border-zinc-100 dark:border-zinc-900 last:border-0 last:pb-0">
-               <div className="flex items-center gap-3">
-                 <div className="bg-zinc-100 dark:bg-zinc-900 p-2 rounded-lg">
-                    <Phone className="w-4 h-4 text-zinc-500" />
-                 </div>
-                 <div className="flex flex-col">
-                   <span className="text-xs text-muted-foreground">Phone Number</span>
-                   <span className="font-medium">{user.phoneNumber || "N/A"}</span>
-                 </div>
-               </div>
+              <div className="flex items-center gap-3">
+                <div className="bg-zinc-100 dark:bg-zinc-900 p-2 rounded-lg">
+                  <Phone className="w-4 h-4 text-zinc-500" />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-xs text-muted-foreground">
+                    Phone Number
+                  </span>
+                  <span className="font-medium">
+                    {user.phoneNumber || "N/A"}
+                  </span>
+                </div>
+              </div>
             </div>
 
             <div className="flex items-center justify-between pb-2 border-b border-zinc-100 dark:border-zinc-900 last:border-0 last:pb-0">
-               <div className="flex items-center gap-3">
-                 <div className="bg-zinc-100 dark:bg-zinc-900 p-2 rounded-lg">
-                    <Clock className="w-4 h-4 text-zinc-500" />
-                 </div>
-                 <div className="flex flex-col">
-                   <span className="text-xs text-muted-foreground">Member Since</span>
-                   <span className="font-medium">{new Date(user.createdAt).toLocaleDateString()}</span>
-                 </div>
-               </div>
+              <div className="flex items-center gap-3">
+                <div className="bg-zinc-100 dark:bg-zinc-900 p-2 rounded-lg">
+                  <Clock className="w-4 h-4 text-zinc-500" />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-xs text-muted-foreground">
+                    Member Since
+                  </span>
+                  <span className="font-medium">
+                    {new Date(user.createdAt).toLocaleDateString()}
+                  </span>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -253,59 +357,76 @@ export default function MyProfilePage() {
         <Card className="shadow-sm border-zinc-200 dark:border-zinc-800">
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
-              <Activity className="w-5 h-5 text-indigo-600" /> Profile Preferences
+              <Activity className="w-5 h-5 text-indigo-600" /> Profile
+              Preferences
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-5">
             <div className="flex items-center justify-between pb-2 border-b border-zinc-100 dark:border-zinc-900 last:border-0 last:pb-0">
-               <div className="flex items-center gap-3">
-                 <div className="bg-zinc-100 dark:bg-zinc-900 p-2 rounded-lg">
-                    <Calendar className="w-4 h-4 text-zinc-500" />
-                 </div>
-                 <div className="flex flex-col">
-                   <span className="text-xs text-muted-foreground">Date of Birth</span>
-                   <span className="font-medium">
-                     {p?.dateOfBirth ? new Date(p.dateOfBirth).toLocaleDateString() : "N/A"}
-                     {p?.age ? <span className="text-muted-foreground ml-1">({p.age} years)</span> : ""}
-                   </span>
-                 </div>
-               </div>
+              <div className="flex items-center gap-3">
+                <div className="bg-zinc-100 dark:bg-zinc-900 p-2 rounded-lg">
+                  <Calendar className="w-4 h-4 text-zinc-500" />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-xs text-muted-foreground">
+                    Date of Birth
+                  </span>
+                  <span className="font-medium">
+                    {p?.dateOfBirth
+                      ? new Date(p.dateOfBirth).toLocaleDateString()
+                      : "N/A"}
+                    {p?.age ? (
+                      <span className="text-muted-foreground ml-1">
+                        ({p.age} years)
+                      </span>
+                    ) : (
+                      ""
+                    )}
+                  </span>
+                </div>
+              </div>
             </div>
 
             <div className="flex items-center justify-between pb-2 border-b border-zinc-100 dark:border-zinc-900 last:border-0 last:pb-0">
-               <div className="flex items-center gap-3">
-                 <div className="bg-zinc-100 dark:bg-zinc-900 p-2 rounded-lg">
-                    <DollarSign className="w-4 h-4 text-zinc-500" />
-                 </div>
-                 <div className="flex flex-col">
-                   <span className="text-xs text-muted-foreground">Default Currency</span>
-                   <span className="font-medium">{p?.currency || "INR"}</span>
-                 </div>
-               </div>
+              <div className="flex items-center gap-3">
+                <div className="bg-zinc-100 dark:bg-zinc-900 p-2 rounded-lg">
+                  <DollarSign className="w-4 h-4 text-zinc-500" />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-xs text-muted-foreground">
+                    Default Currency
+                  </span>
+                  <span className="font-medium">{p?.currency || "INR"}</span>
+                </div>
+              </div>
             </div>
 
             <div className="flex items-center justify-between pb-2 border-b border-zinc-100 dark:border-zinc-900 last:border-0 last:pb-0">
-               <div className="flex items-center gap-3">
-                 <div className="bg-zinc-100 dark:bg-zinc-900 p-2 rounded-lg">
-                    <Globe className="w-4 h-4 text-zinc-500" />
-                 </div>
-                 <div className="flex flex-col">
-                   <span className="text-xs text-muted-foreground">Language</span>
-                   <span className="font-medium">{p?.language || "en-US"}</span>
-                 </div>
-               </div>
+              <div className="flex items-center gap-3">
+                <div className="bg-zinc-100 dark:bg-zinc-900 p-2 rounded-lg">
+                  <Globe className="w-4 h-4 text-zinc-500" />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-xs text-muted-foreground">
+                    Language
+                  </span>
+                  <span className="font-medium">{p?.language || "en-US"}</span>
+                </div>
+              </div>
             </div>
 
             <div className="flex items-center justify-between pb-2 border-b border-zinc-100 dark:border-zinc-900 last:border-0 last:pb-0">
-               <div className="flex items-center gap-3">
-                 <div className="bg-zinc-100 dark:bg-zinc-900 p-2 rounded-lg">
-                    <Globe className="w-4 h-4 text-zinc-500" />
-                 </div>
-                 <div className="flex flex-col">
-                   <span className="text-xs text-muted-foreground">Time Zone</span>
-                   <span className="font-medium">{p?.timeZone || "UTC"}</span>
-                 </div>
-               </div>
+              <div className="flex items-center gap-3">
+                <div className="bg-zinc-100 dark:bg-zinc-900 p-2 rounded-lg">
+                  <Globe className="w-4 h-4 text-zinc-500" />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-xs text-muted-foreground">
+                    Time Zone
+                  </span>
+                  <span className="font-medium">{p?.timeZone || "UTC"}</span>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>

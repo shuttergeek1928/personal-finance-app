@@ -1,5 +1,7 @@
-﻿using AutoMapper;
+using AutoMapper;
+
 using MediatR;
+
 using PersonalFinance.Services.Accounts.Application.Common;
 using PersonalFinance.Services.Accounts.Application.DataTransferObjects.Response;
 using PersonalFinance.Services.Accounts.Application.DTOs;

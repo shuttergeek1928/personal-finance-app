@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
+
 using PersonalFinance.Services.UserManagement.Application.Services;
 using PersonalFinance.Services.UserManagement.Domain.Entities;
-using PersonalFinance.Shared.Common.Domain.ValueObjects;
 
 namespace PersonalFinance.Services.UserManagement.Infrastructure.Data
 {

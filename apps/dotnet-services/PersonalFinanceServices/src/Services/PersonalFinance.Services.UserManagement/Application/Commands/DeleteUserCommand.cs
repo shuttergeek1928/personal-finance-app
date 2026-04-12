@@ -1,5 +1,7 @@
-﻿using AutoMapper;
+using AutoMapper;
+
 using MediatR;
+
 using PersonalFinance.Services.UserManagement.Application.Common;
 using PersonalFinance.Services.UserManagement.Application.DataTransferObjects.Response;
 using PersonalFinance.Services.UserManagement.Infrastructure.Data;

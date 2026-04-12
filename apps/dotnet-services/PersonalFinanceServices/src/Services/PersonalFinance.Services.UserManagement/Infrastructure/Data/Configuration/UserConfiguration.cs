@@ -1,5 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
 using PersonalFinance.Services.UserManagement.Domain.Entities;
 
 namespace PersonalFinance.Services.UserManagement.Infrastructure.Data.Configurations

@@ -2,7 +2,14 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -105,7 +112,8 @@ export function RegisterModal({ children }: { children: React.ReactNode }) {
       if (data?.errors && data.errors.length > 0) {
         setError(data.errors[0]);
       } else {
-        const errorMessage = data?.message || err.message || "An error occurred";
+        const errorMessage =
+          data?.message || err.message || "An error occurred";
         setError(errorMessage);
       }
     } finally {
@@ -115,9 +123,7 @@ export function RegisterModal({ children }: { children: React.ReactNode }) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        {children}
-      </DialogTrigger>
+      <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle className="text-2xl">Create your account</DialogTitle>
@@ -126,49 +132,116 @@ export function RegisterModal({ children }: { children: React.ReactNode }) {
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 py-4">
-          {error && <div className="p-3 text-sm text-red-500 bg-red-100 dark:bg-red-900/30 dark:text-red-400 rounded-md">{error}</div>}
+          {error && (
+            <div className="p-3 text-sm text-red-500 bg-red-100 dark:bg-red-900/30 dark:text-red-400 rounded-md">
+              {error}
+            </div>
+          )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="firstName">First Name</Label>
-              <Input id="firstName" name="firstName" required value={formData.firstName} onChange={handleChange} placeholder="John" />
+              <Input
+                id="firstName"
+                name="firstName"
+                required
+                value={formData.firstName}
+                onChange={handleChange}
+                placeholder="John"
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="lastName">Last Name</Label>
-              <Input id="lastName" name="lastName" required value={formData.lastName} onChange={handleChange} placeholder="Doe" />
+              <Input
+                id="lastName"
+                name="lastName"
+                required
+                value={formData.lastName}
+                onChange={handleChange}
+                placeholder="Doe"
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="userName">Username</Label>
-              <Input id="userName" name="userName" required value={formData.userName} onChange={handleChange} placeholder="johndoe123" />
+              <Input
+                id="userName"
+                name="userName"
+                required
+                value={formData.userName}
+                onChange={handleChange}
+                placeholder="johndoe123"
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="phoneNumber">Phone Number</Label>
-              <Input id="phoneNumber" name="phoneNumber" required type="tel" value={formData.phoneNumber} onChange={handleChange} placeholder="+1 (555) 000-0000" />
+              <Input
+                id="phoneNumber"
+                name="phoneNumber"
+                required
+                type="tel"
+                value={formData.phoneNumber}
+                onChange={handleChange}
+                placeholder="+1 (555) 000-0000"
+              />
             </div>
             <div className="space-y-2 md:col-span-2">
               <Label htmlFor="email">Email</Label>
-              <Input id="email" name="email" required type="email" value={formData.email} onChange={handleChange} placeholder="john@example.com" />
+              <Input
+                id="email"
+                name="email"
+                required
+                type="email"
+                value={formData.email}
+                onChange={handleChange}
+                placeholder="john@example.com"
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
-              <Input id="password" name="password" required type="password" value={formData.password} onChange={handleChange} />
+              <Input
+                id="password"
+                name="password"
+                required
+                type="password"
+                value={formData.password}
+                onChange={handleChange}
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="confirmPassword">Confirm Password</Label>
-              <Input id="confirmPassword" name="confirmPassword" required type="password" value={formData.confirmPassword} onChange={handleChange} />
+              <Input
+                id="confirmPassword"
+                name="confirmPassword"
+                required
+                type="password"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+              />
             </div>
           </div>
 
           <div className="flex items-center space-x-2 pt-2">
-            <Checkbox id="terms" checked={formData.acceptTerms} onCheckedChange={handleCheckedChange} />
-            <Label htmlFor="terms" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+            <Checkbox
+              id="terms"
+              checked={formData.acceptTerms}
+              onCheckedChange={handleCheckedChange}
+            />
+            <Label
+              htmlFor="terms"
+              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+            >
               I accept the terms and conditions
             </Label>
           </div>
 
           <div className="pt-4 flex justify-end">
-            <Button type="submit" disabled={isLoading} className="w-full md:w-auto bg-indigo-600 hover:bg-indigo-700">
-              {isLoading ? "Creating account..." : "Sign Up"} <ArrowRight className="ml-2 h-4 w-4" />
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="w-full md:w-auto bg-indigo-600 hover:bg-indigo-700"
+            >
+              {isLoading ? "Creating account..." : "Sign Up"}{" "}
+              <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </div>
         </form>

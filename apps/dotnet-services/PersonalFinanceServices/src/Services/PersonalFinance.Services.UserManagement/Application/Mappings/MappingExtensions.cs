@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+using AutoMapper;
+
 using PersonalFinance.Services.UserManagement.Application.DataTransferObjects;
 using PersonalFinance.Services.UserManagement.Application.DTOs;
 using PersonalFinance.Services.UserManagement.Domain.Entities;

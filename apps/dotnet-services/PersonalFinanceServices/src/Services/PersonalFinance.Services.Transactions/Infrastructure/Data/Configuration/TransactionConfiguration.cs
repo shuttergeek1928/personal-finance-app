@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
 using PersonalFinance.Services.Transactions.Domain.Entities;
-using System;
 
 namespace PersonalFinance.Services.Transactions.Infrastructure.Data.Configurations
 {

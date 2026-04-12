@@ -1,6 +1,6 @@
 import api from "./api";
 
-// Use environment variable to set the API Gateway URL. 
+// Use environment variable to set the API Gateway URL.
 // Defaults to relative path if NEXT_PUBLIC_API_URL is empty (ideal for Nginx proxy).
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "";
 const GATEWAY_BASE_URL = `${BASE_URL}/gateway-accounts`;
@@ -73,48 +73,90 @@ export interface TransferMoneyRequest {
 }
 
 export const accountService = {
-  createAccount: async (data: CreateAccountRequest): Promise<AccountTransferObjectApiResponse> => {
-    const response = await api.post("/api/Accounts/create", data, { baseURL: GATEWAY_BASE_URL });
+  createAccount: async (
+    data: CreateAccountRequest
+  ): Promise<AccountTransferObjectApiResponse> => {
+    const response = await api.post("/api/Accounts/create", data, {
+      baseURL: GATEWAY_BASE_URL,
+    });
     return response.data;
   },
 
-  getAccountById: async (id: string): Promise<AccountTransferObjectApiResponse> => {
-    const response = await api.get(`/api/Accounts/${id}`, { baseURL: GATEWAY_BASE_URL });
+  getAccountById: async (
+    id: string
+  ): Promise<AccountTransferObjectApiResponse> => {
+    const response = await api.get(`/api/Accounts/${id}`, {
+      baseURL: GATEWAY_BASE_URL,
+    });
     return response.data;
   },
 
-  getAccountByNumber: async (number: string): Promise<AccountTransferObjectApiResponse> => {
-    const response = await api.get(`/api/Accounts/${number}`, { baseURL: GATEWAY_BASE_URL });
+  getAccountByNumber: async (
+    number: string
+  ): Promise<AccountTransferObjectApiResponse> => {
+    const response = await api.get(`/api/Accounts/${number}`, {
+      baseURL: GATEWAY_BASE_URL,
+    });
     return response.data;
   },
 
-  getAccountsByUserId: async (userId: string): Promise<AccountListTransferObjectApiResponse> => {
-    const response = await api.get(`/api/Accounts/userid/${userId}`, { baseURL: GATEWAY_BASE_URL });
+  getAccountsByUserId: async (
+    userId: string
+  ): Promise<AccountListTransferObjectApiResponse> => {
+    const response = await api.get(`/api/Accounts/userid/${userId}`, {
+      baseURL: GATEWAY_BASE_URL,
+    });
     return response.data;
   },
 
-  deposit: async (id: string, data: UpdateBalanceRequest): Promise<AccountTransferObjectApiResponse> => {
-    const response = await api.put(`/api/Accounts/${id}/deposit`, data, { baseURL: GATEWAY_BASE_URL });
+  deposit: async (
+    id: string,
+    data: UpdateBalanceRequest
+  ): Promise<AccountTransferObjectApiResponse> => {
+    const response = await api.put(`/api/Accounts/${id}/deposit`, data, {
+      baseURL: GATEWAY_BASE_URL,
+    });
     return response.data;
   },
 
-  withdraw: async (id: string, data: UpdateBalanceRequest): Promise<AccountTransferObjectApiResponse> => {
-    const response = await api.put(`/api/Accounts/${id}/withdraw`, data, { baseURL: GATEWAY_BASE_URL });
+  withdraw: async (
+    id: string,
+    data: UpdateBalanceRequest
+  ): Promise<AccountTransferObjectApiResponse> => {
+    const response = await api.put(`/api/Accounts/${id}/withdraw`, data, {
+      baseURL: GATEWAY_BASE_URL,
+    });
     return response.data;
   },
 
-  transfer: async (data: TransferMoneyRequest): Promise<AccountTransferObjectApiResponse> => {
-    const response = await api.put("/api/Accounts/transfer", data, { baseURL: GATEWAY_BASE_URL });
+  transfer: async (
+    data: TransferMoneyRequest
+  ): Promise<AccountTransferObjectApiResponse> => {
+    const response = await api.put("/api/Accounts/transfer", data, {
+      baseURL: GATEWAY_BASE_URL,
+    });
     return response.data;
   },
 
-  setDefault: async (userId: string, accountNumber: string): Promise<AccountTransferObjectApiResponse> => {
-    const response = await api.put(`/api/Accounts/${userId}/set-default?accountNumber=${accountNumber}`, {}, { baseURL: GATEWAY_BASE_URL });
+  setDefault: async (
+    userId: string,
+    accountNumber: string
+  ): Promise<AccountTransferObjectApiResponse> => {
+    const response = await api.put(
+      `/api/Accounts/${userId}/set-default?accountNumber=${accountNumber}`,
+      {},
+      { baseURL: GATEWAY_BASE_URL }
+    );
     return response.data;
   },
 
-  deleteAccount: async (userId: string, accountId: string): Promise<AccountTransferObjectApiResponse> => {
-    const response = await api.delete(`/api/Accounts/${userId}/${accountId}`, { baseURL: GATEWAY_BASE_URL });
+  deleteAccount: async (
+    userId: string,
+    accountId: string
+  ): Promise<AccountTransferObjectApiResponse> => {
+    const response = await api.delete(`/api/Accounts/${userId}/${accountId}`, {
+      baseURL: GATEWAY_BASE_URL,
+    });
     return response.data;
   },
 };

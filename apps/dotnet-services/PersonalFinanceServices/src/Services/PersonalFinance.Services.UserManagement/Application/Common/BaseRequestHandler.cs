@@ -1,6 +1,9 @@
 using AutoMapper;
+
 using MediatR;
+
 using Microsoft.EntityFrameworkCore;
+
 using PersonalFinance.Services.UserManagement.Application.Services;
 using PersonalFinance.Services.UserManagement.Domain.Entities;
 using PersonalFinance.Services.UserManagement.Infrastructure.Data;

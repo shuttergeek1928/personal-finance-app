@@ -1,13 +1,16 @@
+using System.Linq.Dynamic.Core;
+
 using MediatR;
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+
 using PersonalFinance.Services.UserManagement.Application.Commands;
 using PersonalFinance.Services.UserManagement.Application.DataTransferObjects;
 using PersonalFinance.Services.UserManagement.Application.DataTransferObjects.Requests;
 using PersonalFinance.Services.UserManagement.Application.DataTransferObjects.Response;
 using PersonalFinance.Services.UserManagement.Application.DTOs;
 using PersonalFinance.Services.UserManagement.Application.Queries;
-using System.Linq.Dynamic.Core;
 
 namespace PersonalFinance.Services.UserManagement.Controllers
 {

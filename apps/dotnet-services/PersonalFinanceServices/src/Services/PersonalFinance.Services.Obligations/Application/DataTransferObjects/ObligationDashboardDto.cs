@@ -1,5 +1,3 @@
-using PersonalFinance.Shared.Common.Domain.ValueObjects;
-
 namespace PersonalFinance.Services.Obligations.Application.DataTransferObjects
 {
     public class ObligationDashboardDto

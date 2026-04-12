@@ -76,11 +76,18 @@ export const BillingCycleLabels: Record<BillingCycle, string> = {
  * Calculates EMI using the reducing balance formula.
  * EMI = P × r × (1+r)^n / ((1+r)^n - 1)
  */
-export function calculateEmi(principal: number, annualRate: number, tenureMonths: number): number {
-  if (annualRate === 0) return Math.round((principal / tenureMonths) * 100) / 100;
+export function calculateEmi(
+  principal: number,
+  annualRate: number,
+  tenureMonths: number
+): number {
+  if (annualRate === 0)
+    return Math.round((principal / tenureMonths) * 100) / 100;
   const monthlyRate = annualRate / 12 / 100;
   const power = Math.pow(1 + monthlyRate, tenureMonths);
-  return Math.round((principal * monthlyRate * power) / (power - 1) * 100) / 100;
+  return (
+    Math.round(((principal * monthlyRate * power) / (power - 1)) * 100) / 100
+  );
 }
 
 /**
@@ -94,7 +101,9 @@ function calculateTheoreticalOutstanding(
   startDate: Date
 ): number {
   const now = new Date();
-  const elapsed = (now.getFullYear() - startDate.getFullYear()) * 12 + (now.getMonth() - startDate.getMonth());
+  const elapsed =
+    (now.getFullYear() - startDate.getFullYear()) * 12 +
+    (now.getMonth() - startDate.getMonth());
 
   if (elapsed <= 0) return principal;
   const cappedElapsed = Math.min(elapsed, tenureMonths);
@@ -104,7 +113,8 @@ function calculateTheoreticalOutstanding(
   let outstanding = principal;
 
   for (let i = 0; i < cappedElapsed; i++) {
-    const interest = annualRate === 0 ? 0 : Math.round(outstanding * monthlyRate * 100) / 100;
+    const interest =
+      annualRate === 0 ? 0 : Math.round(outstanding * monthlyRate * 100) / 100;
     const principalComponent = emi - interest;
     outstanding -= principalComponent;
     if (outstanding <= 0) return 0;
@@ -136,9 +146,14 @@ export function getEffectiveOutstanding(l: LiabilityDto): number {
  * Computes the paid percentage for a liability's progress bar.
  * Combines both elapsed time-based EMI payments and manual payments.
  */
-export function getLiabilityProgress(l: LiabilityDto): { paidPercent: number; paidAmount: number; effectiveOutstanding: number } {
+export function getLiabilityProgress(l: LiabilityDto): {
+  paidPercent: number;
+  paidAmount: number;
+  effectiveOutstanding: number;
+} {
   const principal = l.principalAmount.amount;
-  if (principal <= 0) return { paidPercent: 0, paidAmount: 0, effectiveOutstanding: 0 };
+  if (principal <= 0)
+    return { paidPercent: 0, paidAmount: 0, effectiveOutstanding: 0 };
 
   const effectiveOutstanding = getEffectiveOutstanding(l);
   const paidAmount = principal - effectiveOutstanding;
@@ -333,94 +348,182 @@ export interface MakePaymentRequest {
 export const obligationService = {
   // ── Liabilities ────────────────────────────────────────────────────
 
-  createLiability: async (data: CreateLiabilityRequest): Promise<ApiResponse<LiabilityDto>> => {
-    const response = await api.post<ApiResponse<LiabilityDto>>("/api/Obligations/liabilities", data, { baseURL: GATEWAY_BASE_URL });
+  createLiability: async (
+    data: CreateLiabilityRequest
+  ): Promise<ApiResponse<LiabilityDto>> => {
+    const response = await api.post<ApiResponse<LiabilityDto>>(
+      "/api/Obligations/liabilities",
+      data,
+      { baseURL: GATEWAY_BASE_URL }
+    );
     return response.data;
   },
 
-  updateLiability: async (id: string, data: UpdateLiabilityRequest): Promise<ApiResponse<LiabilityDto>> => {
-    const response = await api.put<ApiResponse<LiabilityDto>>(`/api/Obligations/liabilities/${id}`, data, { baseURL: GATEWAY_BASE_URL });
+  updateLiability: async (
+    id: string,
+    data: UpdateLiabilityRequest
+  ): Promise<ApiResponse<LiabilityDto>> => {
+    const response = await api.put<ApiResponse<LiabilityDto>>(
+      `/api/Obligations/liabilities/${id}`,
+      data,
+      { baseURL: GATEWAY_BASE_URL }
+    );
     return response.data;
   },
 
   deleteLiability: async (id: string): Promise<ApiResponse<LiabilityDto>> => {
-    const response = await api.delete<ApiResponse<LiabilityDto>>(`/api/Obligations/liabilities/${id}`, { baseURL: GATEWAY_BASE_URL });
+    const response = await api.delete<ApiResponse<LiabilityDto>>(
+      `/api/Obligations/liabilities/${id}`,
+      { baseURL: GATEWAY_BASE_URL }
+    );
     return response.data;
   },
 
-  getLiabilitiesByUserId: async (userId: string): Promise<ApiResponse<LiabilityDto[]>> => {
-    const response = await api.get<ApiResponse<LiabilityDto[]>>(`/api/Obligations/liabilities/user/${userId}`, { baseURL: GATEWAY_BASE_URL });
+  getLiabilitiesByUserId: async (
+    userId: string
+  ): Promise<ApiResponse<LiabilityDto[]>> => {
+    const response = await api.get<ApiResponse<LiabilityDto[]>>(
+      `/api/Obligations/liabilities/user/${userId}`,
+      { baseURL: GATEWAY_BASE_URL }
+    );
     return response.data;
   },
 
   getLiabilityById: async (id: string): Promise<ApiResponse<LiabilityDto>> => {
-    const response = await api.get<ApiResponse<LiabilityDto>>(`/api/Obligations/liabilities/${id}`, { baseURL: GATEWAY_BASE_URL });
+    const response = await api.get<ApiResponse<LiabilityDto>>(
+      `/api/Obligations/liabilities/${id}`,
+      { baseURL: GATEWAY_BASE_URL }
+    );
     return response.data;
   },
 
-  getAmortizationSchedule: async (id: string): Promise<ApiResponse<AmortizationScheduleDto>> => {
-    const response = await api.get<ApiResponse<AmortizationScheduleDto>>(`/api/Obligations/liabilities/${id}/amortization`, { baseURL: GATEWAY_BASE_URL });
+  getAmortizationSchedule: async (
+    id: string
+  ): Promise<ApiResponse<AmortizationScheduleDto>> => {
+    const response = await api.get<ApiResponse<AmortizationScheduleDto>>(
+      `/api/Obligations/liabilities/${id}/amortization`,
+      { baseURL: GATEWAY_BASE_URL }
+    );
     return response.data;
   },
 
-  makePayment: async (id: string, data: MakePaymentRequest): Promise<ApiResponse<LiabilityDto>> => {
-    const response = await api.post<ApiResponse<LiabilityDto>>(`/api/Obligations/liabilities/${id}/payment`, data, { baseURL: GATEWAY_BASE_URL });
+  makePayment: async (
+    id: string,
+    data: MakePaymentRequest
+  ): Promise<ApiResponse<LiabilityDto>> => {
+    const response = await api.post<ApiResponse<LiabilityDto>>(
+      `/api/Obligations/liabilities/${id}/payment`,
+      data,
+      { baseURL: GATEWAY_BASE_URL }
+    );
     return response.data;
   },
 
   // ── Subscriptions ──────────────────────────────────────────────────
 
-  createSubscription: async (data: CreateSubscriptionRequest): Promise<ApiResponse<SubscriptionDto>> => {
-    const response = await api.post<ApiResponse<SubscriptionDto>>("/api/Obligations/subscriptions", data, { baseURL: GATEWAY_BASE_URL });
+  createSubscription: async (
+    data: CreateSubscriptionRequest
+  ): Promise<ApiResponse<SubscriptionDto>> => {
+    const response = await api.post<ApiResponse<SubscriptionDto>>(
+      "/api/Obligations/subscriptions",
+      data,
+      { baseURL: GATEWAY_BASE_URL }
+    );
     return response.data;
   },
 
-  updateSubscription: async (id: string, data: UpdateSubscriptionRequest): Promise<ApiResponse<SubscriptionDto>> => {
-    const response = await api.put<ApiResponse<SubscriptionDto>>(`/api/Obligations/subscriptions/${id}`, data, { baseURL: GATEWAY_BASE_URL });
+  updateSubscription: async (
+    id: string,
+    data: UpdateSubscriptionRequest
+  ): Promise<ApiResponse<SubscriptionDto>> => {
+    const response = await api.put<ApiResponse<SubscriptionDto>>(
+      `/api/Obligations/subscriptions/${id}`,
+      data,
+      { baseURL: GATEWAY_BASE_URL }
+    );
     return response.data;
   },
 
-  deleteSubscription: async (id: string): Promise<ApiResponse<SubscriptionDto>> => {
-    const response = await api.delete<ApiResponse<SubscriptionDto>>(`/api/Obligations/subscriptions/${id}`, { baseURL: GATEWAY_BASE_URL });
+  deleteSubscription: async (
+    id: string
+  ): Promise<ApiResponse<SubscriptionDto>> => {
+    const response = await api.delete<ApiResponse<SubscriptionDto>>(
+      `/api/Obligations/subscriptions/${id}`,
+      { baseURL: GATEWAY_BASE_URL }
+    );
     return response.data;
   },
 
-  getSubscriptionsByUserId: async (userId: string): Promise<ApiResponse<SubscriptionDto[]>> => {
-    const response = await api.get<ApiResponse<SubscriptionDto[]>>(`/api/Obligations/subscriptions/user/${userId}`, { baseURL: GATEWAY_BASE_URL });
+  getSubscriptionsByUserId: async (
+    userId: string
+  ): Promise<ApiResponse<SubscriptionDto[]>> => {
+    const response = await api.get<ApiResponse<SubscriptionDto[]>>(
+      `/api/Obligations/subscriptions/user/${userId}`,
+      { baseURL: GATEWAY_BASE_URL }
+    );
     return response.data;
   },
 
-  getSubscriptionById: async (id: string): Promise<ApiResponse<SubscriptionDto>> => {
-    const response = await api.get<ApiResponse<SubscriptionDto>>(`/api/Obligations/subscriptions/${id}`, { baseURL: GATEWAY_BASE_URL });
+  getSubscriptionById: async (
+    id: string
+  ): Promise<ApiResponse<SubscriptionDto>> => {
+    const response = await api.get<ApiResponse<SubscriptionDto>>(
+      `/api/Obligations/subscriptions/${id}`,
+      { baseURL: GATEWAY_BASE_URL }
+    );
     return response.data;
   },
 
   // ── Dashboard ──────────────────────────────────────────────────────
 
-  getDashboard: async (userId: string): Promise<ApiResponse<ObligationDashboardDto>> => {
-    const response = await api.get<ApiResponse<ObligationDashboardDto>>(`/api/Obligations/dashboard/${userId}`, { baseURL: GATEWAY_BASE_URL });
+  getDashboard: async (
+    userId: string
+  ): Promise<ApiResponse<ObligationDashboardDto>> => {
+    const response = await api.get<ApiResponse<ObligationDashboardDto>>(
+      `/api/Obligations/dashboard/${userId}`,
+      { baseURL: GATEWAY_BASE_URL }
+    );
     return response.data;
   },
 
   // ── Credit Cards ───────────────────────────────────────────────────
 
-  createCreditCard: async (data: CreateCreditCardRequest): Promise<ApiResponse<CreditCardDto>> => {
-    const response = await api.post<ApiResponse<CreditCardDto>>("/api/CreditCards", data, { baseURL: GATEWAY_BASE_URL });
+  createCreditCard: async (
+    data: CreateCreditCardRequest
+  ): Promise<ApiResponse<CreditCardDto>> => {
+    const response = await api.post<ApiResponse<CreditCardDto>>(
+      "/api/CreditCards",
+      data,
+      { baseURL: GATEWAY_BASE_URL }
+    );
     return response.data;
   },
 
-  updateCreditCard: async (id: string, data: UpdateCreditCardRequest): Promise<ApiResponse<CreditCardDto>> => {
-    const response = await api.put<ApiResponse<CreditCardDto>>(`/api/CreditCards/${id}`, data, { baseURL: GATEWAY_BASE_URL });
+  updateCreditCard: async (
+    id: string,
+    data: UpdateCreditCardRequest
+  ): Promise<ApiResponse<CreditCardDto>> => {
+    const response = await api.put<ApiResponse<CreditCardDto>>(
+      `/api/CreditCards/${id}`,
+      data,
+      { baseURL: GATEWAY_BASE_URL }
+    );
     return response.data;
   },
 
   deleteCreditCard: async (id: string): Promise<ApiResponse<boolean>> => {
-    const response = await api.delete<ApiResponse<boolean>>(`/api/CreditCards/${id}`, { baseURL: GATEWAY_BASE_URL });
+    const response = await api.delete<ApiResponse<boolean>>(
+      `/api/CreditCards/${id}`,
+      { baseURL: GATEWAY_BASE_URL }
+    );
     return response.data;
   },
 
   getCreditCardsByUserId: async (): Promise<ApiResponse<CreditCardDto[]>> => {
-    const response = await api.get<ApiResponse<CreditCardDto[]>>("/api/CreditCards", { baseURL: GATEWAY_BASE_URL });
+    const response = await api.get<ApiResponse<CreditCardDto[]>>(
+      "/api/CreditCards",
+      { baseURL: GATEWAY_BASE_URL }
+    );
     return response.data;
   },
 };

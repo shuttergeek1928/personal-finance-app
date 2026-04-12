@@ -1,59 +1,85 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { usePathname, useRouter } from "next/navigation"
-import { Home, ArrowLeftRight, Wallet, Users, PieChart, LogOut, User, Receipt, CreditCard, Repeat } from "lucide-react"
-import { cn } from "@/lib/utils"
-import { useAuthStore } from "@/store/useAuthStore"
-import { useEffect } from "react"
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import {
+  Home,
+  ArrowLeftRight,
+  Wallet,
+  Users,
+  PieChart,
+  LogOut,
+  User,
+  Receipt,
+  CreditCard,
+  Repeat,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { useAuthStore } from "@/store/useAuthStore";
+import { useEffect } from "react";
 
 const adminNavigation = [
   { name: "Dashboard", href: "/dashboard", icon: Home },
   { name: "Transactions", href: "/transactions", icon: ArrowLeftRight },
   { name: "Users/Accounts", href: "/users", icon: Users },
-]
+];
 
 const userNavigation = [
   { name: "My Dashboard", href: "/my/dashboard", icon: Home },
   { name: "My Transactions", href: "/my/transactions", icon: ArrowLeftRight },
   { name: "My Accounts", href: "/my/accounts", icon: Wallet },
   { name: "My Obligations", href: "/my/obligations", icon: Receipt },
-  { name: "My Credit Cards", href: "/my/obligations/credit-cards", icon: CreditCard },
+  {
+    name: "My Credit Cards",
+    href: "/my/obligations/credit-cards",
+    icon: CreditCard,
+  },
   { name: "My Loans", href: "/my/obligations/liabilities", icon: Receipt },
-  { name: "My Subscriptions", href: "/my/obligations/subscriptions", icon: Repeat },
+  {
+    name: "My Subscriptions",
+    href: "/my/obligations/subscriptions",
+    icon: Repeat,
+  },
   { name: "My Profile", href: "/my/profile", icon: User },
-]
+];
 
-export { adminNavigation, userNavigation }
+export { adminNavigation, userNavigation };
 
 export function Sidebar() {
-  const pathname = usePathname()
-  const router = useRouter()
-  const { user, isAuthenticated, initialize, logout, isAdmin } = useAuthStore()
+  const pathname = usePathname();
+  const router = useRouter();
+  const { user, isAuthenticated, initialize, logout, isAdmin } = useAuthStore();
 
   useEffect(() => {
-    initialize()
-  }, [initialize])
+    initialize();
+  }, [initialize]);
 
   // Hide sidebar on landing page or auth
   if (pathname === "/" || pathname.startsWith("/auth")) return null;
 
-  const isUserRoute = pathname.startsWith("/my")
-  const navigation = isUserRoute ? userNavigation : [...userNavigation, ...adminNavigation]
+  const isUserRoute = pathname.startsWith("/my");
+  const navigation = isUserRoute
+    ? userNavigation
+    : [...userNavigation, ...adminNavigation];
 
   const handleLogout = () => {
-    logout()
-    router.push("/auth")
-  }
+    logout();
+    router.push("/auth");
+  };
 
   const initials = user
-    ? `${(user.firstName || "")[0] || ""}${(user.lastName || "")[0] || ""}`.toUpperCase() || (user.userName || "U")[0].toUpperCase()
-    : "?"
+    ? `${(user.firstName || "")[0] || ""}${
+        (user.lastName || "")[0] || ""
+      }`.toUpperCase() || (user.userName || "U")[0].toUpperCase()
+    : "?";
 
   return (
     <div className="hidden border-r border-zinc-200 bg-zinc-50/50 dark:border-zinc-800 dark:bg-zinc-900/50 md:flex md:w-64 md:flex-col h-full">
       <div className="flex h-16 items-center border-b border-zinc-200 px-6 dark:border-zinc-800">
-        <Link href="/" className="flex items-center gap-2 font-semibold tracking-tight text-lg">
+        <Link
+          href="/"
+          className="flex items-center gap-2 font-semibold tracking-tight text-lg"
+        >
           <div className="h-8 w-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white">
             <Wallet className="h-5 w-5" />
           </div>
@@ -64,39 +90,49 @@ export function Sidebar() {
         {/* User section nav */}
         {isAuthenticated && (
           <div className="px-4 mb-2">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider px-3 mb-2">Personal</p>
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider px-3 mb-2">
+              Personal
+            </p>
           </div>
         )}
         <nav className="grid gap-1 px-4">
-          {isAuthenticated && userNavigation.map((item) => {
-            const isActive = pathname.startsWith(item.href)
-            return (
-              <Link
-                key={item.name}
-                href={item.href}
-                className={cn(
-                  "flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors",
-                  isActive
-                    ? "bg-zinc-200/50 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-50"
-                    : "text-zinc-500 hover:bg-zinc-200/30 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800/50 dark:hover:text-zinc-50"
-                )}
-              >
-                <item.icon className={cn("h-4 w-4", isActive ? "text-indigo-600 dark:text-indigo-400" : "")} />
-                {item.name}
-              </Link>
-            )
-          })}
+          {isAuthenticated &&
+            userNavigation.map((item) => {
+              const isActive = pathname.startsWith(item.href);
+              return (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  className={cn(
+                    "flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors",
+                    isActive
+                      ? "bg-zinc-200/50 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-50"
+                      : "text-zinc-500 hover:bg-zinc-200/30 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800/50 dark:hover:text-zinc-50"
+                  )}
+                >
+                  <item.icon
+                    className={cn(
+                      "h-4 w-4",
+                      isActive ? "text-indigo-600 dark:text-indigo-400" : ""
+                    )}
+                  />
+                  {item.name}
+                </Link>
+              );
+            })}
         </nav>
 
         {/* Admin section nav - only shown to Admins */}
         {isAdmin() && (
           <>
             <div className="px-4 mt-6 mb-2">
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider px-3 mb-2">Admin</p>
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider px-3 mb-2">
+                Admin
+              </p>
             </div>
             <nav className="grid gap-1 px-4">
               {adminNavigation.map((item) => {
-                const isActive = pathname.startsWith(item.href)
+                const isActive = pathname.startsWith(item.href);
                 return (
                   <Link
                     key={item.name}
@@ -108,10 +144,15 @@ export function Sidebar() {
                         : "text-zinc-500 hover:bg-zinc-200/30 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800/50 dark:hover:text-zinc-50"
                     )}
                   >
-                    <item.icon className={cn("h-4 w-4", isActive ? "text-indigo-600 dark:text-indigo-400" : "")} />
+                    <item.icon
+                      className={cn(
+                        "h-4 w-4",
+                        isActive ? "text-indigo-600 dark:text-indigo-400" : ""
+                      )}
+                    />
                     {item.name}
                   </Link>
-                )
+                );
               })}
             </nav>
           </>
@@ -130,8 +171,12 @@ export function Sidebar() {
                 {initials}
               </div>
               <div className="flex flex-col min-w-0">
-                <span className="text-sm font-medium truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{user.fullName || user.userName || "User"}</span>
-                <span className="text-xs text-zinc-500 truncate">{user.email}</span>
+                <span className="text-sm font-medium truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                  {user.fullName || user.userName || "User"}
+                </span>
+                <span className="text-xs text-zinc-500 truncate">
+                  {user.email}
+                </span>
               </div>
             </Link>
             <button
@@ -151,5 +196,5 @@ export function Sidebar() {
         )}
       </div>
     </div>
-  )
+  );
 }

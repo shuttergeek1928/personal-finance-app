@@ -1,5 +1,7 @@
 using MediatR;
+
 using Microsoft.AspNetCore.Mvc;
+
 using PersonalFinance.Services.Transactions.Application.Commands;
 using PersonalFinance.Services.Transactions.Application.DataTransferObjects.Requests;
 using PersonalFinance.Services.Transactions.Application.DataTransferObjects.Response;
@@ -31,7 +33,7 @@ namespace PersonalFinance.Services.Transactions.Controllers
         {
             try
             {
-                _logger.LogInformation("Creating income transaction for user ID: {userId} (Account: {accountId}, Card: {cardId})", 
+                _logger.LogInformation("Creating income transaction for user ID: {userId} (Account: {accountId}, Card: {cardId})",
                     request.UserId, request.AccountId, request.CreditCardId);
 
                 var command = new CreateIncomeTransactionCommand
@@ -73,7 +75,7 @@ namespace PersonalFinance.Services.Transactions.Controllers
         {
             try
             {
-                _logger.LogInformation("Creating expense transaction for user ID: {userId} (Account: {accountId}, Card: {cardId})", 
+                _logger.LogInformation("Creating expense transaction for user ID: {userId} (Account: {accountId}, Card: {cardId})",
                     request.UserId, request.AccountId, request.CreditCardId);
 
                 var command = new CreateExpenseTransactionCommand
@@ -115,7 +117,7 @@ namespace PersonalFinance.Services.Transactions.Controllers
         {
             try
             {
-                _logger.LogInformation("Creating transfer transaction for user ID: {userId} (FromAcc: {fromAcc}, FromCard: {fromCard}, ToAcc: {toAcc}, ToCard: {toCard})", 
+                _logger.LogInformation("Creating transfer transaction for user ID: {userId} (FromAcc: {fromAcc}, FromCard: {fromCard}, ToAcc: {toAcc}, ToCard: {toCard})",
                     request.UserId, request.AccountId, request.CreditCardId, request.ToAccountId, request.ToCreditCardId);
 
                 var command = new CreateTransferTransactionCommand

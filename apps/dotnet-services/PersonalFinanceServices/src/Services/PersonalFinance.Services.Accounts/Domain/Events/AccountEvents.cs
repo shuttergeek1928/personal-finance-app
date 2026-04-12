@@ -1,4 +1,3 @@
-﻿using Microsoft.Identity.Client;
 using PersonalFinance.Services.Accounts.Domain.Entities;
 using PersonalFinance.Shared.Common.Domain;
 using PersonalFinance.Shared.Common.Domain.ValueObjects;

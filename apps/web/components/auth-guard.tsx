@@ -4,12 +4,12 @@ import { useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuthStore } from "@/store/useAuthStore";
 
-export function AuthGuard({ 
-  children, 
-  requiredRoles 
-}: { 
-  children: React.ReactNode, 
-  requiredRoles?: string[] 
+export function AuthGuard({
+  children,
+  requiredRoles,
+}: {
+  children: React.ReactNode;
+  requiredRoles?: string[];
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -24,7 +24,9 @@ export function AuthGuard({
       if (!isAuthenticated) {
         router.replace(`/auth?redirect=${encodeURIComponent(pathname)}`);
       } else if (requiredRoles && requiredRoles.length > 0) {
-        const hasRequiredRole = requiredRoles.some(role => user?.roles?.includes(role));
+        const hasRequiredRole = requiredRoles.some((role) =>
+          user?.roles?.includes(role)
+        );
         if (!hasRequiredRole) {
           // If not authorized, redirect to a safe page or show error
           router.replace("/my/profile?error=unauthorized");

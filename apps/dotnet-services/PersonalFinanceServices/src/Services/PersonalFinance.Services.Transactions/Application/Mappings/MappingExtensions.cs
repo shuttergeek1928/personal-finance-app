@@ -1,5 +1,5 @@
 using AutoMapper;
-using PersonalFinance.Services.Transactions.Application.DataTransferObjects;
+
 using PersonalFinance.Services.Transactions.Application.DTOs;
 using PersonalFinance.Services.Transactions.Domain.Entities;
 

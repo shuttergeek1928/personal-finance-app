@@ -1,5 +1,4 @@
 using PersonalFinance.Services.Obligations.Domain.Entities;
-using PersonalFinance.Shared.Common.Domain.ValueObjects;
 
 namespace PersonalFinance.Services.Obligations.Application.DataTransferObjects.Requests
 {

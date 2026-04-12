@@ -17,7 +17,7 @@ This guide details the complete process of deploying the Finance Flow microservi
 
 ### 2. Initial Server Setup
 
-Connect via SSH and install required dependencies:
+Connect via SSH and install required dependencies: ssh -i C:\Users\atish\.ssh\PFA-Admin.pem financeflow-admin@98.70.33.180
 
 ```bash
 sudo apt update && sudo apt upgrade -y

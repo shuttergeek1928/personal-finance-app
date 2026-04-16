@@ -1,0 +1,177 @@
+# Frontend Computation Audit — Move to Backend
+
+## Current Architecture Problem
+
+The frontend fetches **raw entity lists** from three CRUD APIs, then performs all analytics, aggregations, filtering, and scoring **in the browser**:
+
+| API Called | What It Returns |
+|---|---|
+| `GET /api/Accounts/userid/{userId}` | **All** accounts (full list) |
+| `GET /api/Transaction/user/{userId}` | **All** transactions (full list, unbounded) |
+| `GET /api/Obligations/dashboard/{userId}` | Dashboard summary + full liability & subscription lists |
+
+> [!CAUTION]
+> The Transaction API returns **every transaction ever created** — there's no pagination, no date filtering, no server-side aggregation. As data grows, this will transfer MBs of JSON to the browser on every dashboard load.
+
+---
+
+## 📊 Dashboard Page — 10 Client-Side Computations
+
+File: [page.tsx](file:///d:/DataSSD/PersonalFinanceApp/personal-finance-app/apps/web/app/my/dashboard/page.tsx)
+
+### 1. Total Balance Aggregation
+- **Lines**: 222-225
+- **What it does**: Sums `balance.amount` across all accounts
+- **Severity**: 🟡 Medium — scales with account count (low N).
+- **Proposed API**: `GET /api/Accounts/userid/{userId}/summary`
+- **Response**: `{ totalBalance, activeAccountCount, balanceByType: {...} }`
+
+### 2. Total Income / Expenses (Period-Filtered)
+- **Lines**: 226-232
+- **What it does**: Filters ALL transactions by time period, then sums income/expense
+- **Severity**: 🔴 High — iterates entire transaction history, date-parsing every row, twice
+- **Proposed API**: `GET /api/Transaction/user/{userId}/summary?period=THIS_MONTH`
+- **Response**: `{ totalIncome, totalExpenses, netFlow, transactionCount }`
+
+### 3. Net Worth Calculation
+- **Lines**: 233-235
+- **What it does**: `totalBalance - totalOutstanding`
+- **Severity**: 🟡 Medium — trivial math but depends on two separate API calls
+- **Proposed API**: Include in a unified `/api/Dashboard/{userId}` endpoint
+- **Response**: `{ netWorth, totalAssets, totalLiabilities }`
+
+### 4. Month-over-Month Comparison
+- **Lines**: 238-280
+- **What it does**: Scans ALL transactions, buckets into this-month vs last-month, computes % change for both income and expenses
+- **Severity**: 🔴 High — full scan of every transaction with date arithmetic
+- **Proposed API**: `GET /api/Transaction/user/{userId}/mom-comparison`
+- **Response**: `{ income: { thisMonth, lastMonth, changePercent }, expense: { thisMonth, lastMonth, changePercent } }`
+
+### 5. Financial Health Score
+- **Lines**: 283-316
+- **What it does**: Computes a composite score (0-100) based on savings rate + debt ratio. Scans all transactions again for global income/expense totals.
+- **Severity**: 🔴 High — full transaction scan + aggregation + business logic. This is a **business rule** that belongs on the backend.
+- **Proposed API**: `GET /api/Dashboard/{userId}/health-score`
+- **Response**: `{ score, savingsRate, debtRatio, savingsScore, debtScore, label }`
+
+### 6. Upcoming Payments
+- **Lines**: 319-368
+- **What it does**: Merges subscriptions + liabilities, calculates next EMI dates using start date + current month heuristic, sorts, slices top 4
+- **Severity**: 🟡 Medium — business logic (next payment date calculation) runs client-side
+- **Proposed API**: `GET /api/Obligations/upcoming-payments/{userId}?limit=4`
+- **Response**: `[{ id, name, date, amount, type }]`
+
+### 7. Expense Heatmap (30-Day)
+- **Lines**: 371-415
+- **What it does**: Filters expenses from all transactions, groups by date string, normalizes intensity, generates 30-day grid
+- **Severity**: 🔴 High — full transaction scan, date parsing, grouping & normalization
+- **Proposed API**: `GET /api/Transaction/user/{userId}/daily-expenses?days=30`
+- **Response**: `[{ date, totalAmount, intensity }]`
+
+### 8. Monthly Cash Flow (Chart Data)
+- **Lines**: 420-448
+- **What it does**: Groups filtered transactions by month, sums income/expense per month for up to 12 months
+- **Severity**: 🔴 High — full filtered scan with date parsing and grouping
+- **Proposed API**: `GET /api/Transaction/user/{userId}/monthly-flow?period=THIS_YEAR&limit=12`
+- **Response**: `[{ month, income, expense, net }]`
+
+### 9. Expense by Category (Pie Chart + Drill-Down)
+- **Lines**: 451-480
+- **What it does**: Groups expense transactions by category, sorts, then filters for drill-down on selection
+- **Severity**: 🔴 High — full scan + grouping + secondary filtered query
+- **Proposed API**: `GET /api/Transaction/user/{userId}/expense-by-category?period=THIS_MONTH`
+- **Response**: `[{ category, totalAmount, transactionCount }]`
+
+### 10. Account Balances (Bar Chart)
+- **Lines**: 483-492
+- **What it does**: Filters active accounts, sorts by balance, slices top 5
+- **Severity**: 🟢 Low — tiny dataset, but still belongs server-side for consistency
+- **Proposed API**: Include in account summary endpoint
+
+---
+
+## 💳 Transactions Page — 3 Client-Side Computations
+
+File: [page.tsx](file:///d:/DataSSD/PersonalFinanceApp/personal-finance-app/apps/web/app/my/transactions/page.tsx)
+
+### 11. Summary Cards (Total Bank / Total Credit / Monthly Spending)
+- **Lines**: 151-170
+- **What it does**: Sums all account balances, all credit card outstanding amounts, and filters this month's expenses from ALL transactions
+- **Severity**: 🔴 High — 3 full-list reductions. The monthly spending is particularly expensive.
+- **Proposed API**: `GET /api/Transaction/user/{userId}/page-summary`
+- **Response**: `{ totalBankBalance, totalCreditOutstanding, thisMonthSpending }`
+
+### 12. Client-Side Filtering & Sorting
+- **Lines**: 308-337
+- **What it does**: Filters transactions by source type (bank/card), by specific card, and by search query, then sorts by date descending
+- **Severity**: 🔴 High — filters/sorts/searches the entire unbounded transaction list in the browser
+- **Proposed API**: `GET /api/Transaction/user/{userId}?sourceType=card&cardId=xxx&search=food&page=1&pageSize=15&sortBy=date`
+- **Response**: `{ items: [...], totalCount, page, pageSize }`
+
+### 13. Client-Side Pagination
+- **Lines**: 816-820, 926-1001
+- **What it does**: Slices the (already client-filtered) array. All pages are in memory.
+- **Severity**: 🔴 High — pagination should **never** be client-side on an unbounded dataset
+- **Proposed API**: Same paginated endpoint as above
+
+---
+
+## 📘 Obligations Service Layer — 2 Client-Side Computations
+
+File: [obligation.ts](file:///d:/DataSSD/PersonalFinanceApp/personal-finance-app/apps/web/services/obligation.ts)
+
+### 14. EMI Calculation (`calculateEmi`)
+- **Lines**: 79-91
+- **What it does**: Implements the reducing balance EMI formula entirely in JS
+- **Severity**: 🟡 Medium — duplicates backend logic. Any formula change requires deploying both frontend and backend.
+- **Proposed**: The backend **already calculates EMI** when creating liabilities. Remove the frontend duplicate.
+
+### 15. Theoretical Outstanding & Loan Progress (`calculateTheoreticalOutstanding`, `getEffectiveOutstanding`, `getLiabilityProgress`)
+- **Lines**: 97-163
+- **What it does**: Computes how much of a loan is paid based on elapsed months, compares to stored outstanding, calculates paid percentage
+- **Severity**: 🔴 High — this is complex **financial logic** (amortization schedule simulation) running in the browser. It should be authoritative from the backend.
+- **Proposed API**: Include `paidPercent`, `effectiveOutstanding`, and `paidAmount` directly in the `LiabilityDto` response from the backend.
+
+---
+
+## Summary Table
+
+| # | Computation | Page | Severity | Proposed Backend Endpoint |
+|---|---|---|---|---|
+| 1 | Total Balance | Dashboard | 🟡 | `GET .../accounts/summary` |
+| 2 | Period Income/Expenses | Dashboard | 🔴 | `GET .../transactions/summary?period=` |
+| 3 | Net Worth | Dashboard | 🟡 | `GET .../dashboard` (unified) |
+| 4 | Month-over-Month | Dashboard | 🔴 | `GET .../transactions/mom-comparison` |
+| 5 | Health Score | Dashboard | 🔴 | `GET .../dashboard/health-score` |
+| 6 | Upcoming Payments | Dashboard | 🟡 | `GET .../obligations/upcoming-payments` |
+| 7 | Expense Heatmap | Dashboard | 🔴 | `GET .../transactions/daily-expenses` |
+| 8 | Monthly Cash Flow | Dashboard | 🔴 | `GET .../transactions/monthly-flow` |
+| 9 | Expense by Category | Dashboard | 🔴 | `GET .../transactions/expense-by-category` |
+| 10 | Account Balances Chart | Dashboard | 🟢 | Include in account summary |
+| 11 | Transactions Summary Cards | Transactions | 🔴 | `GET .../transactions/page-summary` |
+| 12 | Client-side Filtering | Transactions | 🔴 | Server-side filtering + search |
+| 13 | Client-side Pagination | Transactions | 🔴 | Server-side pagination |
+| 14 | EMI Calculation (JS) | Service Layer | 🟡 | Remove duplicate; use backend value |
+| 15 | Loan Progress | Service Layer | 🔴 | Include in `LiabilityDto` response |
+
+---
+
+## Recommended Migration Strategy
+
+> [!IMPORTANT]
+> The highest-impact change is creating a **single unified Dashboard API** endpoint on the backend that returns ALL pre-computed analytics in one call, replacing the current pattern of fetching 3 raw lists and computing 10+ aggregations in-browser.
+
+### Phase 1 — Critical (Eliminate unbounded data transfer)
+1. **Server-side transaction pagination + filtering** — Stop fetching ALL transactions
+2. **Unified Dashboard API** — One endpoint returning all dashboard metrics
+3. **Move Health Score to backend** — Business rule shouldn't live in UI code
+
+### Phase 2 — Important (Offload analytics)
+4. **Transaction analytics endpoints** — Monthly flow, category breakdown, heatmap
+5. **Loan progress in DTO** — Add `paidPercent` / `effectiveOutstanding` to `LiabilityDto`
+6. **Upcoming payments endpoint** — Backend calculates next payment dates
+
+### Phase 3 — Polish
+7. **Account summary endpoint** — Aggregated balances
+8. **Remove duplicated EMI formula** from frontend
+9. **Transaction page summary** — Pre-computed summary cards

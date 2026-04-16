@@ -1,4 +1,4 @@
-﻿using PersonalFinance.Services.UserManagement.Domain.Events;
+using PersonalFinance.Services.UserManagement.Domain.Events;
 using PersonalFinance.Shared.Common.Domain;
 using PersonalFinance.Shared.Common.Domain.ValueObjects;
 
@@ -13,11 +13,13 @@ namespace PersonalFinance.Services.UserManagement.Domain.Entities
         public string LastName { get; private set; } = string.Empty;
         public bool IsEmailConfirmed { get; private set; } = false;
         public string? PhoneNumber { get; private set; }
+        public string? GoogleId { get; private set; }
         public DateTime? LastLoginAt { get; private set; }
 
         private User() { }
 
         private readonly List<UserRole> _userRoles = new();
+        private readonly List<RefreshToken> _refreshTokens = new();
 
         public User(string email, string userName, string firstName, string lastName)
         {
@@ -33,6 +35,7 @@ namespace PersonalFinance.Services.UserManagement.Domain.Entities
         // Navigation properties
         public UserProfile? Profile { get; private set; }
         public IReadOnlyCollection<UserRole> UserRoles => _userRoles.AsReadOnly();
+        public IReadOnlyCollection<RefreshToken> RefreshTokens => _refreshTokens.AsReadOnly();
 
         // Business methods
         public void UpdateProfile(string firstName, string lastName, string? phoneNumber)
@@ -100,5 +103,26 @@ namespace PersonalFinance.Services.UserManagement.Domain.Entities
             AddDomainEvent(new UserDeactivatedEvent(Id, reason));
         }
 
+        public void SetGoogleId(string googleId)
+        {
+            GoogleId = googleId;
+        }
+
+        public void AddRefreshToken(string token, DateTime expiresAt, string? createdByIp = null)
+        {
+            var refreshToken = new RefreshToken(token, expiresAt, Id, createdByIp);
+            _refreshTokens.Add(refreshToken);
+        }
+
+        public void RevokeRefreshToken(string token, string? revokedByIp = null, string? replacedByToken = null)
+        {
+            var refreshToken = _refreshTokens.FirstOrDefault(t => t.Token == token);
+            refreshToken?.Revoke(revokedByIp, replacedByToken);
+        }
+
+        public void RemoveOldRefreshTokens()
+        {
+            _refreshTokens.RemoveAll(t => !t.IsActive && t.CreatedAt.AddDays(7) <= DateTime.UtcNow);
+        }
     }
 }

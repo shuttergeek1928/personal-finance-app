@@ -5,5 +5,6 @@ namespace PersonalFinance.Services.UserManagement.Application.Services
     public interface ITokenService
     {
         string CreateToken(User user, IEnumerable<string> roles);
+        string GenerateRefreshToken();
     }
 }

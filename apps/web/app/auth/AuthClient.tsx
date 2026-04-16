@@ -4,13 +4,20 @@ import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
-  LineChart,
-  ArrowRight,
-  Eye,
-  EyeOff,
-  ShieldCheck,
-  Zap,
+  LineChart as LineChartIcon,
+  ArrowRight as ArrowRightIcon,
+  Eye as EyeIcon,
+  EyeOff as EyeOffIcon,
+  ShieldCheck as ShieldCheckIcon,
+  Zap as ZapIcon,
 } from "lucide-react";
+
+const LineChart = LineChartIcon as any;
+const ArrowRight = ArrowRightIcon as any;
+const Eye = EyeIcon as any;
+const EyeOff = EyeOffIcon as any;
+const ShieldCheck = ShieldCheckIcon as any;
+const Zap = ZapIcon as any;
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,6 +26,9 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { RegisterModal } from "@/components/register-modal";
 import { authService } from "@/services/auth";
 import { useAuthStore } from "@/store/useAuthStore";
+import { useEffect } from "react";
+
+const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "";
 
 export default function AuthClient() {
   const router = useRouter();
@@ -69,6 +79,57 @@ export default function AuthClient() {
       setIsLoading(false);
     }
   };
+
+  const handleGoogleLogin = async (response: any) => {
+    setError(null);
+    setIsLoading(true);
+
+    try {
+      const res = await authService.googleLogin(response.credential);
+
+      if (res.success && res.data) {
+        login(res.data.accessToken, res.data.user);
+        authService.storeToken(res.data.accessToken, res.data.refreshToken);
+
+        const target =
+          redirectUrl ||
+          (res.data.user.roles?.includes("Admin")
+            ? "/dashboard"
+            : "/my/dashboard");
+
+        router.push(target);
+      } else {
+        setError(res.message || "Google login failed");
+      }
+    } catch (err: any) {
+      setError(err.response?.data?.message || err.message || "Google login failed");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    /* global google */
+    if (typeof window !== "undefined" && (window as any).google && GOOGLE_CLIENT_ID) {
+      const google = (window as any).google;
+      google.accounts.id.initialize({
+        client_id: GOOGLE_CLIENT_ID,
+        callback: handleGoogleLogin,
+      });
+
+      google.accounts.id.renderButton(
+        document.getElementById("google-button"),
+        {
+          theme: "outline",
+          size: "large",
+          width: "100%",
+          shape: "rectangular",
+          text: "continue_with",
+          logo_alignment: "left"
+        }
+      );
+    }
+  }, [GOOGLE_CLIENT_ID]);
 
   return (
     <div className="min-h-screen flex selection:bg-indigo-500 selection:text-white">
@@ -226,6 +287,8 @@ export default function AuthClient() {
               </span>
             </div>
           </div>
+
+          <div id="google-button" className="w-full flex justify-center" />
 
           <div className="flex flex-col gap-4 text-center">
             <RegisterModal>

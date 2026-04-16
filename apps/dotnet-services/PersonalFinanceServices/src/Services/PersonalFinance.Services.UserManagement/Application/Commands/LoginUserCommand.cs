@@ -21,15 +21,18 @@ namespace PersonalFinance.Services.UserManagement.Application.Commands
     public class LoginUserCommandHandler : BaseCommandHandler<LoginUserCommand, ApiResponse<LoginResponse>>
     {
         private readonly ITokenService _tokenService;
+        private readonly IConfiguration _configuration;
 
         public LoginUserCommandHandler(
             UserManagementDbContext context,
             IPasswordHasher passwordHasher,
             ITokenService tokenService,
             IMapper mapper,
+            IConfiguration configuration,
             ILogger<LoginUserCommandHandler> logger) : base(context, logger, mapper, passwordHasher)
         {
             _tokenService = tokenService;
+            _configuration = configuration;
         }
 
         public override async Task<ApiResponse<LoginResponse>> Handle(LoginUserCommand request, CancellationToken cancellationToken)
@@ -38,7 +41,9 @@ namespace PersonalFinance.Services.UserManagement.Application.Commands
             {
                 Logger.LogInformation("Attempting login for email: {Email}", request.Email);
 
+                // Load user as read-only — we only need it for verification and token generation
                 var user = await Context.Users
+                    .AsNoTracking()
                     .Include(u => u.UserRoles)
                         .ThenInclude(ur => ur.Role)
                     .FirstOrDefaultAsync(u => u.Email.Value == request.Email.ToLower(), cancellationToken);
@@ -56,14 +61,21 @@ namespace PersonalFinance.Services.UserManagement.Application.Commands
                 }
 
                 var roles = user.UserRoles.Select(ur => ur.Role.Name).ToList();
-                var token = _tokenService.CreateToken(user, roles);
+                var accessToken = _tokenService.CreateToken(user, roles);
+                var refreshToken = _tokenService.GenerateRefreshToken();
+
+                // Insert refresh token directly — bypasses User's RowVersion concurrency check
+                var refreshTokenEntity = new Domain.Entities.RefreshToken(refreshToken, DateTime.UtcNow.AddDays(7), user.Id);
+                Context.RefreshTokens.Add(refreshTokenEntity);
+                await Context.SaveChangesAsync(cancellationToken);
 
                 var loginResponse = new LoginResponse
                 {
                     User = user.ToDto(Mapper),
-                    AccessToken = token,
-                    ExpiresAt = DateTime.UtcNow.AddMinutes(5), // Configured in settings but matching here for response
-                    Permissions = roles // In this context, roles are treated as permissions or base for them
+                    AccessToken = accessToken,
+                    RefreshToken = refreshToken,
+                    ExpiresAt = DateTime.UtcNow.AddMinutes(int.Parse(_configuration["JwtSettings:ExpiryMinutes"] ?? "5")),
+                    Permissions = roles
                 };
 
                 Logger.LogInformation("Login successful for email: {Email}", request.Email);

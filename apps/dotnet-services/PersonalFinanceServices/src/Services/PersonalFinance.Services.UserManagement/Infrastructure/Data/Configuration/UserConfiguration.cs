@@ -43,6 +43,9 @@ namespace PersonalFinance.Services.UserManagement.Infrastructure.Data.Configurat
                 .HasMaxLength(100)
                 .IsRequired();
 
+            builder.Property(u => u.GoogleId)
+                .HasMaxLength(100);
+
             builder.Property(u => u.PhoneNumber)
                 .HasMaxLength(20);
 
@@ -57,6 +60,15 @@ namespace PersonalFinance.Services.UserManagement.Infrastructure.Data.Configurat
                 .WithOne(ur => ur.User)
                 .HasForeignKey(ur => ur.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            // One-to-many relationship with RefreshTokens using backing field
+            builder.HasMany(u => u.RefreshTokens)
+                .WithOne(rt => rt.User)
+                .HasForeignKey(rt => rt.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Navigation(u => u.RefreshTokens)
+                .UsePropertyAccessMode(PropertyAccessMode.Field);
 
             // Ignore domain events for EF Core
             builder.Ignore(u => u.DomainEvents);

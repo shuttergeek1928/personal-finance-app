@@ -78,9 +78,37 @@ export const authService = {
     return response.data;
   },
 
-  storeToken: (token: string) => {
+  googleLogin: async (idToken: string): Promise<LoginApiResponse> => {
+    const response = await api.post(
+      "/api/Auth/google-login",
+      { idToken },
+      {
+        baseURL: GATEWAY_BASE_URL,
+      }
+    );
+    return response.data;
+  },
+
+  refreshToken: async (
+    accessToken: string,
+    refreshToken: string
+  ): Promise<LoginApiResponse> => {
+    const response = await api.post(
+      "/api/Auth/refresh",
+      { accessToken, refreshToken },
+      {
+        baseURL: GATEWAY_BASE_URL,
+      }
+    );
+    return response.data;
+  },
+
+  storeToken: (accessToken: string, refreshToken?: string) => {
     if (typeof window !== "undefined") {
-      localStorage.setItem("auth_token", token);
+      localStorage.setItem("auth_token", accessToken);
+      if (refreshToken) {
+        localStorage.setItem("refresh_token", refreshToken);
+      }
     }
   },
 
@@ -93,6 +121,13 @@ export const authService = {
   getToken: (): string | null => {
     if (typeof window !== "undefined") {
       return localStorage.getItem("auth_token");
+    }
+    return null;
+  },
+
+  getRefreshToken: (): string | null => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("refresh_token");
     }
     return null;
   },
@@ -118,6 +153,7 @@ export const authService = {
   logout: () => {
     if (typeof window !== "undefined") {
       localStorage.removeItem("auth_token");
+      localStorage.removeItem("refresh_token");
       localStorage.removeItem("auth_user");
     }
   },

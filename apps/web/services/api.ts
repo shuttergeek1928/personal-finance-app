@@ -25,14 +25,44 @@ api.interceptors.request.use(
 
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      // Handle unauthorized - clear token and redirect to login
-      if (typeof window !== "undefined") {
-        localStorage.removeItem("auth_token");
-        localStorage.removeItem("auth_user");
+  async (error) => {
+    const originalRequest = error.config;
 
-        // Only auto-redirect if not already on auth page
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+
+      if (typeof window !== "undefined") {
+        const accessToken = localStorage.getItem("auth_token");
+        const refreshToken = localStorage.getItem("refresh_token");
+
+        if (accessToken && refreshToken) {
+          try {
+            // Import authService dynamically to avoid circular dependency
+            const { authService } = await import("./auth");
+            const response = await authService.refreshToken(
+              accessToken,
+              refreshToken
+            );
+
+            if (response.success && response.data) {
+              const newAccessToken = response.data.accessToken;
+              const newRefreshToken = response.data.refreshToken;
+
+              authService.storeToken(newAccessToken, newRefreshToken);
+
+              // Update header and retry
+              originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+              return api(originalRequest);
+            }
+          } catch (refreshError) {
+            console.error("Token refresh failed:", refreshError);
+            // If refresh fails, log out
+            const { authService } = await import("./auth");
+            authService.logout();
+          }
+        }
+
+        // Handle unauthorized - clear token and redirect to login
         const currentPath = window.location.pathname;
         if (!currentPath.startsWith("/auth") && currentPath !== "/") {
           window.location.href = `/auth?redirect=${encodeURIComponent(

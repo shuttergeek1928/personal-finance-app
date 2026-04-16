@@ -61,5 +61,65 @@ namespace PersonalFinance.Services.UserManagement.Controllers
 
             return CreatedAtAction(nameof(Register), new { id = result.Data?.Id }, result);
         }
+
+        /// <summary>
+        /// Authenticates a user using Google OAuth2.
+        /// </summary>
+        [HttpPost("google-login")]
+        [ProducesResponseType(typeof(ApiResponse<LoginResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<LoginResponse>), StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginRequest request)
+        {
+            var command = new GoogleLoginCommand
+            {
+                IdToken = request.IdToken,
+                IpAddress = HttpContext.Connection.RemoteIpAddress?.ToString()
+            };
+
+            var result = await _mediator.Send(command);
+
+            if (!result.Success)
+            {
+                return Unauthorized(result);
+            }
+
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Refreshes the access token using a refresh token.
+        /// </summary>
+        [HttpPost("refresh")]
+        [ProducesResponseType(typeof(ApiResponse<LoginResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<LoginResponse>), StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> Refresh([FromBody] RefreshTokenRequest request)
+        {
+            var command = new RefreshTokenCommand
+            {
+                AccessToken = request.AccessToken,
+                RefreshToken = request.RefreshToken,
+                IpAddress = HttpContext.Connection.RemoteIpAddress?.ToString()
+            };
+
+            var result = await _mediator.Send(command);
+
+            if (!result.Success)
+            {
+                return Unauthorized(result);
+            }
+
+            return Ok(result);
+        }
+    }
+
+    public class GoogleLoginRequest
+    {
+        public string IdToken { get; set; } = string.Empty;
+    }
+
+    public class RefreshTokenRequest
+    {
+        public string AccessToken { get; set; } = string.Empty;
+        public string RefreshToken { get; set; } = string.Empty;
     }
 }

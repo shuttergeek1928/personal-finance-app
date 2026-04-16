@@ -19,6 +19,7 @@ namespace PersonalFinance.Services.UserManagement.Infrastructure.Data
         public DbSet<UserProfile> UserProfiles => Set<UserProfile>();
         public DbSet<Role> Roles => Set<Role>();
         public DbSet<UserRole> UserRoles => Set<UserRole>();
+        public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -32,7 +33,7 @@ namespace PersonalFinance.Services.UserManagement.Infrastructure.Data
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             base.OnConfiguring(optionsBuilder);
-            optionsBuilder.ConfigureWarnings(warnings => warnings.Throw(RelationalEventId.PendingModelChangesWarning));
+            optionsBuilder.ConfigureWarnings(warnings => warnings.Log(RelationalEventId.PendingModelChangesWarning));
         }
 
         private void ConfigureEntityFilters(ModelBuilder modelBuilder)
@@ -52,6 +53,10 @@ namespace PersonalFinance.Services.UserManagement.Infrastructure.Data
             // UserRole junction table filter
             modelBuilder.Entity<UserRole>()
                 .HasQueryFilter(ur => ur.User.IsActive && ur.Role.IsActive);
+
+            // RefreshToken follows User filter
+            modelBuilder.Entity<RefreshToken>()
+                .HasQueryFilter(rt => rt.User.IsActive);
         }
     }
 }

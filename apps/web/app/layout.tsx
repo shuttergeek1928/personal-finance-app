@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import "./globals.css";
+import Script from "next/script";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Header } from "@/components/layout/Header";
@@ -27,6 +28,7 @@ export default function RootLayout({
       <body
         className={`${poppins.variable} font-sans antialiased bg-background text-foreground h-full overflow-hidden`}
       >
+        <Script src="https://accounts.google.com/gsi/client" strategy="beforeInteractive" />
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

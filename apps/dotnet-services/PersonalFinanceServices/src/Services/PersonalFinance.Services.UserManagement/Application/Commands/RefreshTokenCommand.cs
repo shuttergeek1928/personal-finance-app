@@ -64,7 +64,15 @@ namespace PersonalFinance.Services.UserManagement.Application.Commands
                 var newRefreshTokenString = _tokenService.GenerateRefreshToken();
                 user.RevokeRefreshToken(request.RefreshToken, request.IpAddress, newRefreshTokenString);
                 user.AddRefreshToken(newRefreshTokenString, DateTime.UtcNow.AddDays(7), request.IpAddress);
-                user.RemoveOldRefreshTokens();
+                
+                // Securely delete from DbSet instead of just stripping from collection navigation 
+                // to avoid dangling detached references throwing DbUpdateConcurrencyException
+                var oldTokens = user.RefreshTokens.Where(t => !t.IsActive && t.CreatedAt.AddDays(7) <= DateTime.UtcNow).ToList();
+                if (oldTokens.Any())
+                {
+                    Context.RefreshTokens.RemoveRange(oldTokens);
+                    user.RemoveOldRefreshTokens();
+                }
 
                 await Context.SaveChangesAsync(cancellationToken);
 

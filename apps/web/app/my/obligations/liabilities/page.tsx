@@ -11,7 +11,6 @@ import {
   UpdateLiabilityRequest,
   AmortizationScheduleDto,
   MakePaymentRequest,
-  getLiabilityProgress,
   CreditCardDto,
 } from "@/services/obligation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -347,8 +346,7 @@ export default function LiabilitiesPage() {
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {liabilities.map((l) => {
-            const { paidPercent, effectiveOutstanding } =
-              getLiabilityProgress(l);
+            const { paidPercent, effectiveOutstanding } = l;
             return (
               <Card
                 key={l.id}
@@ -426,8 +424,7 @@ export default function LiabilitiesPage() {
           {detailItem &&
             (() => {
               const l = detailItem;
-              const { paidPercent, paidAmount, effectiveOutstanding } =
-                getLiabilityProgress(l);
+              const { paidPercent, paidAmount, effectiveOutstanding } = l;
               const monthsElapsed = Math.max(
                 0,
                 Math.floor(

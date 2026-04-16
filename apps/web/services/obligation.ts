@@ -70,98 +70,6 @@ export const BillingCycleLabels: Record<BillingCycle, string> = {
   [BillingCycle.HalfYearly]: "Half-Yearly",
   [BillingCycle.Yearly]: "Yearly",
 };
-// ── Utility Functions ──────────────────────────────────────────────────
-
-/**
- * Calculates EMI using the reducing balance formula.
- * EMI = P × r × (1+r)^n / ((1+r)^n - 1)
- */
-export function calculateEmi(
-  principal: number,
-  annualRate: number,
-  tenureMonths: number
-): number {
-  if (annualRate === 0)
-    return Math.round((principal / tenureMonths) * 100) / 100;
-  const monthlyRate = annualRate / 12 / 100;
-  const power = Math.pow(1 + monthlyRate, tenureMonths);
-  return (
-    Math.round(((principal * monthlyRate * power) / (power - 1)) * 100) / 100
-  );
-}
-
-/**
- * Calculates the theoretical outstanding balance after elapsed months
- * using the reducing balance amortization method.
- */
-function calculateTheoreticalOutstanding(
-  principal: number,
-  annualRate: number,
-  tenureMonths: number,
-  startDate: Date
-): number {
-  const now = new Date();
-  const elapsed =
-    (now.getFullYear() - startDate.getFullYear()) * 12 +
-    (now.getMonth() - startDate.getMonth());
-
-  if (elapsed <= 0) return principal;
-  const cappedElapsed = Math.min(elapsed, tenureMonths);
-
-  const emi = calculateEmi(principal, annualRate, tenureMonths);
-  const monthlyRate = annualRate / 12 / 100;
-  let outstanding = principal;
-
-  for (let i = 0; i < cappedElapsed; i++) {
-    const interest =
-      annualRate === 0 ? 0 : Math.round(outstanding * monthlyRate * 100) / 100;
-    const principalComponent = emi - interest;
-    outstanding -= principalComponent;
-    if (outstanding <= 0) return 0;
-  }
-
-  return Math.round(Math.max(outstanding, 0) * 100) / 100;
-}
-
-/**
- * Computes the effective outstanding balance for a liability.
- * Takes the MINIMUM of:
- *  - Theoretical outstanding (based on elapsed time from startDate to now)
- *  - Stored outstanding (which reflects manual extra payments)
- *
- * This ensures both elapsed EMIs AND manual payments are accounted for.
- */
-export function getEffectiveOutstanding(l: LiabilityDto): number {
-  const theoretical = calculateTheoreticalOutstanding(
-    l.principalAmount.amount,
-    l.interestRate,
-    l.tenureMonths,
-    new Date(l.startDate)
-  );
-  // The stored outstanding could be lower if manual payments were made
-  return Math.min(theoretical, l.outstandingBalance.amount);
-}
-
-/**
- * Computes the paid percentage for a liability's progress bar.
- * Combines both elapsed time-based EMI payments and manual payments.
- */
-export function getLiabilityProgress(l: LiabilityDto): {
-  paidPercent: number;
-  paidAmount: number;
-  effectiveOutstanding: number;
-} {
-  const principal = l.principalAmount.amount;
-  if (principal <= 0)
-    return { paidPercent: 0, paidAmount: 0, effectiveOutstanding: 0 };
-
-  const effectiveOutstanding = getEffectiveOutstanding(l);
-  const paidAmount = principal - effectiveOutstanding;
-  const paidPercent = Math.min(Math.round((paidAmount / principal) * 100), 100);
-
-  return { paidPercent, paidAmount, effectiveOutstanding };
-}
-
 // ── Interfaces ─────────────────────────────────────────────────────────
 
 export interface Money {
@@ -190,6 +98,9 @@ export interface LiabilityDto {
   createdAt: string;
   updatedAt: string;
   isActive: boolean;
+  effectiveOutstanding: number;
+  paidAmount: number;
+  paidPercent: number;
 }
 
 export interface CreditCardDto {

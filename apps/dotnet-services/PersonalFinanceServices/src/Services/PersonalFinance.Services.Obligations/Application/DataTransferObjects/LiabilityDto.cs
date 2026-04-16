@@ -25,5 +25,9 @@ namespace PersonalFinance.Services.Obligations.Application.DataTransferObjects
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
         public bool IsActive { get; set; }
+
+        public decimal EffectiveOutstanding { get; set; }
+        public decimal PaidAmount { get; set; }
+        public int PaidPercent { get; set; }
     }
 }

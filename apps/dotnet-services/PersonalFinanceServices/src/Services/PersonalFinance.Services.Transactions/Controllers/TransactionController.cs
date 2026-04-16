@@ -194,5 +194,87 @@ namespace PersonalFinance.Services.Transactions.Controllers
                 return StatusCode(500, ApiResponse<IEnumerable<TransactionTransferObject>>.ErrorResult("An internal error occurred"));
             }
         }
+
+        [HttpGet("user/{userId:guid}/paged")]
+        public async Task<ActionResult<PaginatedApiResponse<IEnumerable<TransactionTransferObject>>>> GetPaginatedTransactions(
+            Guid userId, 
+            [FromQuery] int page = 1, 
+            [FromQuery] int pageSize = 15,
+            [FromQuery] string? sourceType = null,
+            [FromQuery] Guid? cardId = null,
+            [FromQuery] string? searchQuery = null,
+            [FromQuery] string? period = null,
+            [FromQuery] int? type = null)
+        {
+            try
+            {
+                _logger.LogInformation("Fetching paginated transactions for user ID: {userId}", userId);
+                var query = new GetPaginatedTransactionsQuery
+                {
+                    UserId = userId,
+                    Page = page,
+                    PageSize = pageSize,
+                    SourceType = sourceType,
+                    CardId = cardId,
+                    SearchQuery = searchQuery,
+                    Period = period,
+                    Type = type
+                };
+
+                var result = await _mediator.Send(query);
+
+                if (result.Success)
+                {
+                    return Ok(result);
+                }
+
+                return BadRequest(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching paginated transactions for user ID: {userId}", userId);
+                return StatusCode(500, new PaginatedApiResponse<IEnumerable<TransactionTransferObject>>
+                {
+                    Success = false,
+                    Message = "An internal error occurred",
+                    Errors = new List<string> { "An internal error occurred" }
+                });
+            }
+        }
+        
+        [HttpGet("user/{userId:guid}/dashboard-summary")]
+        public async Task<ActionResult<ApiResponse<TransactionDashboardSummaryDto>>> GetDashboardSummary(
+            Guid userId,
+            [FromQuery] string? period = "THIS_MONTH")
+        {
+            try
+            {
+                _logger.LogInformation("Fetching dashboard summary for user ID: {userId}", userId);
+                var query = new GetTransactionDashboardSummaryQuery
+                {
+                    UserId = userId,
+                    Period = period
+                };
+
+                var result = await _mediator.Send(query);
+
+                if (result.Success)
+                {
+                    return Ok(result);
+                }
+
+                return BadRequest(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching dashboard summary for user ID: {userId}", userId);
+                return StatusCode(500, new ApiResponse<TransactionDashboardSummaryDto>
+                {
+                    Success = false,
+                    Message = "An internal error occurred",
+                    Errors = new List<string> { "An internal error occurred" }
+                });
+            }
+        }
     }
 }

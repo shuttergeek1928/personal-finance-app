@@ -285,7 +285,7 @@ export default function MyAccountsPage() {
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label>Account Name</Label>
+                <Label>Bank Name</Label>
                 <Input
                   value={createData.name}
                   onChange={(e) =>

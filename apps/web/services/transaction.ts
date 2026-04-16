@@ -46,6 +46,13 @@ export interface ApiResponse<T> {
   timestamp: string;
 }
 
+export interface PaginatedApiResponse<T> extends ApiResponse<T> {
+  page: number;
+  pageSize: number;
+  totalCount: number;
+  totalPages: number;
+}
+
 export const transactionService = {
   getTransactionsByUserId: async (
     userId: string
@@ -53,6 +60,42 @@ export const transactionService = {
     const response = await api.get<ApiResponse<Transaction[]>>(
       `/api/Transaction/user/${userId}`,
       { baseURL: GATEWAY_BASE_URL }
+    );
+    return response.data;
+  },
+
+  getPaginatedTransactions: async (
+    userId: string,
+    params: {
+      page?: number;
+      pageSize?: number;
+      sourceType?: string;
+      cardId?: string;
+      searchQuery?: string;
+      period?: string;
+      type?: number;
+    }
+  ): Promise<PaginatedApiResponse<Transaction[]>> => {
+    const response = await api.get<PaginatedApiResponse<Transaction[]>>(
+      `/api/Transaction/user/${userId}/paged`,
+      { 
+        baseURL: GATEWAY_BASE_URL,
+        params
+      }
+    );
+    return response.data;
+  },
+
+  getDashboardSummary: async (
+    userId: string,
+    period?: "THIS_MONTH" | "LAST_3_MONTHS" | "THIS_YEAR" | "ALL_TIME"
+  ) => {
+    const response = await api.get(
+      `/api/Transaction/user/${userId}/dashboard-summary`,
+      {
+        baseURL: GATEWAY_BASE_URL,
+        params: period ? { period } : undefined,
+      }
     );
     return response.data;
   },

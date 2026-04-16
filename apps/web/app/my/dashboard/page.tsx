@@ -16,7 +16,7 @@ import {
   obligationService,
   ObligationDashboardDto,
   LiabilityTypeLabels,
-  getLiabilityProgress,
+  LiabilityDto,
 } from "@/services/obligation";
 import {
   Card,
@@ -132,7 +132,7 @@ const ChartTooltip = ({ active, payload, label }: any) => {
 export default function MyDashboardPage() {
   const { user } = useAuthStore();
   const [accounts, setAccounts] = useState<AccountTransferObject[]>([]);
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [dashboardSummary, setDashboardSummary] = useState<any>(null);
   const [obligations, setObligations] = useState<ObligationDashboardDto | null>(
     null
   );
@@ -150,9 +150,9 @@ export default function MyDashboardPage() {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const [accRes, txRes, oblRes] = await Promise.allSettled([
+        const [accRes, summaryRes, oblRes] = await Promise.allSettled([
           accountService.getAccountsByUserId(user.id),
-          transactionService.getTransactionsByUserId(user.id),
+          transactionService.getDashboardSummary(user.id, timePeriod),
           obligationService.getDashboard(user.id),
         ]);
 
@@ -167,11 +167,11 @@ export default function MyDashboardPage() {
           setAccounts(data);
         }
         if (
-          txRes.status === "fulfilled" &&
-          txRes.value.success &&
-          txRes.value.data
+          summaryRes.status === "fulfilled" &&
+          summaryRes.value.success &&
+          summaryRes.value.data
         ) {
-          setTransactions(txRes.value.data);
+          setDashboardSummary(summaryRes.value.data);
         }
         if (
           oblRes.status === "fulfilled" &&
@@ -187,108 +187,37 @@ export default function MyDashboardPage() {
       }
     };
     fetchData();
-  }, [user]);
+  }, [user, timePeriod]);
 
-  // ── Date Filtering Logic ──
-  const validTransactions = useMemo(
-    () => transactions.filter((t) => t.status !== TransactionStatus.Rejected),
-    [transactions]
-  );
-
-  const filteredTransactions = useMemo(() => {
-    const now = new Date();
-    // Exclude rejected transactions from analytics
-    return validTransactions.filter((t) => {
-      const txDate = new Date(t.transactionDate);
-      if (timePeriod === "ALL_TIME") return true;
-      if (timePeriod === "THIS_MONTH")
-        return (
-          txDate.getMonth() === now.getMonth() &&
-          txDate.getFullYear() === now.getFullYear()
-        );
-      if (timePeriod === "LAST_3_MONTHS") {
-        const threeMonthsAgo = new Date();
-        threeMonthsAgo.setMonth(now.getMonth() - 2);
-        threeMonthsAgo.setDate(1);
-        return txDate >= threeMonthsAgo;
-      }
-      if (timePeriod === "THIS_YEAR")
-        return txDate.getFullYear() === now.getFullYear();
-      return true;
-    });
-  }, [validTransactions, timePeriod]);
 
   // ── Computed Data based on Filter ──
   const totalBalance = accounts.reduce(
     (sum, acc) => sum + (acc.balance?.amount || 0),
     0
   );
-  const totalIncome = filteredTransactions
-    .filter((t) => t.type === 0)
-    .reduce((sum, t) => sum + (t.money?.amount || 0), 0);
-  const totalExpenses = filteredTransactions
-    .filter((t) => t.type === 1)
-    .reduce((sum, t) => sum + (t.money?.amount || 0), 0);
-  const netFlow = totalIncome - totalExpenses;
+  const totalIncome = dashboardSummary?.totalIncome || 0;
+  const totalExpenses = dashboardSummary?.totalExpense || 0;
+  const netFlow = dashboardSummary?.netCashFlow || 0;
   const totalOutstanding = obligations?.totalOutstandingBalance ?? 0;
   const totalMonthlyObl = obligations?.totalMonthlyObligations ?? 0;
   const netWorth = totalBalance - totalOutstanding;
 
-  // ── Month-over-Month Comparison ──
-  const { momIncome, momExpense } = useMemo(() => {
-    const now = new Date();
-    const thisMonth = { income: 0, expense: 0 };
-    const lastMonth = { income: 0, expense: 0 };
-
-    validTransactions.forEach((t) => {
-      const d = new Date(t.transactionDate);
-      if (
-        d.getFullYear() === now.getFullYear() &&
-        d.getMonth() === now.getMonth()
-      ) {
-        t.type === 0
-          ? (thisMonth.income += t.money?.amount || 0)
-          : (thisMonth.expense += t.money?.amount || 0);
-      } else if (
-        (d.getFullYear() === now.getFullYear() &&
-          d.getMonth() === now.getMonth() - 1) ||
-        (now.getMonth() === 0 &&
-          d.getFullYear() === now.getFullYear() - 1 &&
-          d.getMonth() === 11)
-      ) {
-        t.type === 0
-          ? (lastMonth.income += t.money?.amount || 0)
-          : (lastMonth.expense += t.money?.amount || 0);
-      }
-    });
-
-    const calcChange = (curr: number, prev: number) => {
-      if (prev === 0) return curr > 0 ? 100 : 0;
-      return ((curr - prev) / prev) * 100;
-    };
-
-    return {
-      momIncome: {
-        value: thisMonth.income,
-        change: calcChange(thisMonth.income, lastMonth.income),
-      },
-      momExpense: {
-        value: thisMonth.expense,
-        change: calcChange(thisMonth.expense, lastMonth.expense),
-      },
-    };
-  }, [validTransactions]);
+  // ── Trend Data ──
+  const momIncome = {
+    value: totalIncome,
+    change: dashboardSummary?.incomeTrendPercentage || 0,
+  };
+  const momExpense = {
+    value: totalExpenses,
+    change: dashboardSummary?.expenseTrendPercentage || 0,
+  };
 
   // ── Financial Health Score ──
   const healthScore = useMemo(() => {
     // Score out of 100
     // Savings Rate: up to 40 points (target > 20%)
-    const globalTotalIncome = validTransactions
-      .filter((t) => t.type === 0)
-      .reduce((sum, t) => sum + (t.money?.amount || 0), 0);
-    const globalTotalExpense = validTransactions
-      .filter((t) => t.type === 1)
-      .reduce((sum, t) => sum + (t.money?.amount || 0), 0);
+    const globalTotalIncome = totalIncome;
+    const globalTotalExpense = totalExpenses;
     const savingsRate =
       globalTotalIncome > 0
         ? (globalTotalIncome - globalTotalExpense) / globalTotalIncome
@@ -301,19 +230,19 @@ export default function MyDashboardPage() {
       totalBalance > 0
         ? totalOutstanding / totalBalance
         : totalOutstanding > 0
-        ? 1
-        : 0;
+          ? 1
+          : 0;
     const debtScore =
       debtRatio === 0
         ? 30
         : debtRatio < 0.5
-        ? ((0.5 - debtRatio) / 0.5) * 30
-        : 0;
+          ? ((0.5 - debtRatio) / 0.5) * 30
+          : 0;
 
     // Baseline: 30 points for just having setup accounts
     const score = 30 + savingsScore + debtScore;
     return Math.min(Math.round(score), 100);
-  }, [validTransactions, totalBalance, totalOutstanding]);
+  }, [totalIncome, totalExpenses, totalBalance, totalOutstanding]);
 
   // ── Upcoming Payments (Next 7-30 days) ──
   const upcomingPayments = useMemo(() => {
@@ -369,115 +298,29 @@ export default function MyDashboardPage() {
 
   // ── Expense Heatmap (Last 30 Days) ──
   const expenseHeatmap = useMemo(() => {
-    const map: Record<string, number> = {};
-    const maxDate = new Date();
-    maxDate.setHours(0, 0, 0, 0);
-
-    validTransactions
-      .filter((t) => t.type === 1)
-      .forEach((t) => {
-        // Use local date string (YYYY-MM-DD) to match the heatmap generation
-        const d = new Date(t.transactionDate);
-        const dStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(
-          2,
-          "0"
-        )}-${String(d.getDate()).padStart(2, "0")}`;
-        map[dStr] = (map[dStr] || 0) + (t.money?.amount || 0);
-      });
-
-    let maxAmount = 1;
-    for (const val of Object.values(map)) {
-      if (val > maxAmount) maxAmount = val;
-    }
-
-    const days = [];
-    for (let i = 29; i >= 0; i--) {
-      const d = new Date(maxDate);
-      d.setDate(d.getDate() - i);
-      const dStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(
-        2,
-        "0"
-      )}-${String(d.getDate()).padStart(2, "0")}`;
-      const amount = map[dStr] || 0;
-      days.push({
-        dateStr: d.toLocaleDateString("en-IN", {
-          month: "short",
-          day: "numeric",
-        }),
-        amount,
-        intensity:
-          amount > 0
-            ? Math.max(0.15, Math.min(1, amount / (maxAmount * 0.8 || 1)))
-            : 0,
-      });
-    }
-    return days;
-  }, [validTransactions]);
+    return (dashboardSummary?.expenseHeatmap || []).map((h: any) => ({
+      dateStr: new Date(h.dateStr).toLocaleDateString("en-IN", {
+        month: "short",
+        day: "numeric",
+      }),
+      amount: h.amount,
+      intensity: h.intensity,
+    }));
+  }, [dashboardSummary]) as { dateStr: string; amount: number; intensity: number }[];
 
   // ── Chart Data ─────────────────────────────────────────────────────
 
   // Income vs Expense by month (area/bar)
-  const monthlyFlow = useMemo(() => {
-    const map: Record<string, { income: number; expense: number }> = {};
-    filteredTransactions.forEach((t) => {
-      const d = new Date(t.transactionDate);
-      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(
-        2,
-        "0"
-      )}`;
-      if (!map[key]) map[key] = { income: 0, expense: 0 };
-      if (t.type === 0) map[key].income += t.money?.amount || 0;
-      if (t.type === 1) map[key].expense += t.money?.amount || 0;
-    });
-    return Object.entries(map)
-      .sort(([a], [b]) => a.localeCompare(b))
-      .slice(-12)
-      .map(([key, val]) => {
-        const [y, m] = key.split("-");
-        const month = new Date(parseInt(y), parseInt(m) - 1).toLocaleDateString(
-          "en-IN",
-          { month: "short", year: "2-digit" }
-        );
-        return {
-          month,
-          income: val.income,
-          expense: val.expense,
-          net: val.income - val.expense,
-        };
-      });
-  }, [filteredTransactions]);
+  const monthlyFlow = (dashboardSummary?.monthlyFlow || []) as { month: string; income: number; expense: number; net: number }[];
 
   // Expense by category (pie)
   const expenseByCategory = useMemo(() => {
-    const map: Record<string, number> = {};
-    filteredTransactions
-      .filter((t) => t.type === 1)
-      .forEach((t) => {
-        const cat = t.category || "Uncategorized";
-        map[cat] = (map[cat] || 0) + (t.money?.amount || 0);
-      });
-    return Object.entries(map)
-      .sort(([, a], [, b]) => b - a)
-      .map(([name, value]) => ({ name, value })); // Return all for drill down logic
-  }, [filteredTransactions]);
+    return (dashboardSummary?.spendingByCategory || [])
+      .map((c: any) => ({ name: c.category, value: c.amount }));
+  }, [dashboardSummary]) as { name: string; value: number }[];
 
   // Filtered transactions for drill-down
-  const drillDownTransactions = useMemo(() => {
-    if (!selectedCategory) return [];
-    return filteredTransactions
-      .filter(
-        (t) =>
-          t.type === 1 &&
-          (t.category === selectedCategory ||
-            (!t.category && selectedCategory === "Uncategorized"))
-      )
-      .sort(
-        (a, b) =>
-          new Date(b.transactionDate).getTime() -
-          new Date(a.transactionDate).getTime()
-      )
-      .slice(0, 5); // Limit to top 5
-  }, [filteredTransactions, selectedCategory]);
+  const drillDownTransactions: any[] = [];
 
   // Account balances (horizontal bars)
   const accountBalances = useMemo(() => {
@@ -495,8 +338,8 @@ export default function MyDashboardPage() {
     healthScore >= 75
       ? COLORS.emerald
       : healthScore >= 40
-      ? COLORS.amber
-      : COLORS.rose;
+        ? COLORS.amber
+        : COLORS.rose;
 
   if (loading) {
     return (
@@ -517,7 +360,7 @@ export default function MyDashboardPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">
-            Welcome back, {user?.firstName || user?.userName || "User"} 👋
+            Hi, {user?.firstName || user?.userName || "User"} 👋
           </h1>
           <p className="text-muted-foreground mt-1">
             Here&apos;s a comprehensive view of your financial health.
@@ -593,8 +436,8 @@ export default function MyDashboardPage() {
             {healthScore >= 75
               ? "Excellent standing!"
               : healthScore >= 40
-              ? "Needs some attention"
-              : "Critical state"}
+                ? "Needs some attention"
+                : "Critical state"}
           </p>
         </Card>
 
@@ -677,11 +520,10 @@ export default function MyDashboardPage() {
           </Card>
 
           <Card
-            className={`shadow-md border-0 bg-gradient-to-br ${
-              netWorth >= 0
+            className={`shadow-md border-0 bg-gradient-to-br ${netWorth >= 0
                 ? "from-emerald-500 to-emerald-700"
                 : "from-rose-500 to-rose-700"
-            } text-white`}
+              } text-white`}
           >
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-white/80">
@@ -727,14 +569,12 @@ export default function MyDashboardPage() {
                           backgroundColor:
                             day.amount === 0
                               ? "rgba(0,0,0,0.05)"
-                              : `rgba(244, 63, 94, ${
-                                  0.1 + day.intensity * 0.9
-                                })`,
+                              : `rgba(244, 63, 94, ${0.1 + day.intensity * 0.9
+                              })`,
                           boxShadow:
                             day.amount > 0
-                              ? `0 0 10px rgba(244, 63, 94, ${
-                                  day.intensity * 0.2
-                                })`
+                              ? `0 0 10px rgba(244, 63, 94, ${day.intensity * 0.2
+                              })`
                               : "none",
                         }}
                       ></div>
@@ -798,7 +638,7 @@ export default function MyDashboardPage() {
                 {upcomingPayments.map((p) => {
                   const daysLeft = Math.ceil(
                     (p.date.getTime() - new Date().getTime()) /
-                      (1000 * 3600 * 24)
+                    (1000 * 3600 * 24)
                   );
                   return (
                     <div
@@ -811,11 +651,10 @@ export default function MyDashboardPage() {
                         </span>
                         <div className="flex items-center gap-2 mt-0.5">
                           <span
-                            className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
-                              p.type === "EMI"
+                            className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${p.type === "EMI"
                                 ? "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400"
                                 : "bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-400"
-                            }`}
+                              }`}
                           >
                             {p.type}
                           </span>
@@ -832,15 +671,14 @@ export default function MyDashboardPage() {
                           {fmt(p.amount)}
                         </span>
                         <span
-                          className={`text-xs mt-0.5 font-medium ${
-                            daysLeft <= 3 ? "text-rose-500" : "text-emerald-600"
-                          }`}
+                          className={`text-xs mt-0.5 font-medium ${daysLeft <= 3 ? "text-rose-500" : "text-emerald-600"
+                            }`}
                         >
                           {daysLeft === 0
                             ? "Today"
                             : daysLeft === 1
-                            ? "Tomorrow"
-                            : `In ${daysLeft} days`}
+                              ? "Tomorrow"
+                              : `In ${daysLeft} days`}
                         </span>
                       </div>
                     </div>
@@ -1162,9 +1000,8 @@ export default function MyDashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="grid gap-3">
-                {obligations.liabilities.slice(0, 3).map((l) => {
-                  const { paidPercent, effectiveOutstanding } =
-                    getLiabilityProgress(l);
+                {obligations.liabilities.slice(0, 3).map((l: LiabilityDto) => {
+                  const { paidPercent, effectiveOutstanding } = l;
                   return (
                     <div
                       key={l.id}

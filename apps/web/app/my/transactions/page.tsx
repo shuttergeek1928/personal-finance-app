@@ -53,6 +53,7 @@ import { cn } from "@/lib/utils";
 export default function MyTransactionsPage() {
   const { user } = useAuthStore();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [dashboardSummary, setDashboardSummary] = useState<any>(null);
   const [accounts, setAccounts] = useState<AccountTransferObject[]>([]);
   const [creditCards, setCreditCards] = useState<CreditCardDto[]>([]);
   const [loading, setLoading] = useState(true);
@@ -86,29 +87,29 @@ export default function MyTransactionsPage() {
     "all" | "account" | "card"
   >("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const [selectedCreditCard, setSelectedCreditCard] =
     useState<CreditCardDto | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
   const PAGE_SIZE = 15;
 
-  const fetchData = async () => {
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
+
+  const fetchAccountsAndCards = async () => {
     if (!user) return;
-    setLoading(true);
-    setError(null);
     try {
-      const [txRes, accRes, cardRes] = await Promise.allSettled([
-        transactionService.getTransactionsByUserId(user.id),
+      const [accRes, cardRes, summaryRes] = await Promise.allSettled([
         accountService.getAccountsByUserId(user.id),
         obligationService.getCreditCardsByUserId(),
+        transactionService.getDashboardSummary(user.id, "THIS_MONTH")
       ]);
-
-      if (
-        txRes.status === "fulfilled" &&
-        txRes.value.success &&
-        txRes.value.data
-      ) {
-        setTransactions(txRes.value.data);
-      }
 
       if (
         accRes.status === "fulfilled" &&
@@ -128,16 +129,59 @@ export default function MyTransactionsPage() {
       ) {
         setCreditCards(cardRes.value.data);
       }
+      
+      if (
+        summaryRes.status === "fulfilled" &&
+        summaryRes.value.success &&
+        summaryRes.value.data
+      ) {
+        setDashboardSummary(summaryRes.value.data);
+      }
     } catch (err: any) {
-      setError(err.message || "Failed to fetch data.");
+      console.error("Failed to fetch initial context.", err);
+    }
+  };
+
+  const fetchTransactions = async () => {
+    if (!user) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const txRes = await transactionService.getPaginatedTransactions(user.id, {
+        page: currentPage,
+        pageSize: PAGE_SIZE,
+        sourceType: filterSourceType,
+        cardId: selectedCreditCard?.id,
+        searchQuery: debouncedSearchQuery
+      });
+
+      if (txRes.success && txRes.data) {
+        setTransactions(txRes.data);
+        setTotalCount(txRes.totalCount);
+        setTotalPages(txRes.totalPages);
+      }
+    } catch (err: any) {
+      setError(err.message || "Failed to fetch transactions.");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchData();
+    if (user) {
+      fetchAccountsAndCards();
+    }
   }, [user]);
+
+  useEffect(() => {
+    fetchTransactions();
+  }, [
+    user,
+    currentPage,
+    filterSourceType,
+    selectedCreditCard,
+    debouncedSearchQuery,
+  ]);
 
   useEffect(() => {
     if (accounts.length > 0 && !accountId && sourceType === "account") {
@@ -157,17 +201,10 @@ export default function MyTransactionsPage() {
       (acc, curr) => acc + (curr.outstandingAmount?.amount || 0),
       0
     );
-    const recentSpending = transactions
-      .filter(
-        (t) =>
-          t.type === TransactionType.Expense &&
-          new Date(t.transactionDate).getMonth() === new Date().getMonth() &&
-          t.status !== TransactionStatus.Rejected
-      )
-      .reduce((acc, curr) => acc + (curr.money?.amount || 0), 0);
+    const recentSpending = dashboardSummary?.totalExpense || 0;
 
     return { totalBank, totalCredit, recentSpending };
-  }, [accounts, creditCards, transactions]);
+  }, [accounts, creditCards, dashboardSummary]);
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -226,7 +263,7 @@ export default function MyTransactionsPage() {
         setIsAddOpen(false);
         setAmount("");
         setDescription("");
-        fetchData(); // Refresh
+        fetchTransactions(); // Refresh
       } else {
         alert(res.message || "Failed to add transaction");
       }
@@ -305,36 +342,7 @@ export default function MyTransactionsPage() {
     }
   };
 
-  const filteredTransactions = useMemo(() => {
-    return transactions
-      .filter((tx) => {
-        if (selectedCreditCard) {
-          if (
-            tx.creditCardId !== selectedCreditCard.id &&
-            tx.toCreditCardId !== selectedCreditCard.id
-          ) {
-            return false;
-          }
-        } else {
-          const matchesType =
-            filterSourceType === "all" ||
-            (filterSourceType === "account" && !!tx.accountId) ||
-            (filterSourceType === "card" && !!tx.creditCardId);
-          if (!matchesType) return false;
-        }
-
-        const matchesSearch =
-          tx.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          tx.category?.toLowerCase().includes(searchQuery.toLowerCase());
-
-        return matchesSearch;
-      })
-      .sort(
-        (a, b) =>
-          new Date(b.transactionDate).getTime() -
-          new Date(a.transactionDate).getTime()
-      );
-  }, [transactions, filterSourceType, searchQuery, selectedCreditCard]);
+  const filteredTransactions = transactions;
 
   if (loading) {
     return (
@@ -814,10 +822,6 @@ export default function MyTransactionsPage() {
                 </thead>
                 <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
                   {filteredTransactions
-                    .slice(
-                      (currentPage - 1) * PAGE_SIZE,
-                      currentPage * PAGE_SIZE
-                    )
                     .map((tx) => {
                       const source = getSourceName(tx);
                       return (
@@ -923,20 +927,20 @@ export default function MyTransactionsPage() {
               </table>
             </div>
 
-            {filteredTransactions.length > PAGE_SIZE && (
+            {totalCount > PAGE_SIZE && (
               <div className="p-4 border-t bg-muted/20 flex items-center justify-between">
                 <p className="text-xs text-muted-foreground whitespace-nowrap">
                   Showing{" "}
                   {Math.min(
                     (currentPage - 1) * PAGE_SIZE + 1,
-                    filteredTransactions.length
+                    totalCount
                   )}{" "}
                   to{" "}
                   {Math.min(
                     currentPage * PAGE_SIZE,
-                    filteredTransactions.length
+                    totalCount
                   )}{" "}
-                  of {filteredTransactions.length}
+                  of {totalCount}
                 </p>
                 <div className="flex items-center gap-2">
                   <Button
@@ -951,19 +955,14 @@ export default function MyTransactionsPage() {
                   <div className="flex items-center gap-1">
                     {Array.from(
                       {
-                        length: Math.ceil(
-                          filteredTransactions.length / PAGE_SIZE
-                        ),
+                        length: totalPages,
                       },
                       (_, i) => i + 1
                     )
                       .filter(
                         (p) =>
                           p === 1 ||
-                          p ===
-                            Math.ceil(
-                              filteredTransactions.length / PAGE_SIZE
-                            ) ||
+                          p === totalPages ||
                           (p >= currentPage - 1 && p <= currentPage + 1)
                       )
                       .map((p, i, arr) => (
@@ -989,10 +988,7 @@ export default function MyTransactionsPage() {
                     variant="outline"
                     size="sm"
                     className="h-8 text-xs bg-background"
-                    disabled={
-                      currentPage ===
-                      Math.ceil(filteredTransactions.length / PAGE_SIZE)
-                    }
+                    disabled={currentPage === totalPages}
                     onClick={() => setCurrentPage((prev) => prev + 1)}
                   >
                     Next
@@ -1001,10 +997,10 @@ export default function MyTransactionsPage() {
               </div>
             )}
           </CardContent>
-          {filteredTransactions.length <= PAGE_SIZE && (
+          {totalCount <= PAGE_SIZE && totalCount > 0 && (
             <div className="p-4 border-t bg-muted/20 text-center">
               <p className="text-xs text-muted-foreground">
-                Showing {filteredTransactions.length} recent transactions
+                Showing {totalCount} recent transactions
               </p>
             </div>
           )}

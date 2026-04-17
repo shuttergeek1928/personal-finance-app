@@ -72,7 +72,7 @@ namespace PersonalFinance.Services.UserManagement.Controllers
         {
             var command = new GoogleLoginCommand
             {
-                IdToken = request.IdToken,
+                AuthorizationCode = request.AuthorizationCode,
                 IpAddress = HttpContext.Connection.RemoteIpAddress?.ToString()
             };
 
@@ -114,7 +114,7 @@ namespace PersonalFinance.Services.UserManagement.Controllers
 
     public class GoogleLoginRequest
     {
-        public string IdToken { get; set; } = string.Empty;
+        public string AuthorizationCode { get; set; } = string.Empty;
     }
 
     public class RefreshTokenRequest

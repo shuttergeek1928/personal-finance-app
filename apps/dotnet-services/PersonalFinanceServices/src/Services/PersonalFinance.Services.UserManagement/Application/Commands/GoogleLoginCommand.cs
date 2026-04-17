@@ -2,6 +2,8 @@ using AutoMapper;
 
 using Google.Apis.Auth;
 
+using MassTransit;
+
 using MediatR;
 
 using Microsoft.EntityFrameworkCore;
@@ -17,7 +19,7 @@ namespace PersonalFinance.Services.UserManagement.Application.Commands
 {
     public class GoogleLoginCommand : IRequest<ApiResponse<LoginResponse>>
     {
-        public string IdToken { get; set; } = string.Empty;
+        public string AuthorizationCode { get; set; } = string.Empty;
         public string? IpAddress { get; set; }
     }
 
@@ -25,6 +27,7 @@ namespace PersonalFinance.Services.UserManagement.Application.Commands
     {
         private readonly ITokenService _tokenService;
         private readonly IConfiguration _configuration;
+        private readonly IPublishEndpoint _publishEndpoint;
 
         public GoogleLoginCommandHandler(
             UserManagementDbContext context,
@@ -32,28 +35,52 @@ namespace PersonalFinance.Services.UserManagement.Application.Commands
             ITokenService tokenService,
             IMapper mapper,
             IConfiguration configuration,
-            ILogger<GoogleLoginCommandHandler> logger) : base(context, logger, mapper, passwordHasher)
+            ILogger<GoogleLoginCommandHandler> logger,
+            IPublishEndpoint publishEndpoint) : base(context, logger, mapper, passwordHasher)
         {
             _tokenService = tokenService;
             _configuration = configuration;
+            _publishEndpoint = publishEndpoint;
         }
 
         public override async Task<ApiResponse<LoginResponse>> Handle(GoogleLoginCommand request, CancellationToken cancellationToken)
         {
             try
             {
-                Logger.LogInformation("Attempting Google login");
+                Logger.LogInformation("Attempting Google login via authorization code");
+
+                var clientId = _configuration["GoogleSettings:ClientId"] ?? "";
+                var clientSecret = _configuration["GoogleSettings:ClientSecret"] ?? "";
+                var redirectUri = _configuration["GoogleSettings:RedirectUri"] ?? "postmessage";
+
+                var flow = new Google.Apis.Auth.OAuth2.Flows.GoogleAuthorizationCodeFlow(
+                    new Google.Apis.Auth.OAuth2.Flows.GoogleAuthorizationCodeFlow.Initializer
+                    {
+                        ClientSecrets = new Google.Apis.Auth.OAuth2.ClientSecrets
+                        {
+                            ClientId = clientId,
+                            ClientSecret = clientSecret
+                        },
+                        Scopes = new[] { "openid", "email", "profile", "https://www.googleapis.com/auth/gmail.readonly" }
+                    });
+
+                var tokenResponse = await flow.ExchangeCodeForTokenAsync("user", request.AuthorizationCode, redirectUri, cancellationToken);
+                
+                if (tokenResponse == null || string.IsNullOrEmpty(tokenResponse.IdToken))
+                {
+                    return ApiResponse<LoginResponse>.ErrorResult("Failed to exchange authorization code for tokens.");
+                }
 
                 var settings = new GoogleJsonWebSignature.ValidationSettings
                 {
-                    Audience = new[] { _configuration["GoogleSettings:ClientId"] }
+                    Audience = new[] { clientId }
                 };
 
-                var payload = await GoogleJsonWebSignature.ValidateAsync(request.IdToken, settings);
+                var payload = await GoogleJsonWebSignature.ValidateAsync(tokenResponse.IdToken, settings);
 
                 if (payload == null)
                 {
-                    return ApiResponse<LoginResponse>.ErrorResult("Invalid Google token");
+                    return ApiResponse<LoginResponse>.ErrorResult("Invalid Google token payload.");
                 }
 
                 var user = await Context.Users
@@ -78,29 +105,50 @@ namespace PersonalFinance.Services.UserManagement.Application.Commands
                     }
 
                     Context.Users.Add(user);
-                    await Context.SaveChangesAsync(cancellationToken);
                 }
                 else if (string.IsNullOrEmpty(user.GoogleId))
                 {
                     // Link existing user to Google
                     user.SetGoogleId(payload.Subject);
-                    await Context.SaveChangesAsync(cancellationToken);
                 }
 
-                var roles = user.UserRoles.Select(ur => ur.Role.Name).ToList();
-                var accessToken = _tokenService.CreateToken(user, roles);
-                var refreshToken = _tokenService.GenerateRefreshToken();
+                // Store or update Gmail Tokens
+                if (!string.IsNullOrEmpty(tokenResponse.AccessToken))
+                {
+                    var tokenExpiresAt = tokenResponse.IssuedUtc.AddSeconds(tokenResponse.ExpiresInSeconds ?? 3600);
+                    // Retain the existing refresh token if Google didn't return a new one
+                    var refreshTokenToStore = !string.IsNullOrEmpty(tokenResponse.RefreshToken) 
+                        ? tokenResponse.RefreshToken 
+                        : user.GmailRefreshToken;
+                        
+                    user.SetGmailTokens(tokenResponse.AccessToken, refreshTokenToStore ?? "", tokenExpiresAt);
 
-                // Insert refresh token directly — bypasses User's RowVersion concurrency check
-                var refreshTokenEntity = new Domain.Entities.RefreshToken(refreshToken, DateTime.UtcNow.AddDays(7), user.Id, request.IpAddress);
+                    // Publish the token update event for other microservices
+                    await _publishEndpoint.Publish(new PersonalFinance.Shared.Events.Events.UserGmailTokensUpdatedEvent
+                    {
+                        UserId = user.Id,
+                        Email = user.Email.Value,
+                        AccessToken = tokenResponse.AccessToken,
+                        RefreshToken = refreshTokenToStore ?? "",
+                        ExpiresAt = tokenExpiresAt
+                    }, cancellationToken);
+                }
+
+                await Context.SaveChangesAsync(cancellationToken);
+
+                var roles = user.UserRoles.Select(ur => ur.Role.Name).ToList();
+                var appAccessToken = _tokenService.CreateToken(user, roles);
+                var appRefreshToken = _tokenService.GenerateRefreshToken();
+
+                var refreshTokenEntity = new Domain.Entities.RefreshToken(appRefreshToken, DateTime.UtcNow.AddDays(7), user.Id, request.IpAddress);
                 Context.RefreshTokens.Add(refreshTokenEntity);
                 await Context.SaveChangesAsync(cancellationToken);
 
                 var loginResponse = new LoginResponse
                 {
                     User = user.ToDto(Mapper),
-                    AccessToken = accessToken,
-                    RefreshToken = refreshToken,
+                    AccessToken = appAccessToken,
+                    RefreshToken = appRefreshToken,
                     ExpiresAt = DateTime.UtcNow.AddMinutes(int.Parse(_configuration["JwtSettings:ExpiryMinutes"] ?? "5")),
                     Permissions = roles
                 };

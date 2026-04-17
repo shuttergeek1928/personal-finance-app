@@ -13,6 +13,7 @@ import {
   Receipt,
   CreditCard,
   Repeat,
+  Mail,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -40,6 +41,7 @@ const userNavigation = [
     href: "/my/obligations/subscriptions",
     icon: Repeat,
   },
+  { name: "Email Sync", href: "/my/email-sync", icon: Mail },
   { name: "My Profile", href: "/my/profile", icon: User },
 ];
 

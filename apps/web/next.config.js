@@ -21,6 +21,10 @@ const nextConfig = {
         source: "/gateway-obligations/:path*",
         destination: `${apiGatewayUrl}/gateway-obligations/:path*`,
       },
+      {
+        source: "/gateway-email-ingestion/:path*",
+        destination: `${apiGatewayUrl}/gateway-email-ingestion/:path*`,
+      },
     ];
   },
 };

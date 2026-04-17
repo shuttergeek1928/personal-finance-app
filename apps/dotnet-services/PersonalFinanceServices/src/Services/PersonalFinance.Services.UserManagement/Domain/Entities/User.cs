@@ -16,6 +16,12 @@ namespace PersonalFinance.Services.UserManagement.Domain.Entities
         public string? GoogleId { get; private set; }
         public DateTime? LastLoginAt { get; private set; }
 
+        // Gmail API access tokens (separate from app JWT tokens)
+        public string? GmailAccessToken { get; private set; }
+        public string? GmailRefreshToken { get; private set; }
+        public DateTime? GmailTokenExpiresAt { get; private set; }
+        public bool HasGmailAccess => !string.IsNullOrEmpty(GmailRefreshToken);
+
         private User() { }
 
         private readonly List<UserRole> _userRoles = new();
@@ -106,6 +112,20 @@ namespace PersonalFinance.Services.UserManagement.Domain.Entities
         public void SetGoogleId(string googleId)
         {
             GoogleId = googleId;
+        }
+
+        public void SetGmailTokens(string accessToken, string refreshToken, DateTime expiresAt)
+        {
+            GmailAccessToken = accessToken;
+            GmailRefreshToken = refreshToken;
+            GmailTokenExpiresAt = expiresAt;
+        }
+
+        public void ClearGmailTokens()
+        {
+            GmailAccessToken = null;
+            GmailRefreshToken = null;
+            GmailTokenExpiresAt = null;
         }
 
         public void AddRefreshToken(string token, DateTime expiresAt, string? createdByIp = null)

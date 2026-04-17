@@ -18,6 +18,7 @@ namespace PersonalFinance.Services.Transactions.Domain.Entities
         public string Description { get; private set; } = string.Empty;
         public string Category { get; private set; } = string.Empty;
         public DateTime TransactionDate { get; private set; }
+        public string? ReferenceNumber { get; private set; }
         public string? RejectionReason { get; private set; }
 
         private Transaction() { }
@@ -57,6 +58,10 @@ namespace PersonalFinance.Services.Transactions.Domain.Entities
         {
             Status = TransactionStatus.Rejected;
             RejectionReason = reason ?? throw new ArgumentNullException(nameof(reason));
+        }
+        public void SetReferenceNumber(string? referenceNumber)
+        {
+            ReferenceNumber = referenceNumber;
         }
     }
 

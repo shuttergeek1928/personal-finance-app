@@ -26,6 +26,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning className="h-full overflow-hidden">
       <body
+        suppressHydrationWarning
         className={`${poppins.variable} font-sans antialiased bg-background text-foreground h-full overflow-hidden`}
       >
         <Script src="https://accounts.google.com/gsi/client" strategy="beforeInteractive" />

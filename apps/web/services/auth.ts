@@ -78,10 +78,10 @@ export const authService = {
     return response.data;
   },
 
-  googleLogin: async (idToken: string): Promise<LoginApiResponse> => {
+  googleLogin: async (authorizationCode: string): Promise<LoginApiResponse> => {
     const response = await api.post(
       "/api/Auth/google-login",
-      { idToken },
+      { authorizationCode },
       {
         baseURL: GATEWAY_BASE_URL,
       }

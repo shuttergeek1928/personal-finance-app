@@ -88,4 +88,27 @@ namespace PersonalFinance.Shared.Events.Events
         public string Category { get; init; } = "Transfer";
         public DateTime TransactionDate { get; init; }
     }
+
+    // Batch transaction import event (from email sync / bank statement upload)
+    public record EmailTransactionsBatchEvent : IIntegrationEvent
+    {
+        public Guid EventId { get; init; } = Guid.NewGuid();
+        public DateTime OccurredOn { get; init; } = DateTime.UtcNow;
+
+        public Guid UserId { get; init; }
+        public List<EmailTransactionItem> Transactions { get; init; } = new();
+    }
+
+    public record EmailTransactionItem
+    {
+        public decimal Amount { get; init; }
+        public string Currency { get; init; } = "INR";
+        public string TransactionType { get; init; } = string.Empty; // Income, Expense
+        public string Category { get; init; } = string.Empty;
+        public string Description { get; init; } = string.Empty;
+        public DateTime TransactionDate { get; init; }
+        public Guid? AccountId { get; init; }
+        public string? ReferenceNumber { get; init; }
+        public string Source { get; init; } = "Gmail"; // Gmail, SMS, AccountAggregator, BankStatement
+    }
 }

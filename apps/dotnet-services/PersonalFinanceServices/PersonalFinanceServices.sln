@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
-VisualStudioVersion = 18.4.11626.88 stable
+VisualStudioVersion = 18.4.11626.88
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{732B4E13-45A4-4297-8BBC-D273859FAE99}"
 EndProject
@@ -51,6 +51,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PersonalFinance.Services.Obligations", "src\Services\PersonalFinance.Services.Obligations\PersonalFinance.Services.Obligations.csproj", "{93EA098C-0F7F-42E7-A119-EAD7D8CD369D}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Obligations", "Obligations", "{5504025C-8ABF-49FB-8C0B-59EBF8CC6275}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PersonalFinance.Services.EmailIngestion", "src\Services\PersonalFinance.Services.EmailIngestion\PersonalFinance.Services.EmailIngestion.csproj", "{B6ABC842-0609-4CE9-8579-B70E5C55536B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -158,6 +160,18 @@ Global
 		{93EA098C-0F7F-42E7-A119-EAD7D8CD369D}.Release|x64.Build.0 = Release|Any CPU
 		{93EA098C-0F7F-42E7-A119-EAD7D8CD369D}.Release|x86.ActiveCfg = Release|Any CPU
 		{93EA098C-0F7F-42E7-A119-EAD7D8CD369D}.Release|x86.Build.0 = Release|Any CPU
+		{B6ABC842-0609-4CE9-8579-B70E5C55536B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B6ABC842-0609-4CE9-8579-B70E5C55536B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B6ABC842-0609-4CE9-8579-B70E5C55536B}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{B6ABC842-0609-4CE9-8579-B70E5C55536B}.Debug|x64.Build.0 = Debug|Any CPU
+		{B6ABC842-0609-4CE9-8579-B70E5C55536B}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{B6ABC842-0609-4CE9-8579-B70E5C55536B}.Debug|x86.Build.0 = Debug|Any CPU
+		{B6ABC842-0609-4CE9-8579-B70E5C55536B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B6ABC842-0609-4CE9-8579-B70E5C55536B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B6ABC842-0609-4CE9-8579-B70E5C55536B}.Release|x64.ActiveCfg = Release|Any CPU
+		{B6ABC842-0609-4CE9-8579-B70E5C55536B}.Release|x64.Build.0 = Release|Any CPU
+		{B6ABC842-0609-4CE9-8579-B70E5C55536B}.Release|x86.ActiveCfg = Release|Any CPU
+		{B6ABC842-0609-4CE9-8579-B70E5C55536B}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -182,6 +196,7 @@ Global
 		{04F1C823-29D0-426F-A35C-9A256A5D8A07} = {E004D922-B830-4596-9D3B-F3C5DD5D6244}
 		{93EA098C-0F7F-42E7-A119-EAD7D8CD369D} = {5504025C-8ABF-49FB-8C0B-59EBF8CC6275}
 		{5504025C-8ABF-49FB-8C0B-59EBF8CC6275} = {D29ACE5C-E910-4426-8D73-BD6830F0E25F}
+		{B6ABC842-0609-4CE9-8579-B70E5C55536B} = {D29ACE5C-E910-4426-8D73-BD6830F0E25F}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {136473AA-B42C-45C2-A5CF-1BD1B69A2588}

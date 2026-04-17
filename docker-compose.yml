@@ -40,6 +40,8 @@ services:
       - sqlserver
     networks:
       - finance_network
+    environment:
+      - GoogleSettings__ClientSecret=${GOOGLE_CLIENT_SECRET}
 
   accounts:
     build:
@@ -73,6 +75,21 @@ services:
     networks:
       - finance_network
 
+  # ================= EMAIL INGESTION =================
+  email-ingestion:
+    build:
+      context: ./apps/dotnet-services/PersonalFinanceServices
+      dockerfile: src/Services/PersonalFinance.Services.EmailIngestion/Dockerfile
+    container_name: finance-email-ingestion
+    environment:
+      ASPNETCORE_ENVIRONMENT: Docker
+      GoogleSettings__ClientSecret: ${GOOGLE_CLIENT_SECRET}
+    depends_on:
+      - sqlserver
+      - rabbitmq
+    networks:
+      - finance_network
+
   # ================= API GATEWAY =================
   apigateway:
     build:
@@ -88,28 +105,29 @@ services:
       - accounts
       - transactions
       - obligations
+      - email-ingestion
       - rabbitmq
       - sqlserver
     networks:
       - finance_network
 
   # ================= FRONTEND =================
-  web:
-    build:
-      context: ./apps/web
-      dockerfile: Dockerfile
-      args:
-        INTERNAL_API_URL: http://apigateway:5000
-    container_name: finance-web
-    ports:
-      - "3000:3000"
-    environment:
-      NODE_ENV: production
-      INTERNAL_API_URL: http://apigateway:5000
-    depends_on:
-      - apigateway
-    networks:
-      - finance_network
+  # web:
+  #   build:
+  #     context: ./apps/web
+  #     dockerfile: Dockerfile
+  #     args:
+  #       INTERNAL_API_URL: http://apigateway:5000
+  #   container_name: finance-web
+  #   ports:
+  #     - "3000:3000"
+  #   environment:
+  #     NODE_ENV: production
+  #     INTERNAL_API_URL: http://apigateway:5000
+  #   depends_on:
+  #     - apigateway
+  #   networks:
+  #     - finance_network
 
 # ================= VOLUMES =================
 volumes:

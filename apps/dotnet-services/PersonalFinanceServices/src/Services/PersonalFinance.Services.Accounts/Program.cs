@@ -78,10 +78,12 @@ builder.Services.AddCors(options => options.AddPolicy("AllowMyOrigins", builder 
 
 builder.Services.AddMassTransit(x =>
 {
-    x.AddConsumers(typeof(Program).Assembly); // Registers all consumers in assembly
+    // Important: Scan the assembly where TransactionCreatedConsumer is located
+    x.AddConsumers(typeof(PersonalFinance.Services.Accounts.Application.Consumers.TransactionCreatedConsumer).Assembly); 
+
     x.UsingRabbitMq((context, cfg) =>
     {
-        cfg.Host("finance-rabbitmq", "/", h =>
+        cfg.Host("rabbitmq", "/", h =>
         {
             h.Username("admin");
             h.Password("admin123");

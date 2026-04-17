@@ -45,6 +45,10 @@ namespace PersonalFinance.Services.Transactions.Infrastructure.Data.Configuratio
                 .HasMaxLength(500)
                 .IsRequired(false); // Nullable field
 
+            builder.Property(a => a.ReferenceNumber)
+                .HasMaxLength(100)
+                .IsRequired(false);
+
             builder.Property(a => a.AccountId)
                 .IsRequired(false);
 

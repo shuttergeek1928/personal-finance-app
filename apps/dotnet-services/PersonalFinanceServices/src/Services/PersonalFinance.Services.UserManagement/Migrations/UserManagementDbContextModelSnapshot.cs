@@ -139,6 +139,15 @@ namespace PersonalFinance.Services.UserManagement.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<string>("GmailAccessToken")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("GmailRefreshToken")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("GmailTokenExpiresAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("GoogleId")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");

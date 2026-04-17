@@ -1,0 +1,625 @@
+# Automated Transaction Ingestion — Gmail + UPI Tracking Strategy
+
+## Problem Statement
+
+Currently, all transactions in the Personal Finance App are manually entered. The goal is to **automate transaction insertion** by:
+1. Reading Gmail transaction notification emails (bank alerts, Swiggy, EMI debits, UPI confirmations, loan payments, etc.)
+2. Parsing and classifying them by transaction type
+3. Persisting them to the DB via the existing `Transactions` microservice
+4. Updating account balances via the existing RabbitMQ event pipeline
+
+Additionally, we need a strategy for **UPI transactions** which often don't generate email notifications.
+
+---
+
+## User Review Required
+
+> [!IMPORTANT]
+> **Google Cloud Console Setup**: You will need to enable the **Gmail API** in your existing Google Cloud project (the one with ClientId `13080223109-...`) and add the `https://www.googleapis.com/auth/gmail.readonly` scope. This requires Google's **verification process** since it's a sensitive/restricted scope — plan for ~1-2 weeks of review.
+
+> [!WARNING]
+> **UPI on iOS**: Apple **prohibits** third-party apps from reading SMS. There is **no workaround**. The only compliant cross-platform solution for UPI tracking is the **RBI Account Aggregator (AA) framework** or manual entry. See the detailed analysis in [Section 5](#5-upi-transaction-tracking-strategy).
+
+> [!CAUTION]
+> **Data Sensitivity**: Storing and processing raw email content containing financial data has regulatory implications. All email content must be processed in-memory and never persisted as raw text. Only the extracted, structured transaction data should be stored.
+
+---
+
+## Architecture Overview
+
+```mermaid
+graph TB
+    subgraph "Frontend (Web + Mobile)"
+        A[Next.js / Expo App]
+    end
+
+    subgraph "API Gateway"
+        B[YARP Gateway :5000]
+    end
+
+    subgraph "New: Email Ingestion Service"
+        C[PersonalFinance.Services.EmailIngestion :5400]
+        D[Gmail API Client]
+        E[Email Parser Engine]
+        F[Transaction Classifier]
+        G[Dedup Engine]
+    end
+
+    subgraph "Existing Services"
+        H[Transactions Service :5200]
+        I[Accounts Service :5300]
+        J[UserManagement Service :5100]
+    end
+
+    subgraph "Infrastructure"
+        K[RabbitMQ]
+        L[SQL Server]
+    end
+
+    A -->|"Connect Gmail / Trigger Sync"| B
+    B --> C
+    C --> D -->|"Fetch emails"| Gmail[(Gmail API)]
+    D --> E -->|"Parse MIME"| F
+    F -->|"Classify"| G
+    G -->|"Publish TransactionCreated events"| K
+    K --> H
+    K --> I
+    H --> L
+    I --> L
+    C --> L
+    J -->|"Store Gmail OAuth tokens"| L
+```
+
+---
+
+## Proposed Changes
+
+### Component 1: Google OAuth2 Scope Expansion (UserManagement Service)
+
+The existing Google login only validates the `IdToken` for authentication. We now need **Gmail API access**, which requires:
+- Requesting `gmail.readonly` scope during OAuth consent
+- Storing the user's **Gmail OAuth Access Token** and **Refresh Token** server-side (these are different from the app's JWT refresh token)
+
+---
+
+#### [MODIFY] [GoogleLoginCommand.cs](file:///d:/DataSSD/PersonalFinanceApp/personal-finance-app/apps/dotnet-services/PersonalFinanceServices/src/Services/PersonalFinance.Services.UserManagement/Application/Commands/GoogleLoginCommand.cs)
+
+Currently only validates `IdToken`. Must be updated to handle the **full OAuth2 authorization code flow** instead of just ID token validation. The frontend will send an `authorizationCode` which the backend exchanges for `access_token` + `refresh_token` + `id_token`.
+
+**Changes:**
+- Accept `AuthorizationCode` instead of just `IdToken`
+- Exchange code for tokens using Google's token endpoint
+- Store `GmailAccessToken`, `GmailRefreshToken`, and `GmailTokenExpiresAt` on the User entity
+- The ID token validation logic remains for extracting user profile info
+
+---
+
+#### [MODIFY] [User.cs](file:///d:/DataSSD/PersonalFinanceApp/personal-finance-app/apps/dotnet-services/PersonalFinanceServices/src/Services/PersonalFinance.Services.UserManagement/Domain/Entities/User.cs)
+
+Add Gmail token storage fields:
+
+```csharp
+// New properties for Gmail API access
+public string? GmailAccessToken { get; private set; }
+public string? GmailRefreshToken { get; private set; }
+public DateTime? GmailTokenExpiresAt { get; private set; }
+public bool HasGmailAccess => !string.IsNullOrEmpty(GmailRefreshToken);
+
+// New business method
+public void SetGmailTokens(string accessToken, string refreshToken, DateTime expiresAt)
+{
+    GmailAccessToken = accessToken;
+    GmailRefreshToken = refreshToken;
+    GmailTokenExpiresAt = expiresAt;
+}
+```
+
+> [!NOTE]
+> Gmail tokens should be **encrypted at rest** using ASP.NET Core Data Protection APIs before persisting to SQL Server.
+
+---
+
+#### [MODIFY] [appsettings.json](file:///d:/DataSSD/PersonalFinanceApp/personal-finance-app/apps/dotnet-services/PersonalFinanceServices/src/Services/PersonalFinance.Services.UserManagement/appsettings.json)
+
+Add `ClientSecret` to `GoogleSettings` (required for authorization code exchange):
+
+```json
+"GoogleSettings": {
+    "ClientId": "13080223109-...",
+    "ClientSecret": "<YOUR_CLIENT_SECRET>",
+    "RedirectUri": "http://localhost:3000/auth/google/callback"
+}
+```
+
+---
+
+### Component 2: New Email Ingestion Microservice
+
+> This is a **brand-new microservice** following the same DDD/CQRS patterns as the existing services.
+
+#### [NEW] `PersonalFinance.Services.EmailIngestion` — Full service structure:
+
+```
+src/Services/PersonalFinance.Services.EmailIngestion/
+├── Controllers/
+│   └── EmailIngestionController.cs          # REST endpoints
+├── Application/
+│   ├── Commands/
+│   │   ├── SyncGmailTransactionsCommand.cs  # Trigger manual/scheduled sync
+│   │   └── ProcessEmailBatchCommand.cs      # Process a batch of emails
+│   ├── Queries/
+│   │   ├── GetSyncStatusQuery.cs            # Check last sync time, stats
+│   │   └── GetParsedTransactionsQuery.cs    # View parsed but unconfirmed txns
+│   ├── Services/
+│   │   ├── IGmailApiService.cs              # Gmail API abstraction
+│   │   ├── GmailApiService.cs               # Gmail API client using Google.Apis.Gmail.v1
+│   │   ├── IEmailParserService.cs           # Parser abstraction
+│   │   ├── EmailParserService.cs            # MimeKit-based parser
+│   │   ├── ITransactionClassifier.cs        # Classifier abstraction
+│   │   └── TransactionClassifier.cs         # Rule-based + regex classifier
+│   ├── ParsingRules/
+│   │   ├── IEmailParsingRule.cs             # Strategy pattern interface
+│   │   ├── SwiggyParsingRule.cs             # Swiggy order emails
+│   │   ├── BankDebitParsingRule.cs           # Bank debit alerts (HDFC, SBI, ICICI, etc.)
+│   │   ├── UpiParsingRule.cs                # UPI confirmation emails
+│   │   ├── EmiParsingRule.cs                # EMI deduction emails
+│   │   ├── LoanParsingRule.cs               # Loan disbursement/repayment
+│   │   ├── CreditCardParsingRule.cs         # Credit card transaction alerts
+│   │   ├── SalaryParsingRule.cs             # Salary credit emails
+│   │   └── SubscriptionParsingRule.cs       # Netflix, Spotify, etc.
+│   ├── DataTransferObjects/
+│   │   ├── ParsedTransactionDto.cs
+│   │   ├── SyncStatusDto.cs
+│   │   └── EmailSyncResultDto.cs
+│   └── Mappings/
+│       └── EmailIngestionMappingProfile.cs
+├── Domain/
+│   ├── Entities/
+│   │   ├── ProcessedEmail.cs                # Tracks which emails have been processed
+│   │   ├── ParsedTransaction.cs             # Staging table before confirmation
+│   │   └── ParsingRule.cs                   # Configurable parsing rules
+│   └── Events/
+│       └── EmailProcessedEvent.cs
+├── Infrastructure/
+│   ├── Data/
+│   │   └── EmailIngestionDbContext.cs
+│   └── BackgroundServices/
+│       └── GmailSyncBackgroundService.cs    # Periodic sync (every 15 mins)
+├── Program.cs
+├── Dockerfile
+├── appsettings.json
+└── PersonalFinance.Services.EmailIngestion.csproj
+```
+
+---
+
+#### Key Entity: `ProcessedEmail`
+
+Tracks processed Gmail messages to prevent **duplicate transaction insertion**:
+
+```csharp
+public class ProcessedEmail : AggregateRoot
+{
+    public Guid UserId { get; private set; }
+    public string GmailMessageId { get; private set; }     // Gmail's unique message ID
+    public string ThreadId { get; private set; }
+    public string Subject { get; private set; }
+    public string SenderEmail { get; private set; }
+    public DateTime EmailDate { get; private set; }
+    public ProcessingStatus Status { get; private set; }    // Parsed, Confirmed, Skipped, Failed
+    public string? ErrorMessage { get; private set; }
+    public Guid? LinkedTransactionId { get; private set; }  // FK to the created Transaction
+}
+```
+
+#### Key Entity: `ParsedTransaction`
+
+Staging area for parsed transactions before they're confirmed and sent to the Transactions service:
+
+```csharp
+public class ParsedTransaction : AggregateRoot
+{
+    public Guid UserId { get; private set; }
+    public Guid ProcessedEmailId { get; private set; }
+    public decimal Amount { get; private set; }
+    public string Currency { get; private set; } = "INR";
+    public string TransactionType { get; private set; }      // Income, Expense, Transfer
+    public string Category { get; private set; }              // Food, EMI, Salary, UPI, etc.
+    public string Description { get; private set; }
+    public DateTime TransactionDate { get; private set; }
+    public string? MerchantName { get; private set; }
+    public string? ReferenceNumber { get; private set; }      // UTR, Ref No, Order ID
+    public Guid? SuggestedAccountId { get; private set; }
+    public ParsedTransactionStatus Status { get; private set; } // Pending, Confirmed, Rejected
+    public float ConfidenceScore { get; private set; }         // 0.0 - 1.0 parsing confidence
+}
+```
+
+---
+
+#### Email Parsing Engine — Strategy Pattern
+
+Each email type has a dedicated parsing rule that implements `IEmailParsingRule`:
+
+```csharp
+public interface IEmailParsingRule
+{
+    bool CanParse(string senderEmail, string subject, string body);
+    ParsedTransactionDto? Parse(string senderEmail, string subject, string body, DateTime emailDate);
+    float ConfidenceScore { get; }
+}
+```
+
+**Example: Swiggy Parsing Rule**
+```csharp
+public class SwiggyParsingRule : IEmailParsingRule
+{
+    public float ConfidenceScore => 0.95f;
+
+    public bool CanParse(string senderEmail, string subject, string body)
+    {
+        return senderEmail.Contains("swiggy.in") &&
+               (subject.Contains("Order Delivered") || subject.Contains("Payment Receipt"));
+    }
+
+    public ParsedTransactionDto? Parse(string senderEmail, string subject, string body, DateTime emailDate)
+    {
+        // Regex patterns to extract amount, order ID, etc.
+        var amountMatch = Regex.Match(body, @"(?:₹|Rs\.?|INR)\s*([\d,]+\.?\d*)");
+        if (!amountMatch.Success) return null;
+
+        return new ParsedTransactionDto
+        {
+            Amount = decimal.Parse(amountMatch.Groups[1].Value.Replace(",", "")),
+            Category = "Food & Dining",
+            TransactionType = "Expense",
+            Description = $"Swiggy Order - {subject}",
+            MerchantName = "Swiggy",
+            TransactionDate = emailDate
+        };
+    }
+}
+```
+
+**Supported Email Sources (Initial):**
+
+| Rule | Sender Pattern | Category | Type |
+|------|---------------|----------|------|
+| `BankDebitParsingRule` | `*alerts@hdfcbank*`, `*@sbi*`, `*@icici*` | Various | Expense |
+| `SwiggyParsingRule` | `*@swiggy.in` | Food & Dining | Expense |
+| `UpiParsingRule` | `*@upi*`, bank UPI alerts | UPI Payment | Expense |
+| `EmiParsingRule` | Bank EMI alerts | EMI | Expense |
+| `LoanParsingRule` | Loan disbursement/repayment | Loan | Expense/Income |
+| `CreditCardParsingRule` | CC transaction alerts | Various | Expense |
+| `SalaryParsingRule` | `*@employer*`, salary credit alerts | Salary | Income |
+| `SubscriptionParsingRule` | Netflix, Spotify, etc. | Subscription | Expense |
+
+---
+
+#### Background Sync Service
+
+```csharp
+public class GmailSyncBackgroundService : BackgroundService
+{
+    // INTELLIGENT ADAPTIVE POLLING — frequency varies by transaction type:
+    //
+    // | Category           | Poll Interval | Gmail Query Filter                          |
+    // |--------------------|---------------|---------------------------------------------|
+    // | UPI / Daily Txns   | 10 minutes    | from:(alerts@*bank*) subject:(debited OR UPI)|
+    // | Food (Swiggy/Zomato)| 10 minutes   | from:(*swiggy* OR *zomato*)                 |
+    // | Subscriptions      | Daily (6 AM)  | from:(*netflix* OR *spotify* OR *aws*)      |
+    // | EMI / Loans        | Monthly (1st) | subject:(EMI OR loan OR instalment)         |
+    // | Salary             | Monthly (1st) | subject:(salary OR credit) amount > 10000   |
+    // | Credit Card        | Daily (9 PM)  | from:(*card* OR *credit*)                   |
+    //
+    // The scheduler uses a SyncSchedule config per category.
+    // All parsed transactions go to the REVIEW QUEUE (no auto-confirm).
+    // Users can bulk-confirm items with confidence > 90% from the UI.
+    //
+    // For each user with HasGmailAccess == true:
+    //   1. Check which category polls are due based on schedule
+    //   2. Refresh Gmail access token if expired
+    //   3. Query Gmail API with category-specific filters
+    //   4. For each new email → run through parsing rules
+    //   5. Store ParsedTransaction in staging (status = Pending)
+    //   6. Notify frontend via SignalR that new transactions are available
+}
+```
+
+**Sync Schedule Configuration (appsettings.json):**
+
+```json
+"SyncSchedules": [
+  { "Category": "UPI",          "IntervalMinutes": 10,    "CronOverride": null },
+  { "Category": "FoodDelivery",  "IntervalMinutes": 10,    "CronOverride": null },
+  { "Category": "Subscription",  "IntervalMinutes": null,  "CronOverride": "0 6 * * *" },
+  { "Category": "EMI",          "IntervalMinutes": null,  "CronOverride": "0 8 1 * *" },
+  { "Category": "Salary",       "IntervalMinutes": null,  "CronOverride": "0 10 1 * *" },
+  { "Category": "CreditCard",   "IntervalMinutes": null,  "CronOverride": "0 21 * * *" },
+  { "Category": "General",      "IntervalMinutes": 30,    "CronOverride": null }
+]
+```
+
+---
+
+### Component 3: Shared Events (New Events)
+
+#### [MODIFY] [TransactionEvents.cs](file:///d:/DataSSD/PersonalFinanceApp/personal-finance-app/apps/dotnet-services/PersonalFinanceServices/src/Shared/PersonalFinance.Shared.Events/Events/TransactionEvents.cs)
+
+Add new events for email-sourced transactions:
+
+```csharp
+// Batch transaction import event (from email sync)
+public record EmailTransactionsBatchEvent : IIntegrationEvent
+{
+    public Guid EventId { get; init; } = Guid.NewGuid();
+    public DateTime OccurredOn { get; init; } = DateTime.UtcNow;
+    public Guid UserId { get; init; }
+    public List<EmailTransactionItem> Transactions { get; init; } = new();
+}
+
+public record EmailTransactionItem
+{
+    public decimal Amount { get; init; }
+    public string Currency { get; init; } = "INR";
+    public string TransactionType { get; init; }  // Income, Expense
+    public string Category { get; init; }
+    public string Description { get; init; }
+    public DateTime TransactionDate { get; init; }
+    public Guid? AccountId { get; init; }
+    public string? ReferenceNumber { get; init; }
+    public string Source { get; init; } = "Gmail";  // Gmail, SMS, AccountAggregator
+}
+```
+
+---
+
+### Component 4: Transaction Service — Batch Import Consumer
+
+#### [NEW] `Consumers/EmailTransactionBatchConsumer.cs` in Transactions Service
+
+A MassTransit consumer that listens for `EmailTransactionsBatchEvent` and creates transactions in bulk:
+
+```csharp
+public class EmailTransactionBatchConsumer : IConsumer<EmailTransactionsBatchEvent>
+{
+    // For each transaction in the batch:
+    //   1. Check for duplicate (ReferenceNumber + Date + Amount)
+    //   2. Create Transaction entity
+    //   3. Approve and save
+    //   4. Publish individual IncomeTransactionCreatedEvent / ExpenseTransactionCreatedEvent
+    //      (which the Accounts service already consumes to update balances)
+}
+```
+
+This leverages the **existing event pipeline** — the Accounts service already has consumers for `IncomeTransactionCreatedEvent` and `ExpenseTransactionCreatedEvent` that update balances.
+
+---
+
+### Component 5: Frontend Changes (Next.js)
+
+#### [NEW] `apps/web/app/settings/email-sync/page.tsx`
+
+Settings page for Gmail connection:
+- **"Connect Gmail"** button → triggers OAuth2 flow with `gmail.readonly` scope
+- Shows connection status (connected/disconnected)
+- Last sync timestamp
+- Manual "Sync Now" button
+
+#### [NEW] `apps/web/app/transactions/pending/page.tsx`
+
+Review page for auto-parsed transactions:
+- List of parsed transactions with confidence scores
+- ✅ Confirm / ❌ Reject / ✏️ Edit each transaction
+- Bulk confirm for high-confidence items
+- Account selector for each transaction
+
+#### [MODIFY] `apps/web/services/api.ts`
+
+Add new API endpoints:
+- `POST /api/EmailIngestion/connect-gmail`
+- `POST /api/EmailIngestion/sync`
+- `GET /api/EmailIngestion/sync-status`
+- `GET /api/EmailIngestion/parsed-transactions`
+- `POST /api/EmailIngestion/confirm-transaction/{id}`
+- `POST /api/EmailIngestion/reject-transaction/{id}`
+
+---
+
+### Component 6: Docker Compose Update
+
+#### [MODIFY] [docker-compose.yml](file:///d:/DataSSD/PersonalFinanceApp/personal-finance-app/docker-compose.yml)
+
+Add the new `email-ingestion` service:
+
+```yaml
+email-ingestion:
+  build:
+    context: ./apps/dotnet-services/PersonalFinanceServices
+    dockerfile: src/Services/PersonalFinance.Services.EmailIngestion/Dockerfile
+  container_name: finance-email-ingestion
+  depends_on:
+    - sqlserver
+    - rabbitmq
+  networks:
+    - finance_network
+```
+
+---
+
+## 5. UPI Transaction Tracking Strategy
+
+This is the critical cross-platform challenge. Here's the full analysis:
+
+### The Problem
+
+UPI transactions (GPay, PhonePe, Paytm, CRED, etc.) often **do not send email notifications**. They primarily send:
+- **SMS** (always, from the bank)
+- **Push notifications** (from the UPI app)
+- **In-app transaction history** (siloed within each app)
+
+### Platform-by-Platform Analysis
+
+#### Android — SMS Reading (Viable but Elevated Permissions)
+
+| Aspect | Details |
+|--------|---------|
+| **Feasibility** | ✅ Technically possible |
+| **Permission** | `READ_SMS` — requires Play Store justification |
+| **Approach** | Read SMS → Regex parse bank debit/credit messages |
+| **Play Store** | Google **heavily restricts** `READ_SMS`. Your app must be the **default SMS handler** OR demonstrate a **core use case** (like finance tracking). Expect a policy review. |
+| **Regex Example** | `Rs\.?\s*([\d,]+\.?\d*)\s*debited.*UPI.*Ref\s*(\d+)` |
+
+> [!WARNING]
+> Google Play's **SMS/Call Log policy** (updated Jan 2025) requires you to submit a **Permissions Declaration Form** and may take 2-4 weeks. Your app must prove that SMS reading is a "core feature" and there is no alternative API.
+
+#### iOS — SMS Reading (NOT Possible)
+
+| Aspect | Details |
+|--------|---------|
+| **Feasibility** | ❌ **Impossible** |
+| **Reason** | Apple does not allow any third-party app to read SMS messages. Period. |
+| **Workarounds that DON'T work** | Shortcuts automation (unreliable, user-driven), notification listeners (not available), screen scraping (App Store violation) |
+
+### Recommended Alternatives (Cross-Platform)
+
+#### Option A: RBI Account Aggregator Framework (Recommended Long-Term)
+
+The **Account Aggregator (AA)** is an RBI-regulated framework that provides **consent-based, read-only access** to a user's bank statements in a structured digital format.
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant App as PF App
+    participant TSP as Technology Service Provider<br>(Setu / Perfios)
+    participant AA as Account Aggregator<br>(CAMS, NeSL, etc.)
+    participant Bank as User's Bank (FIP)
+
+    User->>App: "Connect Bank Account"
+    App->>TSP: Create consent request
+    TSP->>AA: Forward consent
+    AA->>User: Open consent approval screen
+    User->>AA: Approve consent
+    AA->>Bank: Fetch data (encrypted)
+    Bank->>AA: Return encrypted FI data
+    AA->>TSP: Forward encrypted data
+    TSP->>App: Decrypted, structured transaction data
+    App->>App: Parse & insert transactions
+```
+
+| Aspect | Details |
+|--------|---------|
+| **Works on iOS?** | ✅ Yes — browser/WebView-based consent, no SMS needed |
+| **Works on Android?** | ✅ Yes |
+| **Data Format** | Structured XML/JSON (FI Type: `DEPOSIT`, `CREDIT_CARD`, etc.) |
+| **Includes UPI?** | ✅ Yes — all bank transactions including UPI debits/credits |
+| **Regulatory** | Fully RBI-compliant |
+| **Cost** | TSPs charge per data fetch (~₹5-15 per pull) |
+| **Integration Effort** | Medium — use a TSP like **Setu** or **Perfios** for SDK/API |
+| **Limitation** | Your entity must be an RBI/SEBI/IRDAI/PFRDA-regulated FIU, **OR** you partner with one |
+
+> [!IMPORTANT]
+> **Regulatory Barrier**: To be a Financial Information User (FIU) in the AA ecosystem, your entity must be regulated by RBI/SEBI/IRDAI/PFRDA. For a personal/indie app, you would need to **partner with a regulated entity** or use a TSP that provides FIU-as-a-service.
+
+#### Option B: Bank Statement Upload (Easiest, Works Everywhere)
+
+Allow users to **manually upload bank statements** (PDF/CSV/OFX) and parse them server-side.
+
+| Aspect | Details |
+|--------|---------|
+| **Works on iOS?** | ✅ Yes |
+| **Works on Android?** | ✅ Yes |
+| **Includes UPI?** | ✅ Yes — all transactions appear on statements |
+| **User Effort** | Moderate — user downloads statement monthly |
+| **Implementation** | Parse CSV/OFX (easy), PDF (harder — use iTextSharp/Tabula) |
+| **Privacy** | Good — user controls what they upload |
+
+#### Option C: Gmail-Only (Our Current Plan, Partial Coverage)
+
+| Aspect | Details |
+|--------|---------|
+| **UPI Coverage** | **Partial** — only UPI transactions that generate email alerts |
+| **Most bank debit alerts have email** | ✅ HDFC, SBI, ICICI, Kotak all send email alerts for debit/credit |
+| **Best for** | EMI, subscriptions, e-commerce (Swiggy, Amazon, Flipkart), salary |
+
+### Recommended Phased Approach
+
+| Phase | Feature | Platform | Timeline |
+|-------|---------|----------|----------|
+| **Phase 1** | Gmail email parsing | Web + Mobile | **Now** |
+| **Phase 2** | Bank statement upload (CSV/PDF) | Web + Mobile | +2 weeks |
+| **Phase 3** | Android SMS parsing | Android only | +4 weeks |
+| **Phase 4** | Account Aggregator integration | Web + Mobile | +8 weeks (requires partnership) |
+
+---
+
+## Transaction Classification Taxonomy
+
+All parsed transactions will be classified into the existing system's categories:
+
+| Category | Sub-categories | Source |
+|----------|---------------|--------|
+| **Food & Dining** | Swiggy, Zomato, Restaurants | Email, SMS |
+| **EMI** | Home Loan EMI, Car Loan EMI, Personal Loan | Email |
+| **Loan** | Disbursement, Repayment | Email |
+| **UPI** | P2P Transfer, Merchant Payment | Email, SMS, AA |
+| **Salary** | Monthly Credit | Email |
+| **Subscription** | Netflix, Spotify, AWS, etc. | Email |
+| **Shopping** | Amazon, Flipkart, Myntra | Email |
+| **Bills & Utilities** | Electricity, Water, Internet | Email |
+| **Credit Card** | CC Transactions, CC Payment | Email |
+| **Transfer** | NEFT, RTGS, IMPS | Email |
+| **Investment** | MF, SIP, Stocks | Email |
+| **Insurance** | Premium Payment | Email |
+| **Other** | Uncategorized | All |
+
+---
+
+## Deduplication Strategy
+
+Preventing duplicate transactions is critical since users may have multiple data sources:
+
+1. **Gmail Message ID**: Each processed email's `messageId` is stored → never reprocessed
+2. **Reference Number Match**: UTR/Ref numbers are compared across all sources
+3. **Fuzzy Match**: Same amount ± same date (±1 day) ± same description → flag as potential duplicate
+4. **Source Tagging**: Every transaction carries a `Source` field (`Gmail`, `SMS`, `Manual`, `AccountAggregator`, `BankStatement`)
+
+---
+
+## NuGet Packages Required
+
+| Package | Purpose | Service |
+|---------|---------|---------|
+| `Google.Apis.Gmail.v1` | Gmail API client | EmailIngestion |
+| `Google.Apis.Auth` | OAuth2 token management | EmailIngestion, UserManagement |
+| `MimeKit` | MIME email parsing | EmailIngestion |
+| `HtmlAgilityPack` | HTML body scraping | EmailIngestion |
+| `Microsoft.AspNetCore.DataProtection` | Encrypt Gmail tokens at rest | UserManagement |
+
+---
+
+## Verification Plan
+
+### Automated Tests
+1. **Unit Tests** for each `IEmailParsingRule` — feed sample email bodies and verify extracted amounts, categories, dates
+2. **Integration Tests** for the Gmail API service using a test Gmail account
+3. **Deduplication Tests** — insert same email twice, verify single transaction created
+4. **Event Pipeline Tests** — verify `EmailTransactionsBatchEvent` → `ExpenseTransactionCreatedEvent` → Account balance update
+
+### Manual Verification
+1. Connect a real Gmail account with bank alerts
+2. Trigger sync and verify transactions appear in the pending review queue
+3. Confirm transactions and verify account balances update correctly
+4. Test with emails from at least 3 different banks (HDFC, SBI, ICICI)
+
+---
+
+## Decisions (User Approved)
+
+| # | Question | Decision |
+|---|----------|----------|
+| 1 | **Starting Phase** | **Phase 1 — Gmail parsing** first |
+| 2 | **Auto-confirm** | **No auto-confirm.** All transactions go to review queue. UI provides "Confirm All >90%" bulk action button. |
+| 3 | **Bank Statement Upload** | **Yes** — planned as Phase 2 |
+| 4 | **Account Aggregator** | **Yes** — long-term goal |
+| 5 | **Polling Strategy** | **Intelligent adaptive polling** — 10 min for UPI/daily txns, monthly for EMI/salary, daily for subscriptions/CC |

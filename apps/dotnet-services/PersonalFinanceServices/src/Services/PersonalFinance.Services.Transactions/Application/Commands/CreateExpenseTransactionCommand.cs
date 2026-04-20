@@ -28,6 +28,7 @@ namespace PersonalFinance.Services.Transactions.Application.Commands
         public DateTime TransactionDate { get; set; }
         public TransactionStatus Status { get; set; } = TransactionStatus.Pending;
         public string? RejectionReason { get; set; }
+        public Guid? TransactionId { get; set; }
     }
 
     public class CreateExpenseTransactionCommandHandler : BaseRequestHandler<CreateExpenseTransactionCommand, ApiResponse<TransactionTransferObject>>
@@ -99,6 +100,11 @@ namespace PersonalFinance.Services.Transactions.Application.Commands
                     request.Description,
                     request.Category,
                     request.TransactionDate);
+
+                if (request.TransactionId.HasValue && request.TransactionId.Value != Guid.Empty)
+                {
+                    transaction.Id = request.TransactionId.Value;
+                }
 
                 transaction.Approve();
 

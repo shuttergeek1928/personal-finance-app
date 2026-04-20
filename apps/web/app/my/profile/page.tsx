@@ -7,6 +7,7 @@ import {
   UserTransferObject,
   UpdateUserProfileRequest,
 } from "@/services/user";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -38,16 +39,21 @@ import {
   Mail,
   Phone,
   Clock,
+  AlertTriangle,
+  Trash2,
 } from "lucide-react";
 
 export default function MyProfilePage() {
-  const { user: authUser, initialize } = useAuthStore();
+  const { user: authUser, initialize, logout: authLogout } = useAuthStore();
+  const router = useRouter();
   const [user, setUser] = useState<UserTransferObject | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [editData, setEditData] = useState<UpdateUserProfileRequest>({
     firstName: "",
     lastName: "",
@@ -120,6 +126,26 @@ export default function MyProfilePage() {
       alert(err.message || "Failed to update profile");
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!user) return;
+    
+    setIsDeleting(true);
+    try {
+      const res = await userService.deleteMe();
+      if (res.success) {
+        authLogout();
+        router.push("/");
+      } else {
+        alert(res.message || "Failed to delete account");
+      }
+    } catch (err: any) {
+      alert(err.message || "Failed to delete account");
+    } finally {
+      setIsDeleting(false);
+      setIsDeleteOpen(false);
     }
   };
 
@@ -431,6 +457,65 @@ export default function MyProfilePage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Danger Zone */}
+      <Card className="shadow-sm border-red-200 dark:border-red-900 overflow-hidden">
+        <div className="bg-red-50 dark:bg-red-950/20 px-6 py-3 border-b border-red-100 dark:border-red-900">
+          <CardTitle className="text-lg flex items-center gap-2 text-red-700 dark:text-red-400">
+            <AlertTriangle className="w-5 h-5" /> Danger Zone
+          </CardTitle>
+        </div>
+        <CardContent className="p-6 space-y-4">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <h4 className="font-semibold text-zinc-900 dark:text-zinc-100">
+                Delete Account
+              </h4>
+              <p className="text-sm text-muted-foreground mr-4">
+                Permanently delete your account and all associated data including
+                transactions, accounts, and obligations. This action cannot be
+                undone.
+              </p>
+            </div>
+
+            <Dialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
+              <DialogTrigger asChild>
+                <Button variant="destructive" className="gap-2 shrink-0">
+                  <Trash2 className="w-4 h-4" /> Delete My Account
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-md">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2 text-red-600">
+                    <AlertTriangle className="w-5 h-5" /> Are you absolutely sure?
+                  </DialogTitle>
+                  <DialogDescription className="pt-2">
+                    This will permanently delete your account (
+                    <strong>{user.email}</strong>) and remove all your data from
+                    our servers. This includes all your transactions, bank accounts,
+                    and financial history.
+                  </DialogDescription>
+                </DialogHeader>
+                <DialogFooter className="flex flex-col sm:flex-row gap-3 pt-4">
+                  <DialogClose asChild>
+                    <Button variant="outline" className="sm:flex-1">
+                      Cancel
+                    </Button>
+                  </DialogClose>
+                  <Button
+                    variant="destructive"
+                    className="sm:flex-1"
+                    onClick={handleDeleteAccount}
+                    disabled={isDeleting}
+                  >
+                    {isDeleting ? "Deleting..." : "Yes, Delete Everything"}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

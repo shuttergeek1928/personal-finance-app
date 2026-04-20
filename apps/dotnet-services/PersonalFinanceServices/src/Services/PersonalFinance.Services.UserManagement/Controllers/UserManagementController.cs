@@ -29,6 +29,39 @@ namespace PersonalFinance.Services.UserManagement.Controllers
         }
 
         /// <summary>
+        /// Permanently delete current user account and all data (Nuke)
+        /// </summary>
+        [HttpDelete("self-delete")]
+        [Authorize]
+        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
+        public async Task<ActionResult<ApiResponse<bool>>> DeleteMe()
+        {
+            try
+            {
+                var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userIdClaim))
+                {
+                    _logger.LogWarning("Self-deletion rejected: NameIdentifier claim missing");
+                    return Unauthorized();
+                }
+
+                var userId = Guid.Parse(userIdClaim);
+                _logger.LogInformation("Self-deletion requested by user {UserId}", userId);
+
+                var command = new DeleteUserCommand(userId);
+                var result = await _mediator.Send(command);
+
+                if (result.Success) return Ok(result);
+                return BadRequest(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during self-deletion");
+                return StatusCode(500, ApiResponse<bool>.ErrorResult("An internal error occurred during account deletion"));
+            }
+        }
+
+        /// <summary>
         /// Register a new user
         /// </summary>
         /// <param name="request">User registration details</param>
@@ -352,5 +385,7 @@ namespace PersonalFinance.Services.UserManagement.Controllers
                 return StatusCode(500, ApiResponse<bool>.ErrorResult("An internal error occurred"));
             }
         }
+
+
     }
 }

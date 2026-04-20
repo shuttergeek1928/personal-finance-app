@@ -63,7 +63,7 @@ export default function ObligationsPage() {
         <div className="flex flex-col items-center gap-3">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-600 border-t-transparent" />
           <p className="text-sm text-muted-foreground">
-            Loading your obligations...
+            Loading your EMI & bills...
           </p>
         </div>
       </div>
@@ -79,7 +79,7 @@ export default function ObligationsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Obligations</h1>
+          <h1 className="text-3xl font-bold tracking-tight">EMI & Bills</h1>
           <p className="text-muted-foreground mt-1">
             Track your loans, EMIs, and recurring subscriptions.
           </p>

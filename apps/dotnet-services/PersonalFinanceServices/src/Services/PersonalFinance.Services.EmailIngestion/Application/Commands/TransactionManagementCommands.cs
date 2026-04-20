@@ -55,9 +55,15 @@ namespace PersonalFinance.Services.EmailIngestion.Application.Commands
                 if (parsedTxn.Status != ParsedTransactionStatus.Pending)
                     return ApiResponse<ParsedTransactionDto>.ErrorResult("Transaction has already been processed");
 
+                if (request.AccountId == Guid.Empty)
+                    return ApiResponse<ParsedTransactionDto>.ErrorResult("Please select a target account for this transaction.");
+
+                var txnId = Guid.NewGuid();
+
                 // Publish the external confirmation event
                 await _publishEndpoint.Publish(new ExternalTransactionConfirmedEvent
                 {
+                    TransactionId = txnId,
                     ExternalId = parsedTxn.Id,
                     UserId = parsedTxn.UserId,
                     AccountId = request.AccountId,
@@ -69,7 +75,7 @@ namespace PersonalFinance.Services.EmailIngestion.Application.Commands
                     TransactionDate = parsedTxn.TransactionDate
                 }, cancellationToken);
 
-                parsedTxn.Confirm(Guid.NewGuid());
+                parsedTxn.Confirm(txnId);
                 parsedTxn.UpdateDetails(null, null, null, null, request.AccountId);
 
                 // Also link the processed email
@@ -157,6 +163,9 @@ namespace PersonalFinance.Services.EmailIngestion.Application.Commands
 
             try
             {
+                if (request.AccountId == Guid.Empty)
+                    return ApiResponse<BulkConfirmResultDto>.ErrorResult("Please select a target account for bulk confirmation.");
+
                 var pendingTxns = await Context.ParsedTransactions
                     .Where(p => p.UserId == request.UserId &&
                                 p.Status == ParsedTransactionStatus.Pending &&
@@ -175,6 +184,7 @@ namespace PersonalFinance.Services.EmailIngestion.Application.Commands
 
                         await _publishEndpoint.Publish(new ExternalTransactionConfirmedEvent
                         {
+                            TransactionId = txnId,
                             ExternalId = txn.Id,
                             UserId = txn.UserId,
                             AccountId = request.AccountId,

@@ -97,5 +97,12 @@ export const emailIngestionService = {
       baseURL: GATEWAY_URL,
     });
     return response.data;
+  },
+
+  resetConfirmed: async (userId: string) => {
+    const response = await api.post(`/api/EmailIngestion/reset-confirmed/${userId}`, {}, {
+      baseURL: GATEWAY_URL,
+    });
+    return response.data;
   }
 };

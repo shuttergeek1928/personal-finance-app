@@ -112,10 +112,20 @@ namespace PersonalFinance.Services.UserManagement.Application.Commands
                     user.SetGoogleId(payload.Subject);
                 }
 
-                // Store or update Gmail Tokens
+                    // Store or update Gmail Tokens
                 if (!string.IsNullOrEmpty(tokenResponse.AccessToken))
                 {
                     var tokenExpiresAt = tokenResponse.IssuedUtc.AddSeconds(tokenResponse.ExpiresInSeconds ?? 3600);
+                    
+                    if (string.IsNullOrEmpty(tokenResponse.RefreshToken))
+                    {
+                        Logger.LogInformation("Google Login: No new refresh token received for user {UserId}. Utilizing existing one if available.", user.Id);
+                    }
+                    else 
+                    {
+                        Logger.LogInformation("Google Login: New refresh token received for user {UserId}", user.Id);
+                    }
+
                     // Retain the existing refresh token if Google didn't return a new one
                     var refreshTokenToStore = !string.IsNullOrEmpty(tokenResponse.RefreshToken) 
                         ? tokenResponse.RefreshToken 

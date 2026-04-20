@@ -5,6 +5,8 @@ using MediatR;
 using PersonalFinance.Services.UserManagement.Application.Common;
 using PersonalFinance.Services.UserManagement.Application.DataTransferObjects.Response;
 using PersonalFinance.Services.UserManagement.Infrastructure.Data;
+using MassTransit;
+using PersonalFinance.Shared.Events.Events;
 
 namespace PersonalFinance.Services.UserManagement.Application.Commands
 {
@@ -19,8 +21,11 @@ namespace PersonalFinance.Services.UserManagement.Application.Commands
 
     public class DeleteUserCommandHandler : BaseRequestHandler<DeleteUserCommand, ApiResponse<bool>>
     {
-        public DeleteUserCommandHandler(UserManagementDbContext context, ILogger<DeleteUserCommandHandler> logger, IMapper mapper) : base(context, logger, mapper)
+        private readonly IPublishEndpoint _publishEndpoint;
+
+        public DeleteUserCommandHandler(UserManagementDbContext context, ILogger<DeleteUserCommandHandler> logger, IMapper mapper, IPublishEndpoint publishEndpoint) : base(context, logger, mapper)
         {
+            _publishEndpoint = publishEndpoint;
         }
 
         public override async Task<ApiResponse<bool>> Handle(DeleteUserCommand request, CancellationToken cancellationToken)
@@ -35,10 +40,16 @@ namespace PersonalFinance.Services.UserManagement.Application.Commands
                     return ApiResponse<bool>.ErrorResult("User not found");
                 }
 
-                user.Deactivate("User deleted by request");
+                // Publish the event to other services before deleting the user
+                await _publishEndpoint.Publish(new UserDeletedEvent
+                {
+                    UserId = request.UserId
+                }, cancellationToken);
+
+                Context.Users.Remove(user);
                 await Context.SaveChangesAsync(cancellationToken);
 
-                Logger.LogInformation("User with ID {UserId} deleted successfully", request.UserId);
+                Logger.LogInformation("User with ID {UserId} and all related data deletion triggered successfully", request.UserId);
                 return ApiResponse<bool>.SuccessResult(true, "User deleted successfully");
             }
             catch (Exception ex)

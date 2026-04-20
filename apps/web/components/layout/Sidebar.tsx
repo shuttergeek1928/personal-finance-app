@@ -29,7 +29,7 @@ const userNavigation = [
   { name: "My Dashboard", href: "/my/dashboard", icon: Home },
   { name: "My Transactions", href: "/my/transactions", icon: ArrowLeftRight },
   { name: "My Accounts", href: "/my/accounts", icon: Wallet },
-  { name: "My Obligations", href: "/my/obligations", icon: Receipt },
+  { name: "EMI & Bills", href: "/my/obligations", icon: Receipt },
   {
     name: "My Credit Cards",
     href: "/my/obligations/credit-cards",

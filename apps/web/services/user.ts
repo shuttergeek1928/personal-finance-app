@@ -142,4 +142,11 @@ export const userService = {
     });
     return response.data;
   },
+
+  deleteMe: async (): Promise<BooleanApiResponse> => {
+    const response = await api.delete("/api/Users/self-delete", {
+      baseURL: GATEWAY_BASE_URL,
+    });
+    return response.data;
+  },
 };

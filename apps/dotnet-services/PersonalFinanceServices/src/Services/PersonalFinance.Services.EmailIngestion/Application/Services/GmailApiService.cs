@@ -14,13 +14,21 @@ namespace PersonalFinance.Services.EmailIngestion.Application.Services
         /// <summary>
         /// Fetches emails from Gmail matching the given query after the specified timestamp.
         /// </summary>
-        Task<List<GmailEmailMessage>> FetchEmailsAsync(string accessToken, string refreshToken,
+        Task<GmailFetchResult> FetchEmailsAsync(string accessToken, string refreshToken,
             string? query = null, DateTime? after = null, int maxResults = 50, CancellationToken ct = default);
 
         /// <summary>
         /// Refreshes a Gmail access token using the refresh token.
         /// </summary>
         Task<(string newAccessToken, DateTime expiresAt)> RefreshAccessTokenAsync(string refreshToken, CancellationToken ct = default);
+    }
+
+    public class GmailFetchResult
+    {
+        public List<GmailEmailMessage> Messages { get; set; } = new();
+        public string? RefreshedAccessToken { get; set; }
+        public DateTime? RefreshedExpiresAt { get; set; }
+        public bool TokenWasRefreshed => !string.IsNullOrEmpty(RefreshedAccessToken);
     }
 
     public class GmailEmailMessage
@@ -45,14 +53,14 @@ namespace PersonalFinance.Services.EmailIngestion.Application.Services
             _logger = logger;
         }
 
-        public async Task<List<GmailEmailMessage>> FetchEmailsAsync(string accessToken, string refreshToken,
+        public async Task<GmailFetchResult> FetchEmailsAsync(string accessToken, string refreshToken,
             string? query = null, DateTime? after = null, int maxResults = 50, CancellationToken ct = default)
         {
-            var results = new List<GmailEmailMessage>();
+            var result = new GmailFetchResult();
 
             try
             {
-                var service = CreateGmailService(accessToken, refreshToken);
+                var (service, credential) = CreateGmailService(accessToken, refreshToken);
 
                 // Build query string
                 var queryParts = new List<string>();
@@ -72,10 +80,18 @@ namespace PersonalFinance.Services.EmailIngestion.Application.Services
 
                 var listResponse = await listRequest.ExecuteAsync(ct);
 
+                // Check if token was refreshed during the request
+                if (credential.Token.AccessToken != accessToken)
+                {
+                    _logger.LogInformation("Detected Gmail token refresh during request");
+                    result.RefreshedAccessToken = credential.Token.AccessToken;
+                    result.RefreshedExpiresAt = credential.Token.IssuedUtc.AddSeconds(credential.Token.ExpiresInSeconds ?? 3600);
+                }
+
                 if (listResponse.Messages == null || !listResponse.Messages.Any())
                 {
                     _logger.LogInformation("No new messages found matching query");
-                    return results;
+                    return result;
                 }
 
                 _logger.LogInformation("Found {Count} messages to process", listResponse.Messages.Count);
@@ -91,7 +107,7 @@ namespace PersonalFinance.Services.EmailIngestion.Application.Services
                         var emailMessage = ParseRawMessage(message);
 
                         if (emailMessage != null)
-                            results.Add(emailMessage);
+                            result.Messages.Add(emailMessage);
                     }
                     catch (Exception ex)
                     {
@@ -105,7 +121,7 @@ namespace PersonalFinance.Services.EmailIngestion.Application.Services
                 throw;
             }
 
-            return results;
+            return result;
         }
 
         public async Task<(string newAccessToken, DateTime expiresAt)> RefreshAccessTokenAsync(
@@ -135,7 +151,7 @@ namespace PersonalFinance.Services.EmailIngestion.Application.Services
             return (tokenResponse.AccessToken, expiresAt);
         }
 
-        private GmailService CreateGmailService(string accessToken, string refreshToken)
+        private (GmailService service, UserCredential credential) CreateGmailService(string accessToken, string refreshToken)
         {
             var clientId = _configuration["GoogleSettings:ClientId"] ?? "";
             var clientSecret = _configuration["GoogleSettings:ClientSecret"] ?? "";
@@ -158,11 +174,13 @@ namespace PersonalFinance.Services.EmailIngestion.Application.Services
 
             var credential = new UserCredential(flow, "user", tokenResponse);
 
-            return new GmailService(new BaseClientService.Initializer
+            var service = new GmailService(new BaseClientService.Initializer
             {
                 HttpClientInitializer = credential,
                 ApplicationName = "PersonalFinance EmailIngestion"
             });
+
+            return (service, credential);
         }
 
         private GmailEmailMessage? ParseRawMessage(Message message)

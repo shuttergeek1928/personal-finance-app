@@ -6,6 +6,7 @@ namespace PersonalFinance.Shared.Events.Events
     /// </summary>
     public class ExternalTransactionConfirmedEvent
     {
+        public Guid TransactionId { get; set; }
         public Guid ExternalId { get; set; }
         public Guid UserId { get; set; }
         public Guid AccountId { get; set; }
@@ -15,5 +16,16 @@ namespace PersonalFinance.Shared.Events.Events
         public string Description { get; set; } = string.Empty;
         public string Category { get; set; } = string.Empty;
         public DateTime TransactionDate { get; set; }
+    }
+
+    /// <summary>
+    /// Triggered when a previously confirmed transaction is reset back to pending.
+    /// Leads to removal of the transaction from the main ledger if it was already created.
+    /// </summary>
+    public class ExternalTransactionResetEvent
+    {
+        public Guid ExternalId { get; set; }
+        public Guid UserId { get; set; }
+        public Guid? ConfirmedTransactionId { get; set; }
     }
 }

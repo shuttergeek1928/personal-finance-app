@@ -124,6 +124,8 @@ export default function AuthClient() {
         client_id: GOOGLE_CLIENT_ID,
         scope: "openid email profile https://www.googleapis.com/auth/gmail.readonly",
         ux_mode: "popup",
+        access_type: "offline",
+        prompt: "consent",
         callback: handleGoogleLogin,
       });
 

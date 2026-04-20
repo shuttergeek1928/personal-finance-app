@@ -9,6 +9,8 @@ using PersonalFinance.Services.EmailIngestion.Application.DataTransferObjects;
 using PersonalFinance.Services.EmailIngestion.Application.DataTransferObjects.Response;
 using PersonalFinance.Services.EmailIngestion.Domain.Entities;
 using PersonalFinance.Services.EmailIngestion.Infrastructure.Data;
+using MassTransit;
+using PersonalFinance.Shared.Events.Events;
 
 namespace PersonalFinance.Services.EmailIngestion.Application.Queries
 {
@@ -44,6 +46,10 @@ namespace PersonalFinance.Services.EmailIngestion.Application.Queries
                     .CountAsync(p => p.UserId == request.UserId && p.Status == ParsedTransactionStatus.Pending,
                         cancellationToken);
 
+                var confirmedCount = await Context.ParsedTransactions
+                    .CountAsync(p => p.UserId == request.UserId && p.Status == ParsedTransactionStatus.Confirmed,
+                        cancellationToken);
+
                 var hasLocalTokens = await Context.UserTokens
                     .AnyAsync(t => t.UserId == request.UserId, cancellationToken);
 
@@ -54,7 +60,7 @@ namespace PersonalFinance.Services.EmailIngestion.Application.Queries
                     LastSyncAt = syncStates.Any() ? syncStates.Max(s => s.LastSyncAt) : null,
                     TotalEmailsProcessed = syncStates.Sum(s => s.TotalEmailsProcessed),
                     TotalTransactionsParsed = syncStates.Sum(s => s.TotalTransactionsParsed),
-                    TotalTransactionsConfirmed = syncStates.Sum(s => s.TotalTransactionsConfirmed),
+                    TotalTransactionsConfirmed = confirmedCount,
                     PendingReviewCount = pendingCount,
                     CategorySyncInfo = syncStates.Select(s => new CategorySyncInfo
                     {
@@ -189,11 +195,15 @@ namespace PersonalFinance.Services.EmailIngestion.Application.Queries
     public class ResetConfirmedTransactionsCommandHandler :
         BaseRequestHandler<ResetConfirmedTransactionsCommand, ApiResponse<int>>
     {
+        private readonly IPublishEndpoint _publishEndpoint;
+
         public ResetConfirmedTransactionsCommandHandler(
             EmailIngestionDbContext context,
             ILogger<ResetConfirmedTransactionsCommandHandler> logger,
-            IMapper mapper) : base(context, logger, mapper)
+            IMapper mapper,
+            IPublishEndpoint publishEndpoint) : base(context, logger, mapper)
         {
+            _publishEndpoint = publishEndpoint;
         }
 
         public override async Task<ApiResponse<int>> Handle(
@@ -207,7 +217,15 @@ namespace PersonalFinance.Services.EmailIngestion.Application.Queries
             int count = 0;
             foreach (var txn in txns)
             {
+                await _publishEndpoint.Publish(new ExternalTransactionResetEvent
+                {
+                    ExternalId = txn.Id,
+                    UserId = txn.UserId,
+                    ConfirmedTransactionId = txn.ConfirmedTransactionId
+                }, cancellationToken);
+
                 txn.GetType().GetProperty("Status")?.SetValue(txn, ParsedTransactionStatus.Pending);
+                txn.UpdateDetails(null, null, null, null, Guid.Empty); // Reset assigned account too
                 count++;
             }
 

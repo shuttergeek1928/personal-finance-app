@@ -111,4 +111,18 @@ namespace PersonalFinance.Shared.Events.Events
         public string? ReferenceNumber { get; init; }
         public string Source { get; init; } = "Gmail"; // Gmail, SMS, AccountAggregator, BankStatement
     }
+
+    // Transaction deleted event
+    public record TransactionDeletedEvent : IIntegrationEvent
+    {
+        public Guid EventId { get; init; } = Guid.NewGuid();
+        public DateTime OccurredOn { get; init; } = DateTime.UtcNow;
+
+        public Guid TransactionId { get; init; }
+        public Guid UserId { get; init; }
+        public Guid? AccountId { get; init; }
+        public Guid? CreditCardId { get; init; }
+        public decimal Amount { get; init; }
+        public string TransactionType { get; init; } = string.Empty;
+    }
 }

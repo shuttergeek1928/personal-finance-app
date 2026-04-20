@@ -81,7 +81,7 @@ namespace PersonalFinance.Services.EmailIngestion.Application.Commands
                 DateTime? lastSync = syncState?.LastSyncAt;
 
                 // Fetch emails from Gmail
-                var emails = await _gmailService.FetchEmailsAsync(
+                var fetchResult = await _gmailService.FetchEmailsAsync(
                     accessToken,
                     refreshToken,
                     query: BuildGmailQuery(request.CategoryFilter),
@@ -89,9 +89,25 @@ namespace PersonalFinance.Services.EmailIngestion.Application.Commands
                     maxResults: 100,
                     ct: cancellationToken);
 
-                result.EmailsFetched = emails.Count;
+                // Persist refreshed tokens if any
+                if (fetchResult.TokenWasRefreshed)
+                {
+                    var userToken = await Context.UserTokens
+                        .FirstOrDefaultAsync(t => t.UserId == request.UserId, cancellationToken);
 
-                foreach (var email in emails)
+                    if (userToken != null)
+                    {
+                        userToken.AccessToken = fetchResult.RefreshedAccessToken!;
+                        userToken.ExpiresAt = fetchResult.RefreshedExpiresAt!.Value;
+                        userToken.UpdatedAt = DateTime.UtcNow;
+                        await Context.SaveChangesAsync(cancellationToken);
+                        Logger.LogInformation("Saved refreshed Gmail access token to database for user {UserId}", request.UserId);
+                    }
+                }
+
+                result.EmailsFetched = fetchResult.Messages.Count;
+
+                foreach (var email in fetchResult.Messages)
                 {
                     try
                     {
